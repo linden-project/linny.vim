@@ -1,41 +1,16 @@
-" File: mkd_wiki.vim
-" Author: Henri Bourcereau
-" Version: 1.4
-" Last Modified: April 28, 2017
+" File: vim-markdown-kiwi.vim
+" Author: Pim Snel
+" Version: 1.0
+" Last Modified: August 17, 2018
 "
-" "vim-markdown-wiki" is a Vim plugin which eases the navigation between files
-" in a personnal wiki
-" Links syntax currently supported follows Github Flavored Markdown ie [My displayed link](My-link.md)
+" *vim-markdown-kiwi* is a Vim plugin which eases the navigation between files
+" in a personal wiki based on markdown and can work brilliantly together with
+" the personal wiki app for iOS app https://github.com/landakram/kiwi
 "
-" Installation
-" ------------
-" Copy the markdown.vim file into the $HOME/.vim/after/ftplugin/ directory
-"
-" Change key mappings in your vim config file
-" --------
-"
-" Create or go to link :
-" nnoremap  <CR> :MdwiGotoLink
-"
-" Return to previous page :
-" nnoremap  <Leader><CR> :MdwiReturn
-"
-" Usage
-" -----
-" Link creation :
-" - Hit the ENTER key when the cursor is on a text between brackets : `[a title]`
-" - The link will be created  `[a title](a-title.md)` and the corresponding file will be loaded in the buffer.
-
-" Navigation :
-" - Hit the ENTER key when the cursor is on a wiki link
-" - The corresponding link file is loaded in the current buffer.
-" - Hit leader key + ENTER to go back
-
-
 " Contribute
 " ----------
 " You can fork this project on Github :
-" https://github.com/mmai/vim-markdown-wiki
+" https://github.com/mipmip/vim-markdown-kiwi
 
 "initVariable borrowed from NERDTree
 function! s:initVariable(var, value)
