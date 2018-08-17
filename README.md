@@ -39,6 +39,28 @@ Return to previous page  :
 Tips
 ----
 
+### Convert []() style links to [[]]
+
+use this vim replace regex to convert your links if you want to switch from []() links to [[]]
+
+```
+:%s/\[\([a-zA-Z0-9+,:@&'_\.\-\ ]*\)](.*)/[[\1]]/gc
+```
+
+### Use GNU rename to convert your markdown files
+
+Convert dashes to underscores:
+
+```
+rename 's/-/_/g' *.md
+```
+
+Convert files to lowercase names
+
+```
+rename -fn 'y/A-Z/a-z/' *.md
+```
+
 ### Make shortcuts for your starting point files. I have them mapped like this:
 
 nmap \w :e $HOME/Dropbox/Apps/KiwiApp/wiki/home.md<CR>
@@ -75,11 +97,16 @@ nmap \i :!ruby ~/.vim/helpers/make_wiki_index.rb<CR><CR>:e $HOME/Dropbox/Apps/Ki
 Store your wiki files in Dropbox so it is available on your devices and can
 work with [Kiwi App](https://itunes.apple.com/us/app/kiwi-personal-wiki/id1158640011?mt=8).
 
+### Other great markdown vim plugins
+
+- https://github.com/tpope/vim-markdown
+- https://github.com/dhruvasagar/vim-table-mode
+
 ## Acknowledgements
 
 This plugin it almost heavily based on
 [mmai/vim-markdown-wiki](https://github.com/mmai/vim-markdown-wiki). Main
 difference is the wiki-links format.
 
-vim-markdown-kiwi uses [[some page]] and vim-markdown-wiki users [some
+vim-markdown-kiwi uses [[some page]] and vim-markdown-wiki uses [some
 page](some-page.md)
