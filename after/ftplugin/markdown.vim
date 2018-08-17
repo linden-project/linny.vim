@@ -96,12 +96,12 @@ function! MdwiWordFilename(word)
   if !empty(a:word)
     " strip leading and trailing spaces
     let word = substitute(a:word, '^\s*\(.\{-}\)\s*$', '\1', '')
-    "substitute spaces by dashes
+    "substitute spaces by spaceReplaceChar
     let word = substitute(word, '\s', s:spaceReplaceChar, 'g')
 
     let cur_file_name = bufname("%")
     let extension = fnamemodify(cur_file_name, ":e")
-    let file_name = word.".".extension
+    let file_name = tolower(word).".".extension
   endif
   return file_name
 endfunction
@@ -215,6 +215,7 @@ function! MdwiGotoLink()
 
     let link = MdwiFilePath(relativepath)
     exec 'edit +execute\ "' . escape(strCmd, ' "\') . '" ' . link
+    "exec ":w"
   endif
 endfunction
 endif
