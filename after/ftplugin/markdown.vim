@@ -1,9 +1,9 @@
 " File: mkd_wiki.vim
-" Author: Henri Bourcereau 
+" Author: Henri Bourcereau
 " Version: 1.4
 " Last Modified: April 28, 2017
 "
-" "vim-markdown-wiki" is a Vim plugin which eases the navigation between files 
+" "vim-markdown-wiki" is a Vim plugin which eases the navigation between files
 " in a personnal wiki
 " Links syntax currently supported follows Github Flavored Markdown ie [My displayed link](My-link.md)
 "
@@ -13,20 +13,20 @@
 "
 " Change key mappings in your vim config file
 " --------
-" 
+"
 " Create or go to link :
-" nnoremap  <CR> :MdwiGotoLink 
+" nnoremap  <CR> :MdwiGotoLink
 "
 " Return to previous page :
 " nnoremap  <Leader><CR> :MdwiReturn
 "
-" Usage 
+" Usage
 " -----
-" Link creation : 
+" Link creation :
 " - Hit the ENTER key when the cursor is on a text between brackets : `[a title]`
 " - The link will be created  `[a title](a-title.md)` and the corresponding file will be loaded in the buffer.
 
-" Navigation : 
+" Navigation :
 " - Hit the ENTER key when the cursor is on a wiki link
 " - The corresponding link file is loaded in the current buffer.
 " - Hit leader key + ENTER to go back
@@ -49,16 +49,29 @@ endfunction
 "Initialize variables
 call s:initVariable("s:footer", "_Footer")
 call s:initVariable("s:sidebar", "_Sidebar")
-call s:initVariable("s:startWord", '[')
-call s:initVariable("s:endWord", ']')
+call s:initVariable("s:startWord", '[[')
+call s:initVariable("s:endWord", ']]')
 call s:initVariable("s:startLink", '(')
 call s:initVariable("s:endLink", ')')
 call s:initVariable("s:lastPosLine", 0)
 call s:initVariable("s:lastPosCol", 0)
+call s:initVariable("s:spaceReplaceChar", '_')
 
 " *********************************************************************
-" *                      Utilities 
+" *                      Utilities
 " *********************************************************************
+
+function! MdwiFileExist(relativePath)
+
+  if filereadable(a:relativePath)
+    "  if !empty(glob(a:relativePath))
+    return 1
+  endif
+
+  return 0
+
+endfunction
+
 
 function! MdwiStrBetween(startStr, endStr)
   let str = ''
@@ -71,7 +84,7 @@ function! MdwiStrBetween(startStr, endStr)
 
   if (startPos[1] < origPos[2])
     let ll = getline(line('.'))
-    let str = strpart(ll, startPos[1], endPos[1] - startPos[1] - 1)
+    let str = strpart(ll, startPos[1] + strlen(a:startStr) - 1, endPos[1] - strlen(a:endStr) - startPos[1])
   endif
   return str
 endfunction
@@ -84,7 +97,7 @@ function! MdwiWordFilename(word)
     " strip leading and trailing spaces
     let word = substitute(a:word, '^\s*\(.\{-}\)\s*$', '\1', '')
     "substitute spaces by dashes
-    let word = substitute(word, '\s', '-', 'g')
+    let word = substitute(word, '\s', s:spaceReplaceChar, 'g')
 
     let cur_file_name = bufname("%")
     let extension = fnamemodify(cur_file_name, ":e")
@@ -108,7 +121,7 @@ function! MdwiFilePath(relativepath)
 endfunction
 
 " *********************************************************************
-" *                      Words 
+" *                      Words
 " *********************************************************************
 
 function! MdwiFindWordPos()
@@ -140,7 +153,7 @@ function! MdwiGetWord()
 endfunction
 
 " *********************************************************************
-" *                      Links 
+" *                      Links
 " *********************************************************************
 function! MdwiFindLinkPos()
   let origPos = getpos('.')
@@ -182,21 +195,26 @@ function! MdwiGotoLink()
 
   let word = MdwiGetWord()
   let strCmd = ""
+
   if !empty(word)
     let relativepath = MdwiGetLink()
     if (empty(relativepath))
       let relativepath = MdwiWordFilename(word)
+
       "Add link to the document
-      let endPos = searchpos(s:endWord, 'W', line('.'))
-      let ok = cursor(endPos[0], endPos[1])
-      exec "normal! a(".relativepath.")"
-      exec ":w"
-      "Write title to the new document
-      let strCmd = 'normal!\ a'.escape(word, ' \').'\<esc>yypv$r=o\<cr>'
+      "let endPos = searchpos(s:endWord, 'W', line('.'))
+      "let ok = cursor(endPos[0], endPos[1])
+      "exec "normal! a(".relativepath.")"
+      "exec ":w"
+
+      "Write title to the new document if file not exist
+      if(MdwiFileExist(MdwiFilePath(relativepath)) != 1)
+        let strCmd = 'normal!\ a'.escape(word, ' \').'\<esc>yypv$r=o\<cr>'
+      endif
     endif
 
     let link = MdwiFilePath(relativepath)
-    exec 'edit +execute\ "' . escape(strCmd, ' "\') . '" ' . link 
+    exec 'edit +execute\ "' . escape(strCmd, ' "\') . '" ' . link
   endif
 endfunction
 endif
@@ -207,7 +225,7 @@ if !hasmapto('<Plug>MdwiGotoLink')
   nmap <buffer> <silent> <CR> <Plug>MdwiGotoLink
 endif
 
-"Shift+Return to return to the previous buffer 
+"Shift+Return to return to the previous buffer
 if !exists('*MdwiReturn')
 function! MdwiReturn()
   exec 'buffer #'
