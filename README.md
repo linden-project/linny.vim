@@ -2,7 +2,7 @@ vim-markdown-wiki
 ================
 
 *vim-markdown-kiwi* is a Vim plugin which eases the navigation between files in
-a personal wiki based on markdown and can work brilliantly together with the personal
+a personal wiki based on markdown and can work together with the personal
 wiki app for iOS app https://github.com/landakram/kiwi
 
 Installation
@@ -108,5 +108,5 @@ This plugin it almost heavily based on
 [mmai/vim-markdown-wiki](https://github.com/mmai/vim-markdown-wiki). Main
 difference is the wiki-links format.
 
-vim-markdown-kiwi uses [[some page]] and vim-markdown-wiki uses [some
-page](some-page.md)
+vim-markdown-kiwi uses ```[[some page]]``` and vim-markdown-wiki uses ```[some
+page](some-page.md)```
