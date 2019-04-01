@@ -165,6 +165,23 @@ endfunction
 " ******** Go to link *****************
 if !exists('*MdwiGotoLink')
 function! MdwiGotoLink()
+    let openLinkCmd = MdwiPrepareGotoLink()
+    echo "hallo"
+    exec 'edit'. openLinkCmd
+endfunction
+endif
+
+" ******** Go to link in new tab *************
+if !exists('*MdwiGotoLinkInNewTab')
+function! MdwiGotoLinkInNewTab()
+    let openLinkCmd = MdwiPrepareGotoLink()
+    exec 'tabnew'. openLinkCmd
+endfunction
+endif
+
+" ******** Go to link *****************
+if !exists('*MdwiPrepareGotoLink')
+function! MdwiPrepareGotoLink()
   let s:lastPosLine = line('.')
   let s:lastPosCol = col('.')
 
@@ -176,12 +193,6 @@ function! MdwiGotoLink()
     if (empty(relativepath))
       let relativepath = MdwiWordFilename(word)
 
-      "Add link to the document
-      "let endPos = searchpos(s:endWord, 'W', line('.'))
-      "let ok = cursor(endPos[0], endPos[1])
-      "exec "normal! a(".relativepath.")"
-      "exec ":w"
-
       "Write title to the new document if file not exist
       if(MdwiFileExist(MdwiFilePath(relativepath)) != 1)
         let strCmd = 'normal!\ a'.escape(word, ' \').'\<esc>yypv$r=o\<cr>'
@@ -189,17 +200,74 @@ function! MdwiGotoLink()
     endif
 
     let link = MdwiFilePath(relativepath)
-    exec 'edit +execute\ "' . escape(strCmd, ' "\') . '" ' . link
-    "exec ":w"
+    return ' +execute\ "' . escape(strCmd, ' "\') . '" ' . link
   endif
 endfunction
 endif
 
-command! -buffer MdwiGotoLink call MdwiGotoLink()
-nnoremap <buffer> <script> <Plug>MdwiGotoLink :MdwiGotoLink<CR>
-if !hasmapto('<Plug>MdwiGotoLink')
-  nmap <buffer> <silent> <CR> <Plug>MdwiGotoLink
+" ******** Go to link copy frontmatter *****************
+if !exists('*MdwiGotoLinkWithFrontMatter')
+  function! MdwiGotoLinkWithFrontMatter()
+    let s:lastPosLine = line('.')
+    let s:lastPosCol = col('.')
+
+    let word = MdwiGetWord()
+    let strCmd = ""
+    let frontmatter = []
+
+    if(getline(1) == '---')
+      let ok = cursor(1, 1)
+
+      let fmEnd = search('---', '', line("w$"))
+      if (fmEnd > 0)
+        let frontmatter = getbufline(bufnr('%'), 1, fmEnd)
+        call add(frontmatter, "")
+      endif
+    end
+
+    if !empty(word)
+      let relativepath = MdwiGetLink()
+      if (empty(relativepath))
+        let relativepath = MdwiWordFilename(word)
+
+        "Write title to the new document if file not exist
+        if(MdwiFileExist(MdwiFilePath(relativepath)) != 1)
+
+          let i = 1
+          let h1line = ""
+          while i <= len(word)
+            let i += 1
+            let h1line = h1line ."="
+          endwhile
+
+          call add(frontmatter, word)
+          call add(frontmatter, h1line)
+
+          if writefile(frontmatter, MdwiFilePath(relativepath))
+            echomsg 'write error'
+          endif
+
+          "let strCmd = 'normal!\ a'.escape(word, ' \').'\<esc>yypv$r=o\<cr>'
+        endif
+      endif
+
+      let link = MdwiFilePath(relativepath)
+      exec 'edit +execute\ "' . escape(strCmd, ' "\') . '" ' . link
+    endif
+  endfunction
 endif
+
+"command! -buffer MdwiGotoLink call MdwiGotoLink()
+"nnoremap <buffer> <script> <Plug>MdwiGotoLink :MdwiGotoLink<CR>
+"if !hasmapto('<Plug>MdwiGotoLink')
+"  nmap <buffer> <silent> <CR> <Plug>MdwiGotoLink
+"endif
+"
+"command! -buffer MdwiGotoLinkInNewTab call MdwiGotoLinkInNewTab()
+"nnoremap <buffer> <script> <Plug>MdwiGotoLinkInNewTab :MdwiGotoLinkInNewTab<CR>
+"if !hasmapto('<Plug>MdwiGotoLinkInNewTab')
+"  nmap <buffer> <silent> <CR> <Plug>MdwiGotoLinkInNewTab
+"endif
 
 "Shift+Return to return to the previous buffer
 if !exists('*MdwiReturn')
