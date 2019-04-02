@@ -162,98 +162,104 @@ function! MdwiGetLink()
   return link
 endfunction
 
+" ******** CHECK FOR FILE OR DIR *****************
+function! MdwiWordHasFileSystemPath(word)
+
+  if a:word =~ "^FILE.*"
+    return trim(a:word[4:-1])
+  elseif a:word =~ "^DIR.*"
+    return trim(a:word[3:-1])
+  else
+    return ""
+  endif
+
+endfunction
+
 " ******** Go to link *****************
 if !exists('*MdwiGotoLink')
 function! MdwiGotoLink()
-    let openLinkCmd = MdwiPrepareGotoLink()
-    echo "hallo"
-    exec 'edit'. openLinkCmd
+    call MdwiGotoLinkMain(0,1)
 endfunction
 endif
 
 " ******** Go to link in new tab *************
 if !exists('*MdwiGotoLinkInNewTab')
 function! MdwiGotoLinkInNewTab()
-    let openLinkCmd = MdwiPrepareGotoLink()
-    exec 'tabnew'. openLinkCmd
+    MdwiGotoLinkMain(0,1)
 endfunction
 endif
 
-" ******** Go to link *****************
-if !exists('*MdwiPrepareGotoLink')
-function! MdwiPrepareGotoLink()
-  let s:lastPosLine = line('.')
-  let s:lastPosCol = col('.')
-
-  let word = MdwiGetWord()
-  let strCmd = ""
-
-  if !empty(word)
-    let relativepath = MdwiGetLink()
-    if (empty(relativepath))
-      let relativepath = MdwiWordFilename(word)
-
-      "Write title to the new document if file not exist
-      if(MdwiFileExist(MdwiFilePath(relativepath)) != 1)
-        let strCmd = 'normal!\ a'.escape(word, ' \').'\<esc>yypv$r=o\<cr>'
-      endif
-    endif
-
-    let link = MdwiFilePath(relativepath)
-    return ' +execute\ "' . escape(strCmd, ' "\') . '" ' . link
-  endif
-endfunction
-endif
-
-" ******** Go to link copy frontmatter *****************
+" ******** Go to link main executer *****************
 if !exists('*MdwiGotoLinkWithFrontMatter')
   function! MdwiGotoLinkWithFrontMatter()
+    MdwiGotoLinkMain(1,0)
+  endfunction
+endif
+
+if !exists('*MdwiGotoLinkMain')
+  function! MdwiGotoLinkMain(copyFrontMatter, openInNewTab)
     let s:lastPosLine = line('.')
     let s:lastPosCol = col('.')
 
     let word = MdwiGetWord()
-    let strCmd = ""
-    let frontmatter = []
-
-    if(getline(1) == '---')
-      let ok = cursor(1, 1)
-
-      let fmEnd = search('---', '', line("w$"))
-      if (fmEnd > 0)
-        let frontmatter = getbufline(bufnr('%'), 1, fmEnd)
-        call add(frontmatter, "")
-      endif
-    end
 
     if !empty(word)
-      let relativepath = MdwiGetLink()
-      if (empty(relativepath))
-        let relativepath = MdwiWordFilename(word)
 
-        "Write title to the new document if file not exist
-        if(MdwiFileExist(MdwiFilePath(relativepath)) != 1)
+      if(MdwiWordHasFileSystemPath(word)!="")
+        silent execute "!open " . fnameescape(MdwiWordHasFileSystemPath(word))
+      else
 
-          let i = 1
-          let h1line = ""
-          while i <= len(word)
-            let i += 1
-            let h1line = h1line ."="
-          endwhile
+        let strCmd = ""
+        let fileLines = []
 
-          call add(frontmatter, word)
-          call add(frontmatter, h1line)
+        if(a:copyFrontMatter)
+          if(getline(1) == '---')
+            let ok = cursor(1, 1)
 
-          if writefile(frontmatter, MdwiFilePath(relativepath))
-            echomsg 'write error'
-          endif
-
-          "let strCmd = 'normal!\ a'.escape(word, ' \').'\<esc>yypv$r=o\<cr>'
+            let fmEnd = search('---', '', line("w$"))
+            if (fmEnd > 0)
+              let fileLines = getbufline(bufnr('%'), 1, fmEnd)
+              call add(fileLines, "")
+            endif
+          end
         endif
-      endif
 
-      let link = MdwiFilePath(relativepath)
-      exec 'edit +execute\ "' . escape(strCmd, ' "\') . '" ' . link
+        let relativepath = MdwiGetLink()
+        if (empty(relativepath))
+          let relativepath = MdwiWordFilename(word)
+
+          "Write title to the new document if file not exist
+          if(MdwiFileExist(MdwiFilePath(relativepath)) != 1)
+
+            let i = 1
+            let h1line = ""
+            while i <= len(word)
+              let i += 1
+              let h1line = h1line ."="
+            endwhile
+
+            call add(fileLines, word)
+            call add(fileLines, h1line)
+
+            if writefile(fileLines, MdwiFilePath(relativepath))
+              echomsg 'write error'
+            endif
+
+            "let strCmd = 'normal!\ a'.escape(word, ' \').'\<esc>yypv$r=o\<cr>'
+          endif
+        endif
+
+        let link = MdwiFilePath(relativepath)
+
+        let openCmd='edit'
+        if(a:openInNewTab)
+          let openCmd='tabnew'
+        end
+        exec openCmd . ' +execute\ "' . escape(strCmd, ' "\') . '" ' . link
+
+      endif
     endif
+
   endfunction
 endif
 

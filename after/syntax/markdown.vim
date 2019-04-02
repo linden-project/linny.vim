@@ -12,3 +12,14 @@ syn region markdownLinkText matchgroup=markdownLinkTextDelimiter start="!\=[[(]\
 
 syn clear markdownId
 syn region markdownId matchgroup=markdownIdDelimiter start="\[\[" end="\]\]" keepend contained
+
+syntax keyword testfileexist FILEEXISTS
+syntax keyword testfilenotexist FILENOTEXIST
+
+
+highlight default link testfileexist Keyword
+highlight default link testfilenotexist Comment
+
+
+"syn match jekyllYamlFrontmatter /\\%^---\\_.\\{-}---$/ contains=@Spell
+"syntax match Comment /\%^---\_.\{-}---$/
