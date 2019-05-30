@@ -16,10 +16,9 @@ syn region markdownId matchgroup=markdownIdDelimiter start="\[\[" end="\]\]" kee
 syntax keyword testfileexist FILEEXISTS
 syntax keyword testfilenotexist FILENOTEXIST
 
-
 highlight default link testfileexist Keyword
 highlight default link testfilenotexist Comment
 
-
-"syn match jekyllYamlFrontmatter /\\%^---\\_.\\{-}---$/ contains=@Spell
-"syntax match Comment /\%^---\_.\{-}---$/
+unlet b:current_syntax
+syntax include @Yaml syntax/yaml.vim
+syntax region yamlFrontmatter start=/\%^---$/ end=/^---$/ keepend contains=@Yaml

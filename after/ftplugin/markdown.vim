@@ -39,14 +39,12 @@ call s:initVariable("s:spaceReplaceChar", '_')
 function! MdwiFileExist(relativePath)
 
   if filereadable(a:relativePath)
-    "  if !empty(glob(a:relativePath))
     return 1
   endif
 
   return 0
 
 endfunction
-
 
 function! MdwiStrBetween(startStr, endStr)
   let str = ''
@@ -64,6 +62,119 @@ function! MdwiStrBetween(startStr, endStr)
   return str
 endfunction
 
+"YAML functions"
+
+function! MdwiGetIndentationStep()
+  call cursor(1,1)
+  call search('^\s')
+  return indent(".")
+endfunction
+
+function! MdwiAddParentKeys()
+  let goToLineCmd = ':' . s:inputLineNumber
+  :exec goToLineCmd
+
+  let l:parentIndent = s:currentIndent - s:indentationStep
+  while l:parentIndent >= 0
+
+    if l:parentIndent == 0
+      :call search('^\S', 'b')
+    else
+      :call search('^\s\{'.l:parentIndent.'}\S', 'b')
+    endif
+
+    let parentKey = matchstr(getline("."), '\s*\zs.\+\ze:')
+    :call add(s:keys, parentKey)
+    let s:currentIndent = indent(".")
+    if l:parentIndent >= 0
+      let l:parentIndent = s:currentIndent - s:indentationStep
+    endif
+  endwhile
+endfunction
+
+function! MdwiYamlKeyUnderCursor()
+    let s:inputLineCol = col('.')
+    let s:inputLineNumber = line('.')
+
+    let currentLine = getline(s:inputLineNumber)
+    if !empty(currentLine)
+      let currentKey = matchstr(currentLine, '\s*\zs.\+\ze:')
+      return currentKey
+    else
+      return ""
+    endif
+
+    "later we'll support nested keys
+"    let s:keys = [currentKey]
+"
+"    if !empty(currentLine)
+"        let s:indentationStep = MdwiGetIndentationStep()
+"        let s:currentIndent = indent(s:inputLineNumber)
+"
+"        :call MdwiAddParentKeys()
+"        :call reverse(s:keys)
+"
+"        :call cursor(s:inputLineNumber, s:inputLineCol)
+"        return join(s:keys, " > ")
+"    else
+"        return ""
+"    endif
+endfunction
+
+function! MdwiYamlValUnderCursor()
+    let inputLineNumber = line('.')
+
+    let currentLine = getline(inputLineNumber)
+    let currentVal = matchstr(currentLine, '\s*:\s*\zs.\+\ze')
+
+    if !empty(currentLine)
+      return currentVal
+    else
+        return ""
+    endif
+endfunction
+
+function! MdwiCursorInFrontMatter()
+
+  let origPos = getpos('.')
+
+  if(getline(1) == '---' && line('.') > 1)
+    let ok = cursor(1, 1)
+
+    let fmEnd = search('---', '', line("w$"))
+    let ok = cursor(origPos[1], origPos[2]) "Return to the original position
+    if fmEnd > 0 && fmEnd > line('.')
+      return 1
+    endif
+  end
+
+  return 0
+
+endfunction
+
+if !exists('*MdwiCallFrontMatterLink')
+  function! MdwiCallFrontMatterLink()
+
+    let yamlKey = MdwiYamlKeyUnderCursor()
+    let yamlVal = MdwiYamlValUnderCursor()
+
+    let indexFileTitle = 'index ' . yamlKey . ' ' . yamlVal
+    let fileName = MdwiWordFilename(indexFileTitle)
+
+    "Write title to the new document if file not exist
+    let filePath = MdwiFilePath(fileName)
+    if MdwiFileExist(filePath) == 1
+      exec 'edit ' . filePath
+    endif
+
+    "search key in configuration
+    "let ll = getline(line('.'))
+    "get yaml key of current line
+    "read yaml value of current line
+    "check if current value has index
+  endfunction
+endif
+
 
 function! MdwiWordFilename(word)
   let file_name = ''
@@ -74,14 +185,19 @@ function! MdwiWordFilename(word)
     "substitute spaces by spaceReplaceChar
     let word = substitute(word, '\s', s:spaceReplaceChar, 'g')
 
+    "substitute other illegal chars
+    let word = substitute(word, '\/', s:spaceReplaceChar, 'g')
+    let word = substitute(word, ':', s:spaceReplaceChar, 'g')
+
     let cur_file_name = bufname("%")
-    let extension = fnamemodify(cur_file_name, ":e")
+"    let extension = fnamemodify(cur_file_name, ":e")
+    let extension = 'md'
     let file_name = tolower(word).".".extension
   endif
   return file_name
 endfunction
 
-function! MdwiFilePath(relativepath)
+function! MdwiFilePath(fileName)
   let cur_file_name = bufname("%")
   let dir = fnamemodify(cur_file_name, ":h")
   if !empty(dir)
@@ -91,7 +207,7 @@ function! MdwiFilePath(relativepath)
       let dir = dir."/"
     endif
   endif
-  let file_path = dir.a:relativepath
+  let file_path = dir.a:fileName
   return file_path
 endfunction
 
@@ -163,56 +279,104 @@ function! MdwiGetLink()
 endfunction
 
 " ******** CHECK FOR FILE OR DIR *****************
-function! MdwiWordHasFileSystemPath(word)
-
-  if a:word =~ "^FILE.*"
-    return trim(a:word[4:-1])
-  elseif a:word =~ "^DIR.*"
+function! MdwiWordHasFileSystemPathDir(word)
+  if a:word =~ "^DIR.*"
     return trim(a:word[3:-1])
   else
     return ""
   endif
+endfunction
 
+function! MdwiWordHasFileSystemPathFile(word)
+  if a:word =~ "^FILE.*"
+    return trim(a:word[4:-1])
+  else
+    return ""
+  endif
 endfunction
 
 " ******** Go to link *****************
 if !exists('*MdwiGotoLink')
 function! MdwiGotoLink()
-    call MdwiGotoLinkMain(0,1)
+    call MdwiGotoLinkMain(0,0)
 endfunction
 endif
 
 " ******** Go to link in new tab *************
 if !exists('*MdwiGotoLinkInNewTab')
 function! MdwiGotoLinkInNewTab()
-    MdwiGotoLinkMain(0,1)
+    call MdwiGotoLinkMain(0,1)
 endfunction
 endif
 
 " ******** Go to link main executer *****************
-if !exists('*MdwiGotoLinkWithFrontMatter')
-  function! MdwiGotoLinkWithFrontMatter()
-    MdwiGotoLinkMain(1,0)
+if !exists('*MdwiGotoLinkWithCTRL')
+  function! MdwiGotoLinkWithCTRL()
+    call MdwiGotoLinkMain(1,0)
   endfunction
 endif
 
+function! MdwiGenerateFirstContent(wikiTitle,fileLinesIn)
+
+  if len(a:fileLinesIn) > 0
+    let fileLines = a:fileLinesIn
+  else
+    let fileLines = []
+    call add(fileLines, '---')
+    call add(fileLines, 'title: "'.a:wikiTitle.'"')
+    call add(fileLines, '---')
+  endif
+
+  let i = 1
+  let h1line = ""
+  while i <= len(a:wikiTitle)
+    let i += 1
+    let h1line = h1line ."="
+  endwhile
+
+  call add(fileLines, a:wikiTitle)
+  call add(fileLines, h1line)
+
+  return fileLines
+
+endfunction
+
 if !exists('*MdwiGotoLinkMain')
-  function! MdwiGotoLinkMain(copyFrontMatter, openInNewTab)
+  function! MdwiGotoLinkMain(withCTRL, openInNewTab)
+
+    if MdwiCursorInFrontMatter()
+      call MdwiCallFrontMatterLink()
+    end
+
+
     let s:lastPosLine = line('.')
     let s:lastPosCol = col('.')
 
     let word = MdwiGetWord()
 
     if !empty(word)
+      if(MdwiWordHasFileSystemPathDir(word)!="")
 
-      if(MdwiWordHasFileSystemPath(word)!="")
-        silent execute "!open " . fnameescape(MdwiWordHasFileSystemPath(word))
+        if(MdwiFileExist(MdwiFilePath(MdwiWordHasFileSystemPathDir(word))) != 1)
+          silent execute "!mkdir " . fnameescape(MdwiWordHasFileSystemPathDir(word))
+        endif
+
+        " If clicked with CTRL open in NerdTee
+        if(a:withCTRL)
+          execute 'NERDTree ' . fnameescape(MdwiWordHasFileSystemPathDir(word))
+        else
+          silent execute "!open " . fnameescape(MdwiWordHasFileSystemPathDir(word))
+        endif
+
+      elseif(MdwiWordHasFileSystemPathFile(word)!="")
+          silent execute "!open " . fnameescape(MdwiWordHasFileSystemPathFile(word))
       else
 
         let strCmd = ""
         let fileLines = []
 
-        if(a:copyFrontMatter)
+        " If clicked with CTRL Copy FrontMatter
+        if(a:withCTRL)
           if(getline(1) == '---')
             let ok = cursor(1, 1)
 
@@ -224,24 +388,17 @@ if !exists('*MdwiGotoLinkMain')
           end
         endif
 
-        let relativepath = MdwiGetLink()
-        if (empty(relativepath))
-          let relativepath = MdwiWordFilename(word)
+        let fileName = MdwiGetLink()
+        if (empty(fileName))
+
+          let fileName = MdwiWordFilename(word)
 
           "Write title to the new document if file not exist
-          if(MdwiFileExist(MdwiFilePath(relativepath)) != 1)
+          if(MdwiFileExist(MdwiFilePath(fileName)) != 1)
 
-            let i = 1
-            let h1line = ""
-            while i <= len(word)
-              let i += 1
-              let h1line = h1line ."="
-            endwhile
+            let fileLines = MdwiGenerateFirstContent(word,fileLines)
 
-            call add(fileLines, word)
-            call add(fileLines, h1line)
-
-            if writefile(fileLines, MdwiFilePath(relativepath))
+            if writefile(fileLines, MdwiFilePath(fileName))
               echomsg 'write error'
             endif
 
@@ -249,7 +406,7 @@ if !exists('*MdwiGotoLinkMain')
           endif
         endif
 
-        let link = MdwiFilePath(relativepath)
+        let link = MdwiFilePath(fileName)
 
         let openCmd='edit'
         if(a:openInNewTab)
@@ -262,6 +419,7 @@ if !exists('*MdwiGotoLinkMain')
 
   endfunction
 endif
+
 
 "command! -buffer MdwiGotoLink call MdwiGotoLink()
 "nnoremap <buffer> <script> <Plug>MdwiGotoLink :MdwiGotoLink<CR>
