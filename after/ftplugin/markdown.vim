@@ -1,18 +1,4 @@
-" File: vim-markdown-kiwi.vim
-" Author: Pim Snel
-" Version: 1.0
-" Last Modified: August 17, 2018
-"
-" *vim-markdown-kiwi* is a Vim plugin which eases the navigation between files
-" in a personal wiki based on markdown and can work brilliantly together with
-" the personal wiki app for iOS app https://github.com/landakram/kiwi
-"
-" Contribute
-" ----------
-" You can fork this project on Github :
-" https://github.com/mipmip/vim-markdown-kiwi
 
-"initVariable borrowed from NERDTree
 function! s:initVariable(var, value)
     if !exists(a:var)
         exec 'let ' . a:var . ' = ' . "'" . a:value . "'"
