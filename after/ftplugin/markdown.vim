@@ -145,7 +145,7 @@ if !exists('*MdwiCallFrontMatterLink')
     let yamlVal = MdwiYamlValUnderCursor()
 
     let indexFileTitle = 'index ' . yamlKey . ' ' . yamlVal
-    let fileName = MdwiWordFilename(indexFileTitle)
+    let fileName = wimpi#MdwiWordFilename(indexFileTitle)
 
     "Write title to the new document if file not exist
     let filePath = MdwiFilePath(fileName)
@@ -162,26 +162,6 @@ if !exists('*MdwiCallFrontMatterLink')
 endif
 
 
-function! MdwiWordFilename(word)
-  let file_name = ''
-  "Same directory and same extension as the current file
-  if !empty(a:word)
-    " strip leading and trailing spaces
-    let word = substitute(a:word, '^\s*\(.\{-}\)\s*$', '\1', '')
-    "substitute spaces by spaceReplaceChar
-    let word = substitute(word, '\s', s:spaceReplaceChar, 'g')
-
-    "substitute other illegal chars
-    let word = substitute(word, '\/', s:spaceReplaceChar, 'g')
-    let word = substitute(word, ':', s:spaceReplaceChar, 'g')
-
-    let cur_file_name = bufname("%")
-"    let extension = fnamemodify(cur_file_name, ":e")
-    let extension = 'md'
-    let file_name = tolower(word).".".extension
-  endif
-  return file_name
-endfunction
 
 function! MdwiFilePath(fileName)
   let cur_file_name = bufname("%")
@@ -377,7 +357,7 @@ if !exists('*MdwiGotoLinkMain')
         let fileName = MdwiGetLink()
         if (empty(fileName))
 
-          let fileName = MdwiWordFilename(word)
+          let fileName = wimpi#MdwiWordFilename(word)
 
           "Write title to the new document if file not exist
           if(MdwiFileExist(MdwiFilePath(fileName)) != 1)
