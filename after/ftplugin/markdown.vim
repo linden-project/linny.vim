@@ -1,3 +1,30 @@
+function! MarkdownFold()
+  let line = getline(v:lnum)
+
+  " Regular headers
+  let depth = match(line, '\(^#\+\)\@<=\( .*$\)\@=')
+  if depth > 0
+    return ">" . depth
+  endif
+
+  " Setext style headings
+  let prevline = getline(v:lnum - 1)
+  let nextline = getline(v:lnum + 1)
+  if (line =~ '^.\+$') && (nextline =~ '^=\+$') && (prevline =~ '^\s*$')
+    return ">1"
+  endif
+
+  if (line =~ '^.\+$') && (nextline =~ '^-\+$') && (prevline =~ '^\s*$')
+    return ">2"
+  endif
+
+  " frontmatter
+  if (v:lnum == 1) && (line =~ '^----*$')
+    return ">1"
+  endif
+
+  return "="
+endfunction
 
 function! s:initVariable(var, value)
     if !exists(a:var)
@@ -147,11 +174,17 @@ if !exists('*MdwiCallFrontMatterLink')
     let indexFileTitle = 'index ' . yamlKey . ' ' . yamlVal
     let fileName = wimpi#MdwiWordFilename(indexFileTitle)
 
+    call wimpimenu#openterm(0, yamlKey, yamlVal)
+
     "Write title to the new document if file not exist
-    let filePath = MdwiFilePath(fileName)
-    if MdwiFileExist(filePath) == 1
-      exec 'edit ' . filePath
-    endif
+    "let filePath = MdwiFilePath(fileName)
+    "if MdwiFileExist(filePath) == 1
+    "  exec 'edit ' . filePath
+    "endif
+
+
+
+
 
     "search key in configuration
     "let ll = getline(line('.'))

@@ -1,15 +1,15 @@
 function! s:initVariable(var, value)
-    if !exists(a:var)
-        exec 'let ' . a:var . ' = ' . "'" . a:value . "'"
-        return 1
-    endif
-    return 0
+  if !exists(a:var)
+    exec 'let ' . a:var . ' = ' . "'" . a:value . "'"
+    return 1
+  endif
+  return 0
 endfunction
 
 call s:initVariable("s:spaceReplaceChar", '_')
 
 function! wimpi#MdwiWordFilename(word)
-"  echom "MdwiWordFilename"
+  "  echom "MdwiWordFilename"
   let file_name = ''
   "Same directory and same extension as the current file
   if !empty(a:word)
@@ -28,4 +28,5 @@ function! wimpi#MdwiWordFilename(word)
   endif
   return file_name
 endfunction
+
 
