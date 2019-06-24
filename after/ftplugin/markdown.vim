@@ -174,7 +174,13 @@ if !exists('*MdwiCallFrontMatterLink')
     let indexFileTitle = 'index ' . yamlKey . ' ' . yamlVal
     let fileName = wimpi#MdwiWordFilename(indexFileTitle)
 
-    call wimpimenu#openterm(0, yamlKey, yamlVal)
+    let relativePath = $HOME . '/Dropbox/Apps/KiwiApp/index/index_'.tolower(yamlKey).'_'.tolower(yamlVal).'.json'
+    echo relativePath
+    if filereadable(relativePath)
+      call wimpimenu#openterm(0, yamlKey, yamlVal)
+    else
+      echo "noi"
+    endif
 
     "Write title to the new document if file not exist
     "let filePath = MdwiFilePath(fileName)

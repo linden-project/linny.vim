@@ -208,9 +208,9 @@ function! wimpimenu#openterm(mid, term,value) abort
   call wimpimenu#reset()
   call wimpimenu#append("# " . a:term . ' : ' . a:value, '')
 
-  let s:relativePath = fnameescape($HOME . '/Dropbox/Apps/KiwiApp/index/index_'.a:term.'_'.a:value.'.json' )
-  if filereadable(s:relativePath)
-    let s:lines = readfile(s:relativePath)
+  let relativePath = $HOME . '/Dropbox/Apps/KiwiApp/index/index_'.a:term.'_'.a:value.'.json'
+  if filereadable(relativePath)
+    let s:lines = readfile(relativePath)
     let s:json = join(s:lines)
     let s:dict = json_decode(s:json)
     for k in s:dict
