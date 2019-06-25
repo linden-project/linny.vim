@@ -18,7 +18,7 @@ if !exists('g:wimpimenu_max_width')
 endif
 
 if !exists('g:wimpimenu_disable_nofile')
-  let g:wimpimenu_disable_nofile = 1
+  let g:wimpimenu_disable_nofile = 0
 endif
 
 if !exists('g:wimpimenu_ft_blacklist')
@@ -192,7 +192,7 @@ endfunc
 " wimpimenu interface
 "----------------------------------------------------------------------
 
-function! wimpimenu#openterm(mid, term,value) abort
+function! wimpimenu#openterm(mid, term, value) abort
   if g:wimpimenu_disable_nofile
     if &buftype == 'nofile' || &buftype == 'quickfix'
       return 0
@@ -205,19 +205,61 @@ function! wimpimenu#openterm(mid, term,value) abort
     endif
   endif
 
-  call wimpimenu#reset()
-  call wimpimenu#append("# " . a:term . ' : ' . a:value, '')
 
-  let relativePath = $HOME . '/Dropbox/Apps/KiwiApp/index/index_'.a:term.'_'.a:value.'.json'
-  if filereadable(relativePath)
-    let s:lines = readfile(relativePath)
-    let s:json = join(s:lines)
-    let s:dict = json_decode(s:json)
-    for k in s:dict
-      "  echom k
-      let s:index_filename = wimpi#MdwiWordFilename("index " . k)
-      call wimpimenu#append("" . k, ":botright vs ". $HOME ."/Dropbox/Apps/KiwiApp/wiki/".k, "...")
-    endfor
+  if a:term!="" && a:value!=""
+    call wimpimenu#reset()
+    call wimpimenu#append("# " . toupper(a:term) . ' : ' . toupper(a:value), '')
+
+    call wimpimenu#append(".. (".a:term.")" , ":call wimpimenu#openterm(0,'".a:term."','')", "...")
+
+    let relativePath = $HOME . '/Dropbox/Apps/KiwiApp/index/index_'.a:term.'_'.a:value.'.json'
+    if filereadable(relativePath)
+      let s:lines = readfile(relativePath)
+      let s:json = join(s:lines)
+      let s:dict = json_decode(s:json)
+      for k in s:dict
+        let s:index_filename = wimpi#MdwiWordFilename("index " . k)
+        call wimpimenu#append("" . k, ":botright vs ". $HOME ."/Dropbox/Apps/KiwiApp/wiki/".k, "...")
+      endfor
+    endif
+
+  elseif a:term!="" && a:value==""
+
+    call wimpimenu#reset()
+    call wimpimenu#append("# " . toupper(a:term), '')
+
+    call wimpimenu#append(".." , ":call wimpimenu#openterm(0,'','')", "...")
+
+    let relativePath = $HOME . '/Dropbox/Apps/KiwiApp/index/index_'.a:term.'.json'
+    if filereadable(relativePath)
+      let s:lines = readfile(relativePath)
+      let s:json = join(s:lines)
+      let s:dict = json_decode(s:json)
+      for k in s:dict
+        let s:index_filename = wimpi#MdwiWordFilename("index " . k)
+        let s:index_filename = wimpi#MdwiWordFilename("index " .a:term." ". k)
+        call wimpimenu#append( a:term. ": " . k, ":call wimpimenu#openterm(0,'".a:term."','".k."')", "...")
+      endfor
+    endif
+
+  elseif a:term=="" && a:value==""
+
+    call wimpimenu#reset()
+    call wimpimenu#append("# WIMPI INDEX", '')
+    call wimpimenu#append("Alfabetisch", ":botright vs ". $HOME ."/Dropbox/Apps/KiwiApp/wiki/index.md", "...")
+
+    let relativePath = $HOME . '/Dropbox/Apps/KiwiApp/index/index_keys.json'
+    if filereadable(relativePath)
+      let s:lines = readfile(relativePath)
+      let s:json = join(s:lines)
+      let s:dict = json_decode(s:json)
+      for k in s:dict
+        let s:index_filename = wimpi#MdwiWordFilename("index " . k)
+
+        let s:index_filename = wimpi#MdwiWordFilename("index " . k)
+        call wimpimenu#append("Index: " . k, ":call wimpimenu#openterm(0,'".k."','')", "...")
+      endfor
+    endif
   endif
 
   " select and arrange menu
@@ -254,8 +296,6 @@ function! wimpimenu#openterm(mid, term,value) abort
 
   return 1
 endfunc
-
-
 
 function! wimpimenu#toggle(mid) abort
   if s:window_exist()
@@ -482,20 +522,27 @@ function! <SID>wimpimenu_execute(index) abort
   redraw | echo "" | redraw
   if item.key != '0'
     if type(item.event) == 1
+
       if item.event[0] != '='
+        if item.event =~ "wimpimenu#openterm"
+          echo item.event
+          exec item.event
+        else
 
-        let currentwidth = winwidth(0)
-        let currentWindow=winnr()
-        "winwidth({nr})						*winwidth()*
+          let currentwidth = winwidth(0)
+          let currentWindow=winnr()
+          "winwidth({nr})						*winwidth()*
 
-        exec ':only'
-        exec item.event
-        let newWindow=winnr()
+          exec ':only'
+          exec item.event
+          let newWindow=winnr()
 
-        exec currentWindow."wincmd w"
-        setlocal foldcolumn=0
-        exec "vertical resize " . currentwidth
-        exec newWindow."wincmd w"
+          exec currentWindow."wincmd w"
+          setlocal foldcolumn=0
+          exec "vertical resize " . currentwidth
+          exec newWindow."wincmd w"
+
+        endif
       else
         let script = matchstr(item.event, '^=\s*\zs.*')
       endif
@@ -503,6 +550,9 @@ function! <SID>wimpimenu_execute(index) abort
       call item.event()
 
     endif
+  else
+    close!
+
   endif
 endfunc
 
