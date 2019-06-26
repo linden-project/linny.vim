@@ -45,10 +45,11 @@ let s:wimpimenu_items = {}
 let s:wimpimenu_mid = 0
 let s:wimpimenu_header = {}
 let s:wimpimenu_cursor = {}
-let s:wimpimenu_version = 'wimpimenu 1.3.4'
+let s:wimpimenu_version = 'Wimpi ' . wimpi#PluginVersion()
 let s:wimpimenu_name = '[wimpimenu]'
 let s:wimpimenu_line = 0
 
+let s:wimpimenu_lastmaxsize = 0
 
 "----------------------------------------------------------------------
 " popup window management
@@ -206,6 +207,7 @@ function! wimpimenu#openterm(mid, term, value) abort
   endif
 
 
+  " LOWEST LEVEL, LIST DOCS
   if a:term!="" && a:value!=""
     call wimpimenu#reset()
     call wimpimenu#append("# " . toupper(a:term) . ' : ' . toupper(a:value), '')
@@ -245,7 +247,7 @@ function! wimpimenu#openterm(mid, term, value) abort
   elseif a:term=="" && a:value==""
 
     call wimpimenu#reset()
-    call wimpimenu#append("# WIMPI INDEX", '')
+    call wimpimenu#append("# INDEX", '')
     call wimpimenu#append("Alfabetisch", ":botright vs ". $HOME ."/Dropbox/Apps/KiwiApp/wiki/index.md", "...")
 
     let relativePath = $HOME . '/Dropbox/Apps/KiwiApp/index/index_keys.json'
@@ -260,6 +262,9 @@ function! wimpimenu#openterm(mid, term, value) abort
         call wimpimenu#append("Index: " . k, ":call wimpimenu#openterm(0,'".k."','')", "...")
       endfor
     endif
+
+    call wimpimenu#append("# CONFIGURATION", '')
+    call wimpimenu#append("index configuration", ":botright vs ". $HOME ."/Dropbox/Apps/KiwiApp/config/wiki_indexes.yml", "...")
   endif
 
   " select and arrange menu
@@ -282,6 +287,7 @@ function! wimpimenu#openterm(mid, term, value) abort
   endfor
 
   let maxsize += g:wimpimenu_padding_right
+  let s:wimpimenu_lastmaxsize = maxsize
 
   if 1
     call s:window_open(maxsize)
@@ -529,7 +535,8 @@ function! <SID>wimpimenu_execute(index) abort
           exec item.event
         else
 
-          let currentwidth = winwidth(0)
+          "let currentwidth = winwidth(0)
+          let currentwidth = s:wimpimenu_lastmaxsize
           let currentWindow=winnr()
           "winwidth({nr})						*winwidth()*
 

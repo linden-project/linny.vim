@@ -1,3 +1,7 @@
+function! wimpi#PluginVersion()
+    return '0.1.0'
+endfunction
+
 function! s:initVariable(var, value)
   if !exists(a:var)
     exec 'let ' . a:var . ' = ' . "'" . a:value . "'"
