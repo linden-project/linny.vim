@@ -480,7 +480,6 @@ if !exists('*MdwiGotoLinkMain')
   endfunction
 endif
 
-
 "command! -buffer MdwiGotoLink call MdwiGotoLink()
 "nnoremap <buffer> <script> <Plug>MdwiGotoLink :MdwiGotoLink<CR>
 "if !hasmapto('<Plug>MdwiGotoLink')
