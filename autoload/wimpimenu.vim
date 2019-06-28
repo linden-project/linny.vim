@@ -208,7 +208,8 @@ function! wimpimenu#menu_3rd_level(term, value)
     let term_plural = get(term_config, 'plural')
   end
 
-  let config = wimpimenu#parse_yaml_to_dict($HOME . '/Dropbox/Apps/KiwiApp/config/cnf_idx_'.a:term.'_'.a:value.'.yml')
+  let confFileName = $HOME ."/Dropbox/Apps/KiwiApp/config/cnf_idx_".a:term.'_'.a:value.'.yml'
+  let config = wimpimenu#parse_yaml_to_dict(confFileName)
 
   call wimpimenu#reset()
   call wimpimenu#append("# " . toupper(a:term) . ' : ' . toupper(a:value), '')
@@ -260,8 +261,39 @@ function! wimpimenu#menu_3rd_level(term, value)
     for k in files_in_menu
       call wimpimenu#append("" . k, ":botright vs ". $HOME ."/Dropbox/Apps/KiwiApp/wiki/".k, "...")
     endfor
+  endif
+
+  if has_key(config, 'locations')
+    let locations = get(config,'locations')
+
+    call wimpimenu#append("### " . toupper('Locaties'), '')
+
+    for k in keys(locations)
+      call wimpimenu#append("" . k, ":!open '". get(locations,k)."'", "...")
+    endfor
 
   endif
+
+  call wimpimenu#append("### " . toupper('Configuration'), '')
+  if has_key(config, 'config')
+    call wimpimenu#append("Open ". a:term." ".a:value." Config", ":botright vs ". $HOME ."/Dropbox/Apps/KiwiApp/config/cnf_idx_".a:term.'_'.a:value.'.yml', "...")
+  else
+    let fileLines = []
+    call add(fileLines, '---')
+    call add(fileLines, 'config: true')
+    call add(fileLines, 'infotext: About '. a:value)
+    call add(fileLines, 'group_by: type')
+    call add(fileLines, 'locations:')
+    call add(fileLines, '  website: https://www.'.a:value.'.vim')
+    call add(fileLines, '  dir1: file:///Applications/')
+    call add(fileLines, '  file1: file:///Projects/file1.someformat')
+    if writefile(fileLines, confFileName)
+      echomsg 'write error'
+    endif
+
+    call wimpimenu#append("Create ". a:term." ".a:value." Config", ":botright vs ". confFileName, "...")
+  endif
+
 endfunc
 
 
@@ -400,9 +432,6 @@ function! wimpimenu#openterm(mid, term, value) abort
 
   return 1
 endfunc
-
-
-
 
 function! wimpimenu#toggle(mid) abort
   if s:window_exist()
@@ -632,6 +661,8 @@ function! <SID>wimpimenu_execute(index) abort
 
       if item.event[0] != '='
         if item.event =~ "wimpimenu#openterm"
+          exec item.event
+        elseif item.event =~ "!open"
           echo item.event
           exec item.event
         else
