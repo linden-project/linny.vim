@@ -449,7 +449,6 @@ function! wimpimenu#openterm(mid, term, value) abort
 
   " select and arrange menu
   let items = s:select_by_ft(a:mid, &ft)
-  "let items = s:select_by_ft_term(a:mid, &ft, a:term, a:value)
   let content = []
   let maxsize = 8
   let lastmode = 2
@@ -482,6 +481,20 @@ function! wimpimenu#openterm(mid, term, value) abort
 
   return 1
 endfunc
+
+function! wimpimenu#close()
+  if s:window_exist()
+    call s:window_close()
+    return 0
+  endif
+endfunction
+
+function! wimpimenu#open()
+  if !s:window_exist()
+    call wimpimenu#openterm(0,"","")
+  endif
+endfunction
+
 
 function! wimpimenu#toggle(mid) abort
   if s:window_exist()
@@ -745,69 +758,6 @@ function! <SID>wimpimenu_execute(index) abort
   endif
 endfunc
 
-function! s:select_by_ft_term(mid, ft, term, value) abort
-  let hint = '123456789abcdefhilmnoprstuvwxyzACDIOPQRSUX*'
-  " let hint = '12abcdefhlmnoprstuvwxyz*'
-  let items = []
-  let index = 0
-  let header = get(s:wimpimenu_header, a:mid, s:wimpimenu_version)
-  "let header = "Index " . a:term . ' ' . a:value
-  if header != ''
-    let ni = {'mode':3, 'text':'', 'event':'', 'help':''}
-    let ni.text = header
-    let items += [ni]
-    let ni = {'mode':1, 'text':'', 'event':'', 'help':''}
-    let items += [ni]
-  endif
-  let lastmode = 2
-  for item in get(s:wimpimenu_items, a:mid, [])
-    if len(item.ft) && index(item.ft, a:ft) < 0
-      continue
-    endif
-    if item.mode == 2 && lastmode != 2
-      " insert empty line
-      let ni = {'mode':1, 'text':'', 'event':''}
-      let items += [ni]
-    endif
-    let lastmode = item.mode
-    " allocate key for non-filetype specific items
-    if item.mode == 0 && len(item.ft) == 0
-      let item.key = hint[index]
-      let index += 1
-      if index >= strlen(hint)
-        let index = strlen(hint) - 1
-      endif
-    endif
-    let items += [item]
-    if item.mode == 2
-      " insert empty line
-      let ni = {'mode':1, 'text':'', 'event':''}
-      let items += [ni]
-    endif
-  endfor
-  " allocate key for filetype specific items
-  for item in items
-    if item.mode == 0 && len(item.ft) > 0
-      let item.key = hint[index]
-      let index += 1
-      if index >= strlen(hint)
-        let index = strlen(hint) - 1
-      endif
-    endif
-  endfor
-  if len(items)
-    let item = {'mode':1, 'text':'', 'event':'', 'help':''}
-    let items += [item]
-  endif
-  let item = {}
-  let item.mode = 0
-  let item.text = '<close>'
-  let item.event = 'close'
-  let item.key = '0'
-  let item.help = ''
-  let items += [item]
-  return items
-endfunc
 "----------------------------------------------------------------------
 " select items by &ft, generate keymap and add some default items
 "----------------------------------------------------------------------
