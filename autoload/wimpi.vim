@@ -1,5 +1,5 @@
 function! wimpi#PluginVersion()
-    return '0.2.1'
+    return '0.2.2'
 endfunction
 
 function! s:initVariable(var, value)
