@@ -118,7 +118,19 @@ function! s:window_open(size)
   return 1
 endfunc
 
+function! wimpimenu#recent_files()
+  let files = []
+  let files = systemlist('ls -1t ~/Dropbox/Apps/KiwiApp/wiki | grep -ve "^index.*" | head -5')
+  return files
+endfunction
+
+function! wimpimenu#starred_terms()
+  let terms = wimpimenu#parse_json_file($HOME . '/Dropbox/Apps/KiwiApp/index/_index_term_values_starred.json', [])
+  return terms
+endfunction
+
 function! wimpimenu#menu_1st_level()
+
   call wimpimenu#reset()
   call wimpimenu#append("# INDEX", '')
   call wimpimenu#append("Alfabetisch", ":botright vs ". $HOME ."/Dropbox/Apps/KiwiApp/wiki/index.md", "...")
@@ -129,12 +141,30 @@ function! wimpimenu#menu_1st_level()
     let s:json = join(s:lines)
     let s:dict = json_decode(s:json)
     for k in s:dict
-      let s:index_filename = wimpi#MdwiWordFilename("index " . k)
-
-      let s:index_filename = wimpi#MdwiWordFilename("index " . k)
-      call wimpimenu#append("Index: " . k, ":call wimpimenu#openterm(0,'".k."','')", "...")
+      let term_config = wimpimenu#index_term_config(k)
+      if has_key(term_config, 'top_level')
+        let top_level = get(term_config, 'top_level')
+        if top_level
+          call wimpimenu#append("Index: " . k, ":call wimpimenu#openterm(0,'".k."','')", "...")
+        endif
+      end
     endfor
   endif
+
+  call wimpimenu#append("# STARRED", '')
+  let starred = wimpimenu#starred_terms()
+  for i in starred
+    let term = get(i,'term')
+    let val = get(i,'val')
+    call wimpimenu#append("" . wimpimenu#string_capitalize(term) ." : " . val , ":call wimpimenu#openterm(0,'".term."','".val."')", "...")
+  endfor
+
+
+  call wimpimenu#append("# RECENT", '')
+  let recent = wimpimenu#recent_files()
+  for f in recent
+    call wimpimenu#append("" . f, ":botright vs ". $HOME ."/Dropbox/Apps/KiwiApp/wiki/".f, "...")
+  endfor
 
   call wimpimenu#append("# CONFIGURATION", '')
   call wimpimenu#append("index configuration", ":botright vs ". $HOME ."/Dropbox/Apps/KiwiApp/config/wiki_indexes.yml", "...")
@@ -149,6 +179,8 @@ function! wimpimenu#menu_2nd_level(term)
   call wimpimenu#append(".." , ":call wimpimenu#openterm(0,'','')", "...")
 
   let relativePath = $HOME . '/Dropbox/Apps/KiwiApp/index/index_'.a:term.'.json'
+  "let files_in_menu = wimpimenu#parse_yaml_to_dict( relativePath )
+
   if filereadable(relativePath)
     let s:lines = readfile(relativePath)
     let s:json = join(s:lines)
@@ -161,16 +193,33 @@ function! wimpimenu#menu_2nd_level(term)
   endif
 endfunction
 
-function! wimpimenu#parse_json_to_dict(filePath)
-  let relativePath = $HOME . '/Dropbox/Apps/KiwiApp/index/index_'.a:term.'_'.a:value.'.json'
+function! wimpimenu#parse_json_file(filePath, empty_return)
   if filereadable(a:filePath)
     let lines = readfile(a:filePath)
     let json = join(lines)
-    let dict = json_decode(json)
-    return dict
+    let vars = json_decode(json)
+    return vars
   endif
-  return {}
+  return empty_return
 endfunction
+
+"function! wimpimenu#parse_json_to_list(filePath)
+"  let parsed_json = wimpimenu#parse_json_file(a:filePath)
+"  if parsed_json != 0
+"    return parsed_json
+"  endif
+"  return []
+"endfunction
+"
+"function! wimpimenu#parse_json_to_dict(filePath)
+"  if filereadable(a:filePath)
+"    let lines = readfile(a:filePath)
+"    let json = join(lines)
+"    let dict = json_decode(json)
+"    return dict
+"  endif
+"  return {}
+"endfunction
 
 function! wimpimenu#parse_yaml_to_dict(filePath)
   if filereadable(a:filePath)
@@ -229,9 +278,8 @@ function! wimpimenu#menu_3rd_level(term, value)
 
     let files_menu = {}
     for k in files_in_menu
-      echom group_by
       if has_key(files_index[k], group_by)
-        let group_by_val =  get(files_index[k], group_by)
+        let group_by_val =  tolower(get(files_index[k], group_by))
 
         if !has_key(files_menu,group_by_val)
           let files_menu[group_by_val] = []
@@ -251,7 +299,7 @@ function! wimpimenu#menu_3rd_level(term, value)
     endfor
 
     for group in keys(files_menu)
-      call wimpimenu#append("### " . toupper(strpart(group, 0, 1)).strpart(group,1), '')
+      call wimpimenu#append("### " . wimpimenu#string_capitalize(group), '')
       for k in files_menu[group]
         call wimpimenu#append("" . k, ":botright vs ". $HOME ."/Dropbox/Apps/KiwiApp/wiki/".k, "...")
       endfor
@@ -265,12 +313,14 @@ function! wimpimenu#menu_3rd_level(term, value)
 
   if has_key(config, 'locations')
     let locations = get(config,'locations')
+    echom type(locations)
+    if(type(locations)==4)
+      call wimpimenu#append("### " . toupper('Locaties'), '')
 
-    call wimpimenu#append("### " . toupper('Locaties'), '')
-
-    for k in keys(locations)
-      call wimpimenu#append("" . k, ":!open '". get(locations,k)."'", "...")
-    endfor
+      for k in keys(locations)
+        call wimpimenu#append("" . k, ":!open '". get(locations,k)."'", "...")
+      endfor
+    endif
 
   endif
 
@@ -663,7 +713,7 @@ function! <SID>wimpimenu_execute(index) abort
         if item.event =~ "wimpimenu#openterm"
           exec item.event
         elseif item.event =~ "!open"
-          echo item.event
+          "echo item.event
           exec item.event
         else
 
@@ -973,6 +1023,10 @@ endfunc
 function! s:highlight(standard, startify)
   exec "echohl ". (hlexists(a:startify)? a:startify : a:standard)
 endfunc
+
+function! wimpimenu#string_capitalize(capstring)
+  return toupper(strpart(a:capstring, 0, 1)).strpart(a:capstring,1)
+endfunction
 
 
 "----------------------------------------------------------------------
