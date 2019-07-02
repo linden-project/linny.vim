@@ -1,5 +1,5 @@
 function! wimpi#PluginVersion()
-    return '0.2.2'
+    return '0.2.3'
 endfunction
 
 function! s:initVariable(var, value)
@@ -33,4 +33,58 @@ function! wimpi#MdwiWordFilename(word)
   return file_name
 endfunction
 
+function! wimpi#new_document(...)
+  let title = join(a:000)
+  let fileName = wimpi#MdwiWordFilename(title)
+  let relativePath = fnameescape($HOME . '/Dropbox/Apps/KiwiApp/wiki/' . fileName)
+
+  if !filereadable(relativePath)
+    let taxo_term = ''
+    let taxo_val = ''
+    if t:wimpimenu_taxo_term != "" && t:wimpimenu_taxo_val != ""
+      let taxo_term = t:wimpimenu_taxo_term
+      let taxo_val =  t:wimpimenu_taxo_val
+    endif
+
+    let fileLines = wimpi#generate_first_content(title, taxo_term, taxo_val)
+    if writefile(fileLines, relativePath)
+      echomsg 'write error'
+    endif
+  endif
+
+  if bufname('%') =~ "[wimpimenu]"
+    let currentwidth = t:wimpimenu_lastmaxsize
+    let currentWindow=winnr()
+
+    exec ':only'
+    execute ':botright vs '. relativePath
+
+    let newWindow=winnr()
+
+
+    exec currentWindow."wincmd w"
+    exec currentWindow."call wimpimenu#openandshow(0)"
+    setlocal foldcolumn=0
+    exec "vertical resize " . currentwidth
+    exec newWindow."wincmd w"
+
+  else
+    execute 'e '. relativePath
+  end
+
+endfunction
+
+function! wimpi#generate_first_content(title,taxo_term, taxo_value)
+
+  let fileLines = []
+
+  call add(fileLines, '---')
+  call add(fileLines, 'title: "'.a:title.'"')
+  call add(fileLines, a:taxo_term . ': '.a:taxo_value)
+  call add(fileLines, '---')
+  call add(fileLines, '')
+
+  return fileLines
+
+endfunction
 

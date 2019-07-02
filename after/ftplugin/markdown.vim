@@ -385,17 +385,8 @@ function! MdwiGenerateFirstContent(wikiTitle,fileLinesIn)
     call add(fileLines, '---')
     call add(fileLines, 'title: "'.a:wikiTitle.'"')
     call add(fileLines, '---')
+    call add(fileLines, '')
   endif
-
-  let i = 1
-  let h1line = ""
-  while i <= len(a:wikiTitle)
-    let i += 1
-    let h1line = h1line ."="
-  endwhile
-
-  call add(fileLines, a:wikiTitle)
-  call add(fileLines, h1line)
 
   return fileLines
 

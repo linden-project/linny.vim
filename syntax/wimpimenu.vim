@@ -5,9 +5,9 @@ let s:padding_left = repeat(' ', get(g:, 'wimpimenu_padding_left', 3))
 
 syntax sync fromstart
 
-if exists('b:wimpimenu.option_lines')
+if exists('t:wimpimenu.option_lines')
   let s:col = len(s:padding_left) + 4
-  for line in b:wimpimenu.option_lines
+  for line in t:wimpimenu.option_lines
     exec 'syntax region WimpimenuOption start=/\%'. line .
           \ 'l'.''. '/ end=/$/'
   endfor
@@ -19,23 +19,23 @@ execute 'syntax match WimpimenuBracket /.*\%'. (len(s:padding_left) + 5) .'c/ co
 
 syntax match WimpimenuNumber  /^\s*\[\zs[^BSVT]\{-}\ze\]/
 syntax match WimpimenuSelect  /^\s*\[\zs[BSVT]\{-}\ze\]/
-syntax match WimpimenuSpecial /\V<close>\|<quit>/
+syntax match WimpimenuSpecial /\V<close>\|<quit>\|<refresh>/
 
 
-if exists('b:wimpimenu.section_lines')
-  for line in b:wimpimenu.section_lines
+if exists('t:wimpimenu.section_lines')
+  for line in t:wimpimenu.section_lines
     exec 'syntax region WimpimenuSection start=/\%'. line .'l/ end=/$/'
   endfor
 endif
 
-if exists('b:wimpimenu.text_lines')
-  for line in b:wimpimenu.text_lines
+if exists('t:wimpimenu.text_lines')
+  for line in t:wimpimenu.text_lines
     exec 'syntax region WimpimenuText start=/\%'. line .'l/ end=/$/'
   endfor
 endif
 
-if exists('b:wimpimenu.header_lines')
-  for line in b:wimpimenu.header_lines
+if exists('t:wimpimenu.header_lines')
+  for line in t:wimpimenu.header_lines
     exec 'syntax region WimpimenuHeader start=/\%'. line .'l/ end=/$/'
   endfor
 endif

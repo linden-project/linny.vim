@@ -17,14 +17,6 @@ if !exists('g:wimpimenu_max_width')
   let g:wimpimenu_max_width = 40
 endif
 
-if !exists('g:wimpimenu_disable_nofile')
-  let g:wimpimenu_disable_nofile = 0
-endif
-
-if !exists('g:wimpimenu_ft_blacklist')
-  let g:wimpimenu_ft_blacklist = ['netrw', 'nerdtree', 'startify']
-endif
-
 if !exists('g:wimpimenu_padding_left')
   let g:wimpimenu_padding_left = 3
 endif
@@ -51,7 +43,6 @@ function! NewWimpiTabNr()
   return g:wimpitabnr
 endfunction
 
-
 let t:wimpimenu_items = {}
 let t:wimpimenu_mid = 0
 let t:wimpimenu_header = {}
@@ -60,6 +51,8 @@ let t:wimpimenu_version = 'Wimpi ' . wimpi#PluginVersion()
 let t:wimpimenu_name = '[wimpimenu]'.string(NewWimpiTabNr())
 let t:wimpimenu_line = 0
 let t:wimpimenu_lastmaxsize = 0
+let t:wimpimenu_taxo_term = ""
+let t:wimpimenu_taxo_val = ""
 
 "----------------------------------------------------------------------
 " Internal State
@@ -73,6 +66,8 @@ function! wimpimenu#tabInitState()
   let t:wimpimenu_name = '[wimpimenu]'.string(NewWimpiTabNr())
   let t:wimpimenu_line = 0
   let t:wimpimenu_lastmaxsize = 0
+  let t:wimpimenu_taxo_term = ""
+  let t:wimpimenu_taxo_val = ""
 endfunction
 
 
@@ -339,7 +334,7 @@ function! wimpimenu#menu_3rd_level(term, value)
     call add(fileLines, 'config: true')
     call add(fileLines, 'infotext: About '. a:value)
     call add(fileLines, 'group_by: type')
-    call add(fileLines, 'locationt:')
+    call add(fileLines, 'locations:')
     call add(fileLines, '  website: httpt://www.'.a:value.'.vim')
     call add(fileLines, '  dir1: file:///Applications/')
     call add(fileLines, '  file1: file:///Projects/file1.someformat')
@@ -429,26 +424,21 @@ endfunc
 " wimpimenu interface
 "----------------------------------------------------------------------
 
-function! wimpimenu#openterm(mid, term, value) abort
-  if g:wimpimenu_disable_nofile
-    if &buftype == 'nofile' || &buftype == 'quickfix'
-      return 0
-    endif
+function! wimpimenu#openterm(mid, taxo_term, taxo_value) abort
+  let t:wimpimenu_taxo_term = a:taxo_term
+  let t:wimpimenu_taxo_val = a:taxo_value
+  call wimpimenu#openandshow(a:mid)
+endfunction
 
-    if &modifiable == 0
-      if index(g:wimpimenu_ft_blacklist, &ft) >= 0
-        return 0
-      endif
-    endif
-  endif
+function! wimpimenu#openandshow(mid) abort
 
-  if a:term!="" && a:value!=""
-    call wimpimenu#menu_3rd_level(a:term, a:value)
+  if t:wimpimenu_taxo_term!="" && t:wimpimenu_taxo_val!=""
+    call wimpimenu#menu_3rd_level(t:wimpimenu_taxo_term, t:wimpimenu_taxo_val)
 
-  elseif a:term!="" && a:value==""
-    call wimpimenu#menu_2nd_level(a:term)
+  elseif t:wimpimenu_taxo_term!="" && t:wimpimenu_taxo_val==""
+    call wimpimenu#menu_2nd_level(t:wimpimenu_taxo_term)
 
-  elseif a:term=="" && a:value==""
+  elseif t:wimpimenu_taxo_term=="" && t:wimpimenu_taxo_val==""
     call wimpimenu#menu_1st_level()
 
   endif
@@ -497,25 +487,14 @@ endfunction
 
 function! wimpimenu#open()
   if !Window_exist()
-    call wimpimenu#openterm(0,"","")
+    call wimpimenu#openandshow(0)
   endif
 endfunction
-
 
 function! wimpimenu#toggle(mid) abort
   if Window_exist()
     call Window_close()
     return 0
-  endif
-  if g:wimpimenu_disable_nofile
-    if &buftype == 'nofile' || &buftype == 'quickfix'
-      return 0
-    endif
-    if &modifiable == 0
-      if index(g:wimpimenu_ft_blacklist, &ft) >= 0
-        return 0
-      endif
-    endif
   endif
 
   " select and arrange menu
@@ -709,37 +688,40 @@ function! <SID>wimpimenu_execute(index) abort
     return
   endif
   let item = t:wimpimenu.items[a:index]
+
   if item.mode != 0 || item.event == ''
     return
   endif
 
-  " this is the last window
-  "if winnr('$') == 1
-  "  close!
-  "  return
-  "endif
-  "
   let t:wimpimenu_line = a:index + 2
   let t:wimpimenu_cursor[t:wimpimenu.mid] = t:wimpimenu_line
 
-  "close!
-
   redraw | echo "" | redraw
-  if item.key != '0'
+
+    " als event een string is
     if type(item.event) == 1
 
-      if item.event[0] != '='
+      if(item.event == 'close')
+        close!
+
+      elseif(item.event == 'refresh')
+        call wimpimenu#openandshow(0)
+
+      elseif(item.event == 'newdocingroup')
+        call inputsave()
+        let name = input('Enter name: ')
+        call inputrestore()
+        call wimpi#new_document(name)
+
+      elseif item.event[0] != '='
         if item.event =~ "wimpimenu#openterm"
           exec item.event
         elseif item.event =~ "!open"
-          "echo item.event
           exec item.event
         else
 
-          "let currentwidth = winwidth(0)
           let currentwidth = t:wimpimenu_lastmaxsize
           let currentWindow=winnr()
-          "winwidth({nr})						*winwidth()*
 
           exec ':only'
           exec item.event
@@ -752,27 +734,31 @@ function! <SID>wimpimenu_execute(index) abort
 
         endif
       else
-        let script = matchstr(item.event, '^=\s*\zs.*')
+      "  let script = matchstr(item.event, '^=\s*\zs.*')
       endif
+
+    " als event een functie is
     elseif type(item.event) == 2
+
       call item.event()
 
     endif
-  else
-    close!
 
-  endif
 endfunc
 
 "----------------------------------------------------------------------
 " select items by &ft, generate keymap and add some default items
 "----------------------------------------------------------------------
 function! Select_by_ft(mid, ft) abort
-  let hint = '123456789abcdefhilmnoprstuvwxyzACDIOPQRSUX*'
-  " let hint = '12abcdefhlmnoprstuvwxyz*'
+  " R = refresh
+  " A = newdocingroup
+
+  let hint = '123456789abcdefhilmnoprstuvwxyzCDIOPQSUX*'
+
   let items = []
   let index = 0
   let header = get(t:wimpimenu_header, a:mid, t:wimpimenu_version)
+
   if header != ''
     let ni = {'mode':3, 'text':'', 'event':'', 'help':''}
     let ni.text = header
@@ -780,6 +766,7 @@ function! Select_by_ft(mid, ft) abort
     let ni = {'mode':1, 'text':'', 'event':'', 'help':''}
     let items += [ni]
   endif
+
   let lastmode = 2
   for item in get(t:wimpimenu_items, a:mid, [])
     if len(item.ft) && index(item.ft, a:ft) < 0
@@ -806,6 +793,7 @@ function! Select_by_ft(mid, ft) abort
       let items += [ni]
     endif
   endfor
+
   " allocate key for filetype specific items
   for item in items
     if item.mode == 0 && len(item.ft) > 0
@@ -816,10 +804,26 @@ function! Select_by_ft(mid, ft) abort
       endif
     endif
   endfor
+
   if len(items)
     let item = {'mode':1, 'text':'', 'event':'', 'help':''}
     let items += [item]
   endif
+
+  if t:wimpimenu_taxo_term!="" && t:wimpimenu_taxo_val!=""
+    let item = {}
+    let item.mode = 0
+    let item.text = '<new document>'
+    let item.event = 'newdocingroup'
+    let item.key = 'A'
+    let item.help = ''
+    let items += [item]
+
+    let ni = {'mode':1, 'text':'', 'event':''}
+    let items += [ni]
+  end
+
+
   let item = {}
   let item.mode = 0
   let item.text = '<close>'
@@ -827,7 +831,20 @@ function! Select_by_ft(mid, ft) abort
   let item.key = '0'
   let item.help = ''
   let items += [item]
+
+  let item = {}
+  let item.mode = 0
+  let item.text = '<refresh>'
+  let item.event = 'refresh'
+  let item.key = 'R'
+  let item.help = ''
+  let items += [item]
+
+
+
+
   return items
+
 endfunc
 
 
@@ -988,172 +1005,161 @@ endfunction
 "----------------------------------------------------------------------
 " bottom up
 "----------------------------------------------------------------------
-function! wimpimenu#bottom(mid)
-  if g:wimpimenu_disable_nofile
-    if &buftype == 'nofile' || &buftype == 'quickfix'
-      return ""
-    endif
-    if &modifiable == 0
-      if index(g:wimpimenu_ft_blacklist, &ft) >= 0
-        return ""
-      endif
-    endif
-  endif
-
-  if &columns < (g:wimpimenu_padding_left + 25)
-    return ""
-  endif
-
-  let items = []
-  let keymap = {}
-  let maxsize = 4
-  let header = get(t:wimpimenu_header, a:mid, t:wimpimenu_version)
-  let header = (header == '')? t:wimpimenu_version : header
-
-  " select and arrange menu
-  for item in Select_by_ft(a:mid, &ft)
-    if item.mode == 0
-      if item.key != '0' && item.key != '*'
-        let ni = deepcopy(item)
-        let ni.text = Expand_text(item.text)
-        let ni.help = Expand_text(item.help)
-        let ni.text = substitute(ni.text, '[\n\t]', ' ', 'g')
-        let ni.help = substitute(ni.help, '[\n\t]', ' ', 'g')
-        let items += [ni]
-        let keymap[ni.key] = ni
-        if strdisplaywidth(ni.text) > maxsize
-          let maxsize = strdisplaywidth(ni.text)
-        endif
-      endif
-    endif
-  endfor
-
-  " exit when items is empty
-  if empty(items)
-    return ""
-  endif
-
-  " normalize size
-  for item in items
-    let ds = strdisplaywidth(item.text)
-    if ds < maxsize
-      let item.text = item.text . repeat(' ', maxsize - ds)
-    endif
-  endfor
-
-  " loop menu
-  let c = Bottom_popup(items, header)
-
-  " remove alt and convert to char
-  if has('nvim')
-    let cc = (type(c) != 0)?  split(c, '.\zs')[-1] : nr2char(c)
-  else
-    let cc = (type(c) == 0 && c > 127)? nr2char(c - 128) : nr2char(c)
-  endif
-
-  let item = get(keymap, cc, {})
-
-  echo ""
-  redraw
-
-  if empty(item)
-    return ""
-  endif
-
-  if type(item.event) == 1
-    if item.event[0] != '='
-      exec item.event
-    else
-      let script = matchstr(item.event, '^=\zs.*')
-      return script
-    endif
-  elseif type(item.event) == 2
-    return item.event()
-  endif
-
-  return ""
-endfunc
+"function! wimpimenu#bottom(mid)
+"
+"  if &columns < (g:wimpimenu_padding_left + 25)
+"    return ""
+"  endif
+"
+"  let items = []
+"  let keymap = {}
+"  let maxsize = 4
+"  let header = get(t:wimpimenu_header, a:mid, t:wimpimenu_version)
+"  let header = (header == '')? t:wimpimenu_version : header
+"
+"  " select and arrange menu
+"  for item in Select_by_ft(a:mid, &ft)
+"    if item.mode == 0
+"      if item.key != '0' && item.key != '*'
+"        let ni = deepcopy(item)
+"        let ni.text = Expand_text(item.text)
+"        let ni.help = Expand_text(item.help)
+"        let ni.text = substitute(ni.text, '[\n\t]', ' ', 'g')
+"        let ni.help = substitute(ni.help, '[\n\t]', ' ', 'g')
+"        let items += [ni]
+"        let keymap[ni.key] = ni
+"        if strdisplaywidth(ni.text) > maxsize
+"          let maxsize = strdisplaywidth(ni.text)
+"        endif
+"      endif
+"    endif
+"  endfor
+"
+"  " exit when items is empty
+"  if empty(items)
+"    return ""
+"  endif
+"
+"  " normalize size
+"  for item in items
+"    let ds = strdisplaywidth(item.text)
+"    if ds < maxsize
+"      let item.text = item.text . repeat(' ', maxsize - ds)
+"    endif
+"  endfor
+"
+"  " loop menu
+"  let c = Bottom_popup(items, header)
+"
+"  " remove alt and convert to char
+"  if has('nvim')
+"    let cc = (type(c) != 0)?  split(c, '.\zs')[-1] : nr2char(c)
+"  else
+"    let cc = (type(c) == 0 && c > 127)? nr2char(c - 128) : nr2char(c)
+"  endif
+"
+"  let item = get(keymap, cc, {})
+"
+"  echo ""
+"  redraw
+"
+"  if empty(item)
+"    return ""
+"  endif
+"
+"  if type(item.event) == 1
+"    if item.event[0] != '='
+"      exec item.event
+"    else
+"      let script = matchstr(item.event, '^=\zs.*')
+"      return script
+"    endif
+"  elseif type(item.event) == 2
+"    return item.event()
+"  endif
+"
+"  return ""
+"endfunc
 
 
 "----------------------------------------------------------------------
 " render menu at cmdline
 "----------------------------------------------------------------------
-function! Bottom_render(items, header)
-  echo ""
-  let &cmdheight = len(a:items) + 2
-  let maxcount = &cmdheight - 2
-  let maxcount = (maxcount < len(a:items))? maxcount : len(a:items)
-  let columns = &columns - 2
-  let padding = repeat(' ', g:wimpimenu_padding_left)
-  let header = padding . a:header . ':'
-  let header = Slimit(header, columns - 29, 0)
-  let start = g:wimpimenu_padding_left + 7
-  call Highlight('Statement', 'StartifySection')
-  echon header. "\n"
-  for index in range(maxcount)
-    let item = a:items[index]
-    call Highlight('Delimiter', 'StartifyBracket')
-    echon padding. "  ["
-    call Highlight('Number', 'StartifyNumber')
-    echon item.key
-    call Highlight('Delimiter', 'StartifyBracket')
-    echon "]  "
-    call Highlight('Identifier', 'StartifyFile')
-    let text = Slimit(item.text, columns - start, start)
-    echon text
-    let next = start + strdisplaywidth(text)
-    let help = item.help
-    if help == '' && type(item.event) == 1
-      let help = item.event
-    endif
-    if next < columns - 8 && help != ''
-      call Highlight('Comment', 'StartifySpecial')
-      let help = '    : '.strtrans(help)
-      let help = Slimit(help, columns - next, next)
-      echon help
-    endif
-    echon "\n"
-  endfor
-  call Highlight('Comment', 'StartifySelect')
-  echon padding. "press (space to exit): "
-  echohl None
-endfunc
+"function! Bottom_render(items, header)
+"  echo ""
+"  let &cmdheight = len(a:items) + 2
+"  let maxcount = &cmdheight - 2
+"  let maxcount = (maxcount < len(a:items))? maxcount : len(a:items)
+"  let columns = &columns - 2
+"  let padding = repeat(' ', g:wimpimenu_padding_left)
+"  let header = padding . a:header . ':'
+"  let header = Slimit(header, columns - 29, 0)
+"  let start = g:wimpimenu_padding_left + 7
+"  call Highlight('Statement', 'StartifySection')
+"  echon header. "\n"
+"  for index in range(maxcount)
+"    let item = a:items[index]
+"    call Highlight('Delimiter', 'StartifyBracket')
+"    echon padding. "  ["
+"    call Highlight('Number', 'StartifyNumber')
+"    echon item.key
+"    call Highlight('Delimiter', 'StartifyBracket')
+"    echon "]  "
+"    call Highlight('Identifier', 'StartifyFile')
+"    let text = Slimit(item.text, columns - start, start)
+"    echon text
+"    let next = start + strdisplaywidth(text)
+"    let help = item.help
+"    if help == '' && type(item.event) == 1
+"      let help = item.event
+"    endif
+"    if next < columns - 8 && help != ''
+"      call Highlight('Comment', 'StartifySpecial')
+"      let help = '    : '.strtrans(help)
+"      let help = Slimit(help, columns - next, next)
+"      echon help
+"    endif
+"    echon "\n"
+"  endfor
+"  call Highlight('Comment', 'StartifySelect')
+"  echon padding. "press (space to exit): "
+"  echohl None
+"endfunc
 
 
 "----------------------------------------------------------------------
 " show menu info and select one
 "----------------------------------------------------------------------
-function! Bottom_popup(items, header)
-  " store options
-  let [lz, ch, ut] = [&lz, &ch, &ut]
-  set nolazyredraw
-  set ut=100000000
-
-  " display items
-  call Bottom_render(a:items, a:header)
-
-  " wait for input
-  try
-    let c = getchar()
-  catch
-    let c = ''
-  endtry
-
-  " restore options
-  let [&lz, &ch, &ut] = [lz, ch, ut]
-
-  " remove old echos
-  redraw
-
-  return c
-endfunc
+"function! Bottom_popup(items, header)
+"  " store options
+"  let [lz, ch, ut] = [&lz, &ch, &ut]
+"  set nolazyredraw
+"  set ut=100000000
+"
+"  " display items
+"  call Bottom_render(a:items, a:header)
+"
+"  " wait for input
+"  try
+"    let c = getchar()
+"  catch
+"    let c = ''
+"  endtry
+"
+"  " restore options
+"  let [&lz, &ch, &ut] = [lz, ch, ut]
+"
+"  " remove old echos
+"  redraw
+"
+"  return c
+"endfunc
 
 
 "----------------------------------------------------------------------
 " testing case
 "----------------------------------------------------------------------
 if 1
-
 
   call wimpimenu#reset()
   call wimpimenu#append('# Start', '')
@@ -1168,7 +1174,7 @@ if 1
   call wimpimenu#append('text2', '')
 
   " nnoremap <F12> :call wimpimenu#toggle(0)<cr>
-  imap <expr> <F11> wimpimenu#bottom(0)
+  " imap <expr> <F11> wimpimenu#bottom(0)
 endif
 
 
