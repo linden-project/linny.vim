@@ -2,7 +2,7 @@
 "
 " wimpimenu.vim -
 "
-" Created by skywind on 2017/07/08
+" Inspired by QuickMenu of skywind
 " Last change: 2017/08/08 15:20:20
 "
 "======================================================================
@@ -58,6 +58,7 @@ let t:wimpimenu_lastmaxsize = 0
 let t:wimpimenu_taxo_term = ""
 let t:wimpimenu_taxo_val = ""
 
+
 "----------------------------------------------------------------------
 " Internal State
 "----------------------------------------------------------------------
@@ -87,26 +88,35 @@ function! Window_exist()
 endfunc
 
 function! Window_close()
+
   if !exists('t:wimpimenu_bid')
     return 0
   endif
+
   if &buftype == 'nofile' && &ft == 'wimpimenu'
     if bufname('%') == t:wimpimenu_name
       silent close!
       let t:wimpimenu_bid = -1
     endif
   endif
+
   if t:wimpimenu_bid > 0 && bufexists(t:wimpimenu_bid)
     silent exec 'bwipeout ' . t:wimpimenu_bid
     let t:wimpimenu_bid = -1
   endif
+
   redraw | echo "" | redraw
+
 endfunc
 
 function! Window_open(size)
+
+  echom a:size
+
   if Window_exist()
     call Window_close()
   endif
+
   let size = a:size
   let size = (size < 4)? 4 : size
   let size = (size > g:wimpimenu_max_width)? g:wimpimenu_max_width : size
@@ -125,19 +135,24 @@ function! Window_open(size)
   if savebid == bufnr('%')
     return 0
   endif
+
   setlocal buftype=nofile bufhidden=wipe nobuflisted nomodifiable
   setlocal noshowcmd noswapfile nowrap nonumber
   setlocal nolist colorcolumn= nocursorline nocursorcolumn
   setlocal noswapfile norelativenumber
+
   if has('signs') && has('patch-7.4.2210')
     setlocal signcolumn=no
   endif
+
   if has('spell')
     setlocal nospell
   endif
+
   if has('folding')
     setlocal fdc=0
   endif
+
   let t:wimpimenu_bid = bufnr('%')
   return 1
 endfunc
@@ -153,9 +168,30 @@ function! wimpimenu#starred_terms()
   return terms
 endfunction
 
+function! wimpimenu#starred_docs()
+  let docs = wimpimenu#parse_json_file($HOME . '/Dropbox/Apps/KiwiApp/index/_index_docs_starred.json', [])
+  return docs
+endfunction
+
+
 function! wimpimenu#menu_1st_level()
 
   call wimpimenu#reset()
+
+  call wimpimenu#append("# STARRED DOCS", '')
+  let starred = wimpimenu#starred_docs()
+  for f in starred
+    call wimpimenu#append("" . f, ":botright vs ". $HOME ."/Dropbox/Apps/KiwiApp/wiki/".f, "...")
+  endfor
+
+  call wimpimenu#append("# STARRED", '')
+  let starred = wimpimenu#starred_terms()
+  for i in starred
+    let term = get(i,'term')
+    let val = get(i,'val')
+    call wimpimenu#append("" . wimpimenu#string_capitalize(term) ." : " . val , ":call wimpimenu#openterm(0,'".term."','".val."')", "...")
+  endfor
+
   call wimpimenu#append("# INDEX", '')
   call wimpimenu#append("Alfabetisch", ":botright vs ". $HOME ."/Dropbox/Apps/KiwiApp/wiki/index.md", "...")
 
@@ -174,15 +210,6 @@ function! wimpimenu#menu_1st_level()
       end
     endfor
   endif
-
-  call wimpimenu#append("# STARRED", '')
-  let starred = wimpimenu#starred_terms()
-  for i in starred
-    let term = get(i,'term')
-    let val = get(i,'val')
-    call wimpimenu#append("" . wimpimenu#string_capitalize(term) ." : " . val , ":call wimpimenu#openterm(0,'".term."','".val."')", "...")
-  endfor
-
 
   call wimpimenu#append("# RECENT", '')
   let recent = wimpimenu#recent_files()
@@ -329,7 +356,6 @@ function! wimpimenu#menu_3rd_level(term, value)
 
   if has_key(config, 'locations')
     let locations = get(config,'locations')
-    echom type(locations)
     if(type(locations)==4)
       call wimpimenu#append("### " . toupper('Locaties'), '')
 
@@ -344,20 +370,7 @@ function! wimpimenu#menu_3rd_level(term, value)
   if has_key(config, 'config')
     call wimpimenu#append("Open ". a:term." ".a:value." Config", ":botright vs ". $HOME ."/Dropbox/Apps/KiwiApp/config/cnf_idx_".a:term.'_'.a:value.'.yml', "...")
   else
-    let fileLines = []
-    call add(fileLines, '---')
-    call add(fileLines, 'config: true')
-    call add(fileLines, 'infotext: About '. a:value)
-    call add(fileLines, 'group_by: type')
-    call add(fileLines, 'locations:')
-    call add(fileLines, '  website: httpt://www.'.a:value.'.vim')
-    call add(fileLines, '  dir1: file:///Applications/')
-    call add(fileLines, '  file1: file:///Projects/file1.someformat')
-    if writefile(fileLines, confFileName)
-      echomsg 'write error'
-    endif
-
-    call wimpimenu#append("Create ". a:term." ".a:value." Config", ":botright vs ". confFileName, "...")
+    call wimpimenu#append("Create ". a:term." ".a:value." Config", "createtaxoqualiconfig", "...")
   endif
 
 endfunc
@@ -594,13 +607,16 @@ endfunc
 " all keys
 "----------------------------------------------------------------------
 function! Setup_keymaps(items)
+
   let ln = 0
   let mid = t:wimpimenu.mid
   let cursor_pos = get(t:wimpimenu_cursor, mid, 0)
   let nowait = ''
+
   if v:version >= 704 || (v:version == 703 && has('patch1261'))
     let nowait = '<nowait>'
   endif
+
   for item in a:items
     if item.key != ''
       let cmd = ' :call <SID>wimpimenu_execute('.ln.')<cr>'
@@ -608,8 +624,9 @@ function! Setup_keymaps(items)
     endif
     let ln += 1
   endfor
-  noremap <silent> <buffer> 0 :call <SID>wimpimenu_close()<cr>
-  noremap <silent> <buffer> q :call <SID>wimpimenu_close()<cr>
+
+  " noremap <silent> <buffer> 0 :call <SID>wimpimenu_close()<cr>
+  " noremap <silent> <buffer> q :call <SID>wimpimenu_close()<cr>
   noremap <silent> <buffer> <CR> :call <SID>wimpimenu_enter()<cr>
   let t:wimpimenu_line = 0
   if cursor_pos > 0
@@ -621,7 +638,9 @@ function! Setup_keymaps(items)
     autocmd CursorMoved <buffer> call Set_cursor()
     autocmd InsertEnter <buffer> call feedkeys("\<ESC>")
   augroup END
+
   let t:wimpimenu.showhelp = (stridx(g:wimpimenu_options, 'H') >= 0)? 1 : 0
+
 endfunc
 
 
@@ -667,6 +686,7 @@ function! Set_cursor() abort
   endif
   let t:wimpimenu_line = find + 2
   call cursor(t:wimpimenu_line, g:wimpimenu_padding_left + 2)
+
   if t:wimpimenu.showhelp
     let help = t:wimpimenu.items[find].help
     let key = t:wimpimenu.items[find].key
@@ -726,11 +746,96 @@ function! <SID>wimpimenu_execute(index) abort
       elseif(item.event == 'refresh')
         call wimpimenu#openandshow(0)
 
-      elseif(item.event == 'newdocingroup')
+      elseif(item.event == 'home')
+        call wimpimenu#openterm(0,'','')
+
+      elseif(item.event == 'createtaxoqualiconfig')
+
+        let confFileName = $HOME ."/Dropbox/Apps/KiwiApp/config/cnf_idx_".t:wimpimenu_taxo_term.'_'.t:wimpimenu_taxo_val.'.yml'
+
+        let fileLines = []
+        call add(fileLines, '---')
+        call add(fileLines, 'config: true')
+        call add(fileLines, 'infotext: About '. t:wimpimenu_taxo_val)
+        call add(fileLines, 'group_by: type')
+        call add(fileLines, 'locations:')
+        call add(fileLines, '  website: https://www.'.t:wimpimenu_taxo_val.'.vim')
+        call add(fileLines, '  dir1: file:///Applications/')
+        call add(fileLines, '  file1: file:///Projects/file1.someformat')
+
+        if writefile(fileLines, confFileName)
+          echomsg 'write error'
+        else
+          exec ':only'
+          let currentwidth = t:wimpimenu_lastmaxsize
+          let currentWindow=winnr()
+          execute ":botright vs ". confFileName
+          let newWindow=winnr()
+
+          exec currentWindow."wincmd w"
+          setlocal foldcolumn=0
+          exec "vertical resize " . currentwidth
+          exec currentWindow."call wimpimenu#openandshow(0)"
+          exec newWindow."wincmd w"
+
+        endif
+
+      elseif(item.event == 'newdiringroup')
+
         call inputsave()
-        let name = input('Enter name: ')
+        let name = input('Enter directory name: ', t:wimpimenu_taxo_term .'_'. t:wimpimenu_taxo_val)
         call inputrestore()
-        call wimpi#new_document(name)
+
+        echo name
+
+        if(!empty(name))
+
+          let newdir = wimpi#new_dir(name)
+
+          if(!empty(newdir))
+            let confFileName = $HOME ."/Dropbox/Apps/KiwiApp/config/cnf_idx_".t:wimpimenu_taxo_term.'_'.t:wimpimenu_taxo_val.'.yml'
+            let config = wimpimenu#parse_yaml_to_dict(confFileName)
+            if has_key(config, 'locations')
+              let locations = get(config,'locations')
+              if(type(locations)!=4)
+              let locations = {}
+              endif
+              let locations['dir'] = "file://".newdir
+              let config['locations'] = locations
+
+              let vimjson = []
+              call add(vimjson, json_encode(config))
+              echo vimjson
+
+              if writefile(vimjson, '/tmp/vimjsonconvert')
+                echomsg 'write error'
+              endif
+
+              call system("ruby -ryaml -rjson -e 'puts YAML.dump(JSON.load(ARGF))' < /tmp/vimjsonconvert > " . confFileName)
+
+            endif
+          else
+            echo "could not create directory"
+
+          endif
+
+        else
+          return 0
+        endif
+
+
+      elseif(item.event == 'newdocingroup')
+
+        call inputsave()
+        let name = input('Enter document name: ')
+        call inputrestore()
+
+        echo name
+        if(!empty(name))
+          call wimpi#new_document(name)
+        else
+          return 0
+        endif
 
       elseif item.event[0] != '='
         if item.event =~ "wimpimenu#openterm"
@@ -771,8 +876,9 @@ endfunc
 function! Select_by_ft(mid, ft) abort
   " R = refresh
   " A = newdocingroup
+  " D = newdiringroup
 
-  let hint = '123456789abcdefhilmnoprstuvwxyzCDIOPQSUX*'
+  let hint = '123456789abcdefhilmnoprstuvwxyzCIOPQSUX*'
 
   let items = []
   let index = 0
@@ -829,7 +935,7 @@ function! Select_by_ft(mid, ft) abort
     let items += [item]
   endif
 
-  if t:wimpimenu_taxo_term!="" && t:wimpimenu_taxo_val!=""
+  if t:wimpimenu_taxo_term !="" && t:wimpimenu_taxo_val !=""
     let item = {}
     let item.mode = 0
     let item.text = '<new document>'
@@ -838,18 +944,31 @@ function! Select_by_ft(mid, ft) abort
     let item.help = ''
     let items += [item]
 
-    let ni = {'mode':1, 'text':'', 'event':''}
-    let items += [ni]
-  end
+"    let ni = {'mode':1, 'text':'', 'event':''}
 
+    let confFileName = $HOME ."/Dropbox/Apps/KiwiApp/config/cnf_idx_".t:wimpimenu_taxo_term.'_'.t:wimpimenu_taxo_val.'.yml'
+    if filereadable(confFileName)
+      let item = {}
+      let item.mode = 0
+      let item.text = '<new directory>'
+      let item.event = 'newdiringroup'
+      let item.key = 'D'
+      let item.help = ''
+      let items += [item]
+    endif
 
-  let item = {}
-  let item.mode = 0
-  let item.text = '<close>'
-  let item.event = 'close'
-  let item.key = '0'
-  let item.help = ''
-  let items += [item]
+  endif
+
+  if t:wimpimenu_taxo_term != ""
+    let item = {}
+    let item.mode = 0
+    let item.text = '<home>'
+    let item.event = 'home'
+    let item.key = '0'
+    let item.help = ''
+    let items += [item]
+  endif
+
 
   let item = {}
   let item.mode = 0
@@ -858,9 +977,6 @@ function! Select_by_ft(mid, ft) abort
   let item.key = 'R'
   let item.help = ''
   let items += [item]
-
-
-
 
   return items
 

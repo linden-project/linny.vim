@@ -1,5 +1,5 @@
 function! wimpi#PluginVersion()
-    return '0.2.3'
+    return '0.2.4'
 endfunction
 
 function! s:initVariable(var, value)
@@ -13,7 +13,6 @@ endfunction
 call s:initVariable("s:spaceReplaceChar", '_')
 
 function! wimpi#MdwiWordFilename(word)
-  "  echom "MdwiWordFilename"
   let file_name = ''
   "Same directory and same extension as the current file
   if !empty(a:word)
@@ -31,6 +30,59 @@ function! wimpi#MdwiWordFilename(word)
     let file_name = tolower(word).".".extension
   endif
   return file_name
+endfunction
+
+function! wimpi#new_dir(...)
+
+  let dir_name = join(a:000)
+
+  if !isdirectory(g:wimpi_dirs_root)
+    echo "g:wimpi_dirs_root is not a valid directory"
+    return
+  endif
+
+  let relativePath = fnameescape(g:wimpi_dirs_root .'/'.dir_name )
+  if filereadable(relativePath)
+    echo "directory name already exist"
+    return
+  endif
+
+  exec "!mkdir ". relativePath
+  return g:wimpi_dirs_root .'/'.dir_name
+endfunction
+
+function! wimpi#make_index()
+  execute g:wimpi_index_cli_command
+endfunction
+
+func! wimpi#browsetaxovals()
+
+  let currentKey = MdwiYamlKeyUnderCursor()
+  let relativePath = fnameescape($HOME . '/Dropbox/Apps/KiwiApp/index/index_' . currentKey .'.json' )
+
+  if filereadable(relativePath)
+
+    let lines = readfile(relativePath)
+    let json = join(lines)
+    let dict = json_decode(json)
+    call setline('.', currentKey .": ")
+    call cursor(line('.'), strlen(currentKey)+3)
+    call complete(strlen(currentKey)+3, sort(dict))
+  endif
+
+  return ''
+endfunc
+
+function! wimpi#grep(...)
+  let awkWimpiGrep = "grep -nri ".'"'.join(a:000).'"'." ~/Dropbox/Apps/KiwiApp/wiki | awk -F".'"'.":".'"'." {'gsub(/^[ \t]/, ".'""'.", $3);print $1".'"'.'|"$2"| "$3'."'}"
+  execute 'AsyncRun! '. awkWimpiGrep
+endfunction
+
+function! wimpi#move_to(dest)
+  let relativePath = fnameescape($HOME . '/Dropbox/Apps/KiwiApp/wiki/')
+  exec "!mkdir -p ". relativePath ."/".a:dest
+  exec "!mv '%' " . relativePath . "/".a:dest."/"
+  exec "bdelete"
 endfunction
 
 function! wimpi#new_document(...)
