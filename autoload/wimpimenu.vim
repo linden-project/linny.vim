@@ -13,7 +13,7 @@
 "----------------------------------------------------------------------
 " Global Options
 "----------------------------------------------------------------------
-if !exists('g:wimpimenu_max_width')
+if  !exists('g:wimpimenu_max_width')
   let g:wimpimenu_max_width = 40
 endif
 
@@ -31,6 +31,10 @@ endif
 
 if !exists('g:wimpitabnr')
   let g:wimpitabnr = 1
+endif
+
+if !exists('g:wimpi_debug')
+  let g:wimpi_debug = 0
 endif
 
 augroup WimpiMenuTabInit
@@ -246,6 +250,17 @@ function! wimpimenu#index_term_config(term)
 
 endfunction
 
+function! wimpimenu#debug_info()
+
+      call wimpimenu#append("### " . wimpimenu#string_capitalize('debug'), '')
+      call wimpimenu#append("t:wimpimenu_lastmaxsize = ".t:wimpimenu_lastmaxsize,'')
+      call wimpimenu#append("t:wimpimenu_mid = ".t:wimpimenu_mid,'')
+      call wimpimenu#append("t:wimpimenu_name = ".t:wimpimenu_name,'')
+      call wimpimenu#append("t:wimpimenu_taxo_term = ".t:wimpimenu_taxo_term,'')
+      call wimpimenu#append("t:wimpimenu_taxo_val = ".t:wimpimenu_taxo_val,'')
+
+endfunction
+
 
 function! wimpimenu#menu_3rd_level(term, value)
 
@@ -441,6 +456,10 @@ function! wimpimenu#openandshow(mid) abort
   elseif t:wimpimenu_taxo_term=="" && t:wimpimenu_taxo_val==""
     call wimpimenu#menu_1st_level()
 
+  endif
+
+  if g:wimpi_debug
+    call wimpimenu#debug_info()
   endif
 
   " select and arrange menu
