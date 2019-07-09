@@ -52,7 +52,11 @@ function! wimpi#new_dir(...)
 endfunction
 
 function! wimpi#make_index()
-  execute g:wimpi_index_cli_command
+  if exists('g:wimpi_index_cli_command')
+    execute "!". g:wimpi_index_cli_command
+  else
+    echo "Error: g:wimpi_index_cli_command not set"
+  endif
 endfunction
 
 func! wimpi#browsetaxovals()

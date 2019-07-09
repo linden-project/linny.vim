@@ -746,6 +746,10 @@ function! <SID>wimpimenu_execute(index) abort
       elseif(item.event == 'refresh')
         call wimpimenu#openandshow(0)
 
+      elseif(item.event == 'hardrefresh')
+        call wimpi#make_index()
+        call wimpimenu#openandshow(0)
+
       elseif(item.event == 'home')
         call wimpimenu#openterm(0,'','')
 
@@ -759,9 +763,9 @@ function! <SID>wimpimenu_execute(index) abort
         call add(fileLines, 'infotext: About '. t:wimpimenu_taxo_val)
         call add(fileLines, 'group_by: type')
         call add(fileLines, 'locations:')
-        call add(fileLines, '  website: https://www.'.t:wimpimenu_taxo_val.'.vim')
-        call add(fileLines, '  dir1: file:///Applications/')
-        call add(fileLines, '  file1: file:///Projects/file1.someformat')
+        call add(fileLines, '  #website: https://www.'.t:wimpimenu_taxo_val.'.vim')
+        call add(fileLines, '  #dir1: file:///Applications/')
+        call add(fileLines, '  #file1: file:///Projects/file1.someformat')
 
         if writefile(fileLines, confFileName)
           echomsg 'write error'
@@ -877,6 +881,7 @@ function! Select_by_ft(mid, ft) abort
   " R = refresh
   " A = newdocingroup
   " D = newdiringroup
+  " U = hardrefresh
 
   let hint = '123456789abcdefhilmnoprstuvwxyzCIOPQSUX*'
 
@@ -969,6 +974,13 @@ function! Select_by_ft(mid, ft) abort
     let items += [item]
   endif
 
+  let item = {}
+  let item.mode = 0
+  let item.text = '<hard refresh>'
+  let item.event = 'hardrefresh'
+  let item.key = 'H'
+  let item.help = ''
+  let items += [item]
 
   let item = {}
   let item.mode = 0
