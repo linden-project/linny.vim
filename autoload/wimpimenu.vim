@@ -253,16 +253,11 @@ function! wimpimenu#parse_json_file(filePath, empty_return)
   return empty_return
 endfunction
 
-function! wimpimenu#parse_yaml_to_dict(filePath)
-  if filereadable(a:filePath)
-    return json_decode(system('ruby -rjson -ryaml -e "puts JSON.pretty_generate(YAML.load_file('."'". a:filePath. "'".'))"'))
-  endif
-  return {}
-endfunction
+
 
 function! wimpimenu#index_term_config(term)
 
-  let config = wimpimenu#parse_yaml_to_dict($HOME . '/Dropbox/Apps/KiwiApp/config/wiki_indexes.yml')
+  let config = wimpi#parse_yaml_to_dict($HOME . '/Dropbox/Apps/KiwiApp/config/wiki_indexes.yml')
 
   if has_key(config, 'index_keys')
     let index_keys = get(config,'index_keys')
@@ -301,7 +296,7 @@ function! wimpimenu#menu_3rd_level(term, value)
   end
 
   let confFileName = $HOME ."/Dropbox/Apps/KiwiApp/config/cnf_idx_".a:term.'_'.a:value.'.yml'
-  let config = wimpimenu#parse_yaml_to_dict(confFileName)
+  let config = wimpi#parse_yaml_to_dict(confFileName)
 
   call wimpimenu#reset()
   call wimpimenu#append("# " . toupper(a:term) . ' : ' . toupper(a:value), '')
@@ -314,10 +309,10 @@ function! wimpimenu#menu_3rd_level(term, value)
 
   call wimpimenu#append(".. (". term_plural .")" , ":call wimpimenu#openterm(0,'".a:term."','')", "...")
 
-  let files_in_menu = wimpimenu#parse_yaml_to_dict($HOME . '/Dropbox/Apps/KiwiApp/index/index_'.a:term.'_'.a:value.'.json')
+  let files_in_menu = wimpi#parse_yaml_to_dict($HOME . '/Dropbox/Apps/KiwiApp/index/index_'.a:term.'_'.a:value.'.json')
   if has_key(config, 'group_by')
     let group_by =  get(config,'group_by')
-    let files_index = wimpimenu#parse_yaml_to_dict($HOME . '/Dropbox/Apps/KiwiApp/index/_index_docs_with_keys.json')
+    let files_index = wimpi#parse_yaml_to_dict($HOME . '/Dropbox/Apps/KiwiApp/index/_index_docs_with_keys.json')
 
     let files_menu = {}
     for k in files_in_menu
@@ -798,7 +793,7 @@ function! <SID>wimpimenu_execute(index) abort
 
           if(!empty(newdir))
             let confFileName = $HOME ."/Dropbox/Apps/KiwiApp/config/cnf_idx_".t:wimpimenu_taxo_term.'_'.t:wimpimenu_taxo_val.'.yml'
-            let config = wimpimenu#parse_yaml_to_dict(confFileName)
+            let config = wimpi#parse_yaml_to_dict(confFileName)
             if has_key(config, 'locations')
               let locations = get(config,'locations')
               if(type(locations)!=4)

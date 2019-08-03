@@ -1,6 +1,11 @@
+function! wimpi#Init()
+
+endfunction
+
 function! wimpi#PluginVersion()
     return '0.2.5'
 endfunction
+
 
 function! s:initVariable(var, value)
   if !exists(a:var)
@@ -144,3 +149,9 @@ function! wimpi#generate_first_content(title,taxo_term, taxo_value)
 
 endfunction
 
+function! wimpi#xparse_yaml_to_dict(filePath)
+  if filereadable(a:filePath)
+    return json_decode(system('ruby -rjson -ryaml -e "puts JSON.pretty_generate(YAML.load_file('."'". a:filePath. "'".'))"'))
+  endif
+  return {}
+endfunction
