@@ -338,7 +338,7 @@ function! MdwiGetLink()
   return link
 endfunction
 
-" ******** CHECK FOR FILE OR DIR *****************
+" ******** CHECK FOR SPECIALE LINKS *****************
 function! MdwiWordHasFileSystemPathDir(word)
   if a:word =~ "^DIR.*"
     return trim(a:word[3:-1])
@@ -350,6 +350,14 @@ endfunction
 function! MdwiWordHasFileSystemPathFile(word)
   if a:word =~ "^FILE.*"
     return trim(a:word[4:-1])
+  else
+    return ""
+  endif
+endfunction
+
+function! MdwiWordHasShellCmd(word)
+  if a:word =~ "^SHELL.*"
+    return trim(a:word[5:-1])
   else
     return ""
   endif
@@ -421,6 +429,10 @@ if !exists('*MdwiGotoLinkMain')
 
       elseif(MdwiWordHasFileSystemPathFile(word)!="")
           silent execute "!open " . fnameescape(MdwiWordHasFileSystemPathFile(word))
+
+      elseif(MdwiWordHasShellCmd(word)!="")
+        echo word
+          execute "!" . MdwiWordHasShellCmd(word)
       else
 
         let strCmd = ""
