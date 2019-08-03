@@ -1,11 +1,22 @@
 function! wimpi#Init()
 
+  echo 'hallo'
+  let g:wimpi_index_config = wimpi#parse_yaml_to_dict($HOME . '/Dropbox/Apps/KiwiApp/config/wiki_indexes.yml')
+  echom g:wimpi_index_config
+  if has_key(g:wimpi_index_config, 'index_files_path')
+    echom 'YES IS HAS'
+    let g:wimpi_index_path = expand(g:wimpi_index_config['index_files_path'])
+    echom g:wimpi_index_path
+  else
+    echom 'NO IS HASNT'
+    let g:wimpi_index_path = $HOME . '/Dropbox/Apps/KiwiApp/index'
+  end
+
 endfunction
 
 function! wimpi#PluginVersion()
-    return '0.2.5'
+    return '0.2.6'
 endfunction
-
 
 function! s:initVariable(var, value)
   if !exists(a:var)
@@ -67,7 +78,7 @@ endfunction
 func! wimpi#browsetaxovals()
 
   let currentKey = MdwiYamlKeyUnderCursor()
-  let relativePath = fnameescape($HOME . '/Dropbox/Apps/KiwiApp/index/index_' . currentKey .'.json' )
+  let relativePath = fnameescape(g:wimpi_index_path . '/index_' . currentKey .'.json' )
 
   if filereadable(relativePath)
 
@@ -149,9 +160,20 @@ function! wimpi#generate_first_content(title,taxo_term, taxo_value)
 
 endfunction
 
-function! wimpi#xparse_yaml_to_dict(filePath)
+function! wimpi#parse_yaml_to_dict(filePath)
   if filereadable(a:filePath)
     return json_decode(system('ruby -rjson -ryaml -e "puts JSON.pretty_generate(YAML.load_file('."'". a:filePath. "'".'))"'))
   endif
   return {}
 endfunction
+
+function! wimpi#parse_json_file(filePath, empty_return)
+  if filereadable(a:filePath)
+    let lines = readfile(a:filePath)
+    let json = join(lines)
+    let vars = json_decode(json)
+    return vars
+  endif
+  return empty_return
+endfunction
+

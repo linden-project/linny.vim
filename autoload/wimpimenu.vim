@@ -13,7 +13,7 @@
 "----------------------------------------------------------------------
 " Global Options
 "----------------------------------------------------------------------
-if  !exists('g:wimpimenu_max_width')
+if !exists('g:wimpimenu_max_width')
   let g:wimpimenu_max_width = 40
 endif
 
@@ -164,12 +164,12 @@ function! wimpimenu#recent_files()
 endfunction
 
 function! wimpimenu#starred_terms()
-  let terms = wimpimenu#parse_json_file($HOME . '/Dropbox/Apps/KiwiApp/index/_index_term_values_starred.json', [])
+  let terms = wimpi#parse_json_file(g:wimpi_index_path . '/_index_term_values_starred.json', [])
   return terms
 endfunction
 
 function! wimpimenu#starred_docs()
-  let docs = wimpimenu#parse_json_file($HOME . '/Dropbox/Apps/KiwiApp/index/_index_docs_starred.json', [])
+  let docs = wimpi#parse_json_file(g:wimpi_index_path . '/_index_docs_starred.json', [])
   return docs
 endfunction
 
@@ -195,7 +195,7 @@ function! wimpimenu#menu_1st_level()
   call wimpimenu#append("# INDEX", '')
   call wimpimenu#append("Alfabetisch", ":botright vs ". $HOME ."/Dropbox/Apps/KiwiApp/wiki/index.md", "...")
 
-  let relativePath = $HOME . '/Dropbox/Apps/KiwiApp/index/_index_keys.json'
+  let relativePath = g:wimpi_index_path . '/_index_keys.json'
   if filereadable(relativePath)
     let t:lines = readfile(relativePath)
     let t:json = join(t:lines)
@@ -229,7 +229,7 @@ function! wimpimenu#menu_2nd_level(term)
 
   call wimpimenu#append(".." , ":call wimpimenu#openterm(0,'','')", "...")
 
-  let relativePath = $HOME . '/Dropbox/Apps/KiwiApp/index/index_'.a:term.'.json'
+  let relativePath = g:wimpi_index_path . '/index_'.a:term.'.json'
 
   if filereadable(relativePath)
     let t:lines = readfile(relativePath)
@@ -243,25 +243,10 @@ function! wimpimenu#menu_2nd_level(term)
   endif
 endfunction
 
-function! wimpimenu#parse_json_file(filePath, empty_return)
-  if filereadable(a:filePath)
-    let lines = readfile(a:filePath)
-    let json = join(lines)
-    let vars = json_decode(json)
-    return vars
-  endif
-  return empty_return
-endfunction
-
-
 
 function! wimpimenu#index_term_config(term)
-
-  let config = wimpi#parse_yaml_to_dict($HOME . '/Dropbox/Apps/KiwiApp/config/wiki_indexes.yml')
-
-  if has_key(config, 'index_keys')
-    let index_keys = get(config,'index_keys')
-    "echom index_keys
+  if has_key(g:wimpi_index_config, 'index_keys')
+    let index_keys = get(g:wimpi_index_config,'index_keys')
     if has_key(index_keys, a:term)
       let term_config = get(index_keys, a:term)
       return term_config
@@ -309,10 +294,10 @@ function! wimpimenu#menu_3rd_level(term, value)
 
   call wimpimenu#append(".. (". term_plural .")" , ":call wimpimenu#openterm(0,'".a:term."','')", "...")
 
-  let files_in_menu = wimpi#parse_yaml_to_dict($HOME . '/Dropbox/Apps/KiwiApp/index/index_'.a:term.'_'.a:value.'.json')
+  let files_in_menu = wimpi#parse_yaml_to_dict(g:wimpi_index_path . '/index_'.a:term.'_'.a:value.'.json')
   if has_key(config, 'group_by')
     let group_by =  get(config,'group_by')
-    let files_index = wimpi#parse_yaml_to_dict($HOME . '/Dropbox/Apps/KiwiApp/index/_index_docs_with_keys.json')
+    let files_index = wimpi#parse_yaml_to_dict(g:wimpi_index_path . '/_index_docs_with_keys.json')
 
     let files_menu = {}
     for k in files_in_menu
