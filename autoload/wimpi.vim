@@ -2,10 +2,12 @@ function! wimpi#Init()
   let g:wimpi_index_config = wimpi#parse_yaml_to_dict($HOME . '/Dropbox/Apps/KiwiApp/config/wiki_indexes.yml')
   if has_key(g:wimpi_index_config, 'index_files_path')
     let g:wimpi_index_path = expand(g:wimpi_index_config['index_files_path'])
-    echom g:wimpi_index_path
   else
     let g:wimpi_index_path = $HOME . '/Dropbox/Apps/KiwiApp/index'
   end
+
+  call wimpi#cache_index()
+
 endfunction
 
 function! wimpi#PluginVersion()
@@ -64,9 +66,25 @@ endfunction
 function! wimpi#make_index()
   if exists('g:wimpi_index_cli_command')
     execute "!". g:wimpi_index_cli_command
+
+    call wimpi#cache_index()
+
   else
     echo "Error: g:wimpi_index_cli_command not set"
   endif
+endfunction
+
+function! wimpi#cache_index()
+    let g:wimpi_cache_index_docs_titles =  wimpi#docs_titles()
+endfunction
+
+function! wimpi#doc_title_from_index(filename)
+
+  if has_key(g:wimpi_cache_index_docs_titles, a:filename)
+    return g:wimpi_cache_index_docs_titles[a:filename]
+  endif
+
+  return a:filename
 endfunction
 
 func! wimpi#browsetaxovals()
@@ -127,7 +145,6 @@ function! wimpi#new_document(...)
 
     let newWindow=winnr()
 
-
     exec currentWindow."wincmd w"
     exec currentWindow."call wimpimenu#openandshow(0)"
     setlocal foldcolumn=0
@@ -169,5 +186,10 @@ function! wimpi#parse_json_file(filePath, empty_return)
     return vars
   endif
   return empty_return
+endfunction
+
+function! wimpi#docs_titles()
+  let docs_titles = wimpi#parse_json_file(g:wimpi_index_path . '/_index_docs_with_title.json', [])
+  return docs_titles
 endfunction
 

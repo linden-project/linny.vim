@@ -174,6 +174,7 @@ function! wimpimenu#starred_docs()
 endfunction
 
 
+
 function! wimpimenu#menu_1st_level()
 
   call wimpimenu#reset()
@@ -324,13 +325,13 @@ function! wimpimenu#menu_3rd_level(term, value)
     for group in keys(files_menu)
       call wimpimenu#append("### " . wimpimenu#string_capitalize(group), '')
       for k in files_menu[group]
-        call wimpimenu#append("" . k, ":botright vs ". $HOME ."/Dropbox/Apps/KiwiApp/wiki/".k, "...")
+        call wimpimenu#append("" . wimpi#doc_title_from_index(k), ":botright vs ". $HOME ."/Dropbox/Apps/KiwiApp/wiki/".k, "...")
       endfor
     endfor
 
   else
     for k in files_in_menu
-      call wimpimenu#append("" . k, ":botright vs ". $HOME ."/Dropbox/Apps/KiwiApp/wiki/".k, "...")
+      call wimpimenu#append("" . wimpi#doc_title_from_index(k), ":botright vs ". $HOME ."/Dropbox/Apps/KiwiApp/wiki/".k, "...")
     endfor
   endif
 
