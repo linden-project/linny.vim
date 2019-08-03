@@ -1,17 +1,11 @@
 function! wimpi#Init()
-
-  echo 'hallo'
   let g:wimpi_index_config = wimpi#parse_yaml_to_dict($HOME . '/Dropbox/Apps/KiwiApp/config/wiki_indexes.yml')
-  echom g:wimpi_index_config
   if has_key(g:wimpi_index_config, 'index_files_path')
-    echom 'YES IS HAS'
     let g:wimpi_index_path = expand(g:wimpi_index_config['index_files_path'])
     echom g:wimpi_index_path
   else
-    echom 'NO IS HASNT'
     let g:wimpi_index_path = $HOME . '/Dropbox/Apps/KiwiApp/index'
   end
-
 endfunction
 
 function! wimpi#PluginVersion()
