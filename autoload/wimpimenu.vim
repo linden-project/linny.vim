@@ -208,21 +208,16 @@ function! wimpimenu#menu_1st_level()
   call wimpimenu#append("# INDEX", '')
   call wimpimenu#append("Alfabetisch", ":botright vs ". $HOME ."/Dropbox/Apps/KiwiApp/wiki/index.md", "...")
 
-  let relativePath = g:wimpi_index_path . '/_index_keys.json'
-  if filereadable(relativePath)
-    let t:lines = readfile(relativePath)
-    let t:json = join(t:lines)
-    let t:dict = json_decode(t:json)
-    for k in t:dict
-      let term_config = wimpimenu#index_term_config(k)
-      if has_key(term_config, 'top_level')
-        let top_level = get(term_config, 'top_level')
-        if top_level
-          call wimpimenu#append("Index: " . k, ":call wimpimenu#openterm(0,'".k."','')", "...")
-        endif
-      end
-    endfor
-  endif
+  let index_keys_list = wimpi#parse_json_file(g:wimpi_index_path . '/_index_keys.json', [])
+  for k in index_keys_list
+    let term_config = wimpimenu#index_term_config(k)
+    if has_key(term_config, 'top_level')
+      let top_level = get(term_config, 'top_level')
+      if top_level
+        call wimpimenu#append("Index: " . k, ":call wimpimenu#openterm(0,'".k."','')", "...")
+      endif
+    end
+  endfor
 
   call wimpimenu#append("# RECENT", '')
   let recent = wimpimenu#recent_files()
