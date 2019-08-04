@@ -197,12 +197,26 @@ function! wimpimenu#menu_1st_level()
   let starred = wimpimenu#starred_docs()
   call wimpimenu#partialFilesListing( starred, 1 )
 
-  call wimpimenu#append("# STARRED", '')
+  call wimpimenu#append("# STARRED LEAFS", '')
   let starred = wimpimenu#starred_terms()
+  echo starred
+  let starred_list = {}
+
   for i in starred
-    let term = get(i,'term')
-    let val = get(i,'val')
-    call wimpimenu#append("" . wimpimenu#string_capitalize(term) ." : " . val , ":call wimpimenu#openterm(0,'".term."','".val."')", "...")
+    let starred_list[i['term'].','.i['val']] = i
+    "    let starred_list[i['term'].','.i['val']]['term'] = i['term']
+    "let starred_list[i['term'].','.i['val']]['val'] = i['term']
+    "i['val']
+
+   "     let term = get(i,'term')
+   "let val = get(i,'val')
+   " call wimpimenu#append("" . wimpimenu#string_capitalize(term) ." : " . val , ":call wimpimenu#openterm(0,'".term."','".val."')", "...")
+  endfor
+
+  for sk in sort(keys(starred_list))
+"    let term = get(i,'term')
+"    let val = get(i,'val')
+    call wimpimenu#append("" . wimpimenu#string_capitalize(starred_list[sk]['term']) ." : " . starred_list[sk]['val'] , ":call wimpimenu#openterm(0,'".starred_list[sk]['term']."','".starred_list[sk]['val']."')", "...")
   endfor
 
   call wimpimenu#append("# INDEX", '')
@@ -728,6 +742,7 @@ function! <SID>wimpimenu_execute(index) abort
         call wimpimenu#openandshow(0)
 
       elseif(item.event == 'hardrefresh')
+        call wimpi#Init()
         call wimpi#make_index()
         call wimpimenu#openandshow(0)
 
