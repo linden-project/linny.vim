@@ -193,3 +193,14 @@ function! wimpi#docs_titles()
   return docs_titles
 endfunction
 
+function! wimpi#titlesForDocs(docs_list)
+
+  let titles = {}
+
+  for k in a:docs_list
+    let titles[wimpi#doc_title_from_index(k)] = k
+  endfor
+
+  return titles
+endfunction
+

@@ -14,7 +14,7 @@
 " Global Options
 "----------------------------------------------------------------------
 if !exists('g:wimpimenu_max_width')
-  let g:wimpimenu_max_width = 40
+  let g:wimpimenu_max_width = 50
 endif
 
 if !exists('g:wimpimenu_padding_left')
@@ -173,7 +173,21 @@ function! wimpimenu#starred_docs()
   return docs
 endfunction
 
+function! wimpimenu#partialFilesListing(files_list, sort)
 
+  let titles = wimpi#titlesForDocs(a:files_list)
+
+  if a:sort
+    let title_keys = sort(keys(titles))
+  else
+    let title_keys = keys(titles)
+  endif
+
+  for tk in title_keys
+    call wimpimenu#append("" . tk, ":botright vs ". $HOME ."/Dropbox/Apps/KiwiApp/wiki/".titles[tk], "...")
+  endfor
+
+endfunction
 
 function! wimpimenu#menu_1st_level()
 
@@ -181,9 +195,7 @@ function! wimpimenu#menu_1st_level()
 
   call wimpimenu#append("# STARRED DOCS", '')
   let starred = wimpimenu#starred_docs()
-  for f in starred
-    call wimpimenu#append("" . f, ":botright vs ". $HOME ."/Dropbox/Apps/KiwiApp/wiki/".f, "...")
-  endfor
+  call wimpimenu#partialFilesListing( starred, 1 )
 
   call wimpimenu#append("# STARRED", '')
   let starred = wimpimenu#starred_terms()
@@ -214,9 +226,7 @@ function! wimpimenu#menu_1st_level()
 
   call wimpimenu#append("# RECENT", '')
   let recent = wimpimenu#recent_files()
-  for f in recent
-    call wimpimenu#append("" . f, ":botright vs ". $HOME ."/Dropbox/Apps/KiwiApp/wiki/".f, "...")
-  endfor
+  call wimpimenu#partialFilesListing( recent , 0 )
 
   call wimpimenu#append("# CONFIGURATION", '')
   call wimpimenu#append("index configuration", ":botright vs ". $HOME ."/Dropbox/Apps/KiwiApp/config/wiki_indexes.yml", "...")
@@ -230,18 +240,14 @@ function! wimpimenu#menu_2nd_level(term)
 
   call wimpimenu#append(".." , ":call wimpimenu#openterm(0,'','')", "...")
 
-  let relativePath = g:wimpi_index_path . '/index_'.a:term.'.json'
+  let termslist = wimpi#parse_json_file(g:wimpi_index_path . '/index_'.a:term.'.json', [])
 
-  if filereadable(relativePath)
-    let t:lines = readfile(relativePath)
-    let t:json = join(t:lines)
-    let t:dict = json_decode(t:json)
-    for k in t:dict
-      let t:index_filename = wimpi#MdwiWordFilename("index " . k)
-      let t:index_filename = wimpi#MdwiWordFilename("index " .a:term." ". k)
-      call wimpimenu#append( a:term. ": " . k, ":call wimpimenu#openterm(0,'".a:term."','".k."')", "...")
-    endfor
-  endif
+  for k in sort(termslist)
+
+    let t:index_filename = wimpi#MdwiWordFilename("index " . k)
+    let t:index_filename = wimpi#MdwiWordFilename("index " .a:term." ". k)
+    call wimpimenu#append( a:term. ": " . k, ":call wimpimenu#openterm(0,'".a:term."','".k."')", "...")
+  endfor
 endfunction
 
 
@@ -296,6 +302,8 @@ function! wimpimenu#menu_3rd_level(term, value)
   call wimpimenu#append(".. (". term_plural .")" , ":call wimpimenu#openterm(0,'".a:term."','')", "...")
 
   let files_in_menu = wimpi#parse_yaml_to_dict(g:wimpi_index_path . '/index_'.a:term.'_'.a:value.'.json')
+
+
   if has_key(config, 'group_by')
     let group_by =  get(config,'group_by')
     let files_index = wimpi#parse_yaml_to_dict(g:wimpi_index_path . '/_index_docs_with_keys.json')
@@ -322,17 +330,14 @@ function! wimpimenu#menu_3rd_level(term, value)
 
     endfor
 
-    for group in keys(files_menu)
+    for group in sort(keys(files_menu))
       call wimpimenu#append("### " . wimpimenu#string_capitalize(group), '')
-      for k in files_menu[group]
-        call wimpimenu#append("" . wimpi#doc_title_from_index(k), ":botright vs ". $HOME ."/Dropbox/Apps/KiwiApp/wiki/".k, "...")
-      endfor
+      call wimpimenu#partialFilesListing( files_menu[group], 1 )
     endfor
 
   else
-    for k in files_in_menu
-      call wimpimenu#append("" . wimpi#doc_title_from_index(k), ":botright vs ". $HOME ."/Dropbox/Apps/KiwiApp/wiki/".k, "...")
-    endfor
+
+    call wimpimenu#partialFilesListing( files_in_menu, 1 )
   endif
 
   if has_key(config, 'locations')
@@ -340,8 +345,8 @@ function! wimpimenu#menu_3rd_level(term, value)
     if(type(locations)==4)
       call wimpimenu#append("### " . toupper('Locaties'), '')
 
-      for k in keys(locations)
-        call wimpimenu#append("" . k, ":!open '". get(locations,k)."'", "...")
+      for l in keys(locations)
+        call wimpimenu#append("" . l, ":!open '". get(locations,l)."'", "...")
       endfor
     endif
 
