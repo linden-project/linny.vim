@@ -37,42 +37,44 @@ if !exists('g:wimpi_debug')
   let g:wimpi_debug = 0
 endif
 
-augroup WimpiMenuTabInit
-  autocmd!
-  autocmd VimEnter,TabEnter * call wimpimenu#tabInitState()
-augroup END
-
-function! NewWimpiTabNr()
-  let g:wimpitabnr = g:wimpitabnr + 1
-  return g:wimpitabnr
-endfunction
+let g:wimpimenu_version = 'Wimpi ' . wimpi#PluginVersion()
 
 let t:wimpimenu_items = {}
 let t:wimpimenu_mid = 0
 let t:wimpimenu_header = {}
 let t:wimpimenu_cursor = {}
-let t:wimpimenu_version = 'Wimpi ' . wimpi#PluginVersion()
-let t:wimpimenu_name = '[wimpimenu]'.string(NewWimpiTabNr())
+"let t:wimpimenu_name = ''
 let t:wimpimenu_line = 0
 let t:wimpimenu_lastmaxsize = 0
 let t:wimpimenu_taxo_term = ""
 let t:wimpimenu_taxo_val = ""
+
+"augroup WimpiMenuTabInit
+"  autocmd!
+"  autocmd VimEnter,TabEnter * call wimpimenu#tabInitState()
+"augroup END
 
 
 "----------------------------------------------------------------------
 " Internal State
 "----------------------------------------------------------------------
 function! wimpimenu#tabInitState()
-  let t:wimpimenu_items = {}
-  let t:wimpimenu_mid = 0
-  let t:wimpimenu_header = {}
-  let t:wimpimenu_cursor = {}
-  let t:wimpimenu_version = 'Wimpi ' . wimpi#PluginVersion()
-  let t:wimpimenu_name = '[wimpimenu]'.string(NewWimpiTabNr())
-  let t:wimpimenu_line = 0
-  let t:wimpimenu_lastmaxsize = 0
-  let t:wimpimenu_taxo_term = ""
-  let t:wimpimenu_taxo_val = ""
+  if !exists('t:wimpimenu_name')
+    let t:wimpimenu_items = {}
+    let t:wimpimenu_mid = 0
+    let t:wimpimenu_header = {}
+    let t:wimpimenu_cursor = {}
+    let t:wimpimenu_name = '[wimpimenu]'.string(NewWimpiTabNr())
+    let t:wimpimenu_line = 0
+    let t:wimpimenu_lastmaxsize = 0
+    let t:wimpimenu_taxo_term = ""
+    let t:wimpimenu_taxo_val = ""
+  endif
+endfunction
+
+function! NewWimpiTabNr()
+  let g:wimpitabnr = g:wimpitabnr + 1
+  return g:wimpitabnr
 endfunction
 
 
@@ -506,6 +508,7 @@ endfunction
 
 function! wimpimenu#open()
   if !Window_exist()
+    call wimpimenu#tabInitState()
     call wimpimenu#openandshow(0)
   endif
 endfunction
@@ -945,7 +948,7 @@ function! Select_by_ft(mid, ft) abort
 
   let items = []
   let index = 0
-  let header = get(t:wimpimenu_header, a:mid, t:wimpimenu_version)
+  let header = get(t:wimpimenu_header, a:mid, g:wimpimenu_version)
 
   if header != ''
     let ni = {'mode':3, 'text':'', 'event':'', 'help':''}
