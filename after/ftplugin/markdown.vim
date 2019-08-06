@@ -230,11 +230,10 @@ if !exists('*MdwiCallFrontMatterLink')
     let fileName = wimpi#MdwiWordFilename(indexFileTitle)
 
     let relativePath = g:wimpi_index_path . '/index_'.tolower(yamlKey).'_'.tolower(yamlVal).'.json'
-    echo relativePath
     if filereadable(relativePath)
       call wimpimenu#openterm(0, yamlKey, yamlVal)
     else
-      echo "noi"
+      echomsg "Can't open, does not exist"
     endif
 
     "Write title to the new document if file not exist
@@ -431,8 +430,7 @@ if !exists('*MdwiGotoLinkMain')
           silent execute "!open " . fnameescape(MdwiWordHasFileSystemPathFile(word))
 
       elseif(MdwiWordHasShellCmd(word)!="")
-        echo word
-          execute "!" . MdwiWordHasShellCmd(word)
+        execute "!" . MdwiWordHasShellCmd(word)
       else
 
         let strCmd = ""
