@@ -245,8 +245,6 @@ function! wimpimenu#menu_2nd_level(term)
 
   for k in sort(termslist)
 
-"    let t:index_filename = wimpi#MdwiWordFilename("index " . k)
-"    let t:index_filename = wimpi#MdwiWordFilename("index " .a:term." ". k)
     call wimpimenu#append( a:term. ": " . k, ":call wimpimenu#openterm(0,'".a:term."','".k."')", "...")
   endfor
 endfunction
