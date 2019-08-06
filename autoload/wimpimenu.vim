@@ -199,23 +199,13 @@ function! wimpimenu#menu_1st_level()
 
   call wimpimenu#append("# STARRED LEAFS", '')
   let starred = wimpimenu#starred_terms()
-  echo starred
   let starred_list = {}
 
   for i in starred
     let starred_list[i['term'].','.i['val']] = i
-    "    let starred_list[i['term'].','.i['val']]['term'] = i['term']
-    "let starred_list[i['term'].','.i['val']]['val'] = i['term']
-    "i['val']
-
-   "     let term = get(i,'term')
-   "let val = get(i,'val')
-   " call wimpimenu#append("" . wimpimenu#string_capitalize(term) ." : " . val , ":call wimpimenu#openterm(0,'".term."','".val."')", "...")
   endfor
 
   for sk in sort(keys(starred_list))
-"    let term = get(i,'term')
-"    let val = get(i,'val')
     call wimpimenu#append("" . wimpimenu#string_capitalize(starred_list[sk]['term']) ." : " . starred_list[sk]['val'] , ":call wimpimenu#openterm(0,'".starred_list[sk]['term']."','".starred_list[sk]['val']."')", "...")
   endfor
 
@@ -253,8 +243,8 @@ function! wimpimenu#menu_2nd_level(term)
 
   for k in sort(termslist)
 
-    let t:index_filename = wimpi#MdwiWordFilename("index " . k)
-    let t:index_filename = wimpi#MdwiWordFilename("index " .a:term." ". k)
+"    let t:index_filename = wimpi#MdwiWordFilename("index " . k)
+"    let t:index_filename = wimpi#MdwiWordFilename("index " .a:term." ". k)
     call wimpimenu#append( a:term. ": " . k, ":call wimpimenu#openterm(0,'".a:term."','".k."')", "...")
   endfor
 endfunction
@@ -296,12 +286,14 @@ function! wimpimenu#menu_3rd_level(term, value)
     let term_plural = get(term_config, 'plural')
   end
 
-  let confFileName = $HOME ."/Dropbox/Apps/KiwiApp/config/cnf_idx_".a:term.'_'.a:value.'.yml'
-  let config = wimpi#parse_yaml_to_dict(confFileName)
+
+"  let confFileName = $HOME ."/Dropbox/Apps/KiwiApp/config/cnf_idx_".a:term.'_'.a:value.'.yml'
+"  let config = wimpi#parse_yaml_to_dict(confFileName)
 
   call wimpimenu#reset()
   call wimpimenu#append("# " . toupper(a:term) . ' : ' . toupper(a:value), '')
 
+  let config = wimpimenu#termValueLeafConfig(a:term, a:value)
   if has_key(config, 'infotext')
     let infotext =  get(config,'infotext')
     call wimpimenu#append(infotext, '')
@@ -310,12 +302,11 @@ function! wimpimenu#menu_3rd_level(term, value)
 
   call wimpimenu#append(".. (". term_plural .")" , ":call wimpimenu#openterm(0,'".a:term."','')", "...")
 
-  let files_in_menu = wimpi#parse_yaml_to_dict(g:wimpi_index_path . '/index_'.a:term.'_'.a:value.'.json')
-
+  let files_in_menu = wimpi#parse_json_file(g:wimpi_index_path . '/index_'.a:term.'_'.a:value.'.json',[])
 
   if has_key(config, 'group_by')
     let group_by =  get(config,'group_by')
-    let files_index = wimpi#parse_yaml_to_dict(g:wimpi_index_path . '/_index_docs_with_keys.json')
+    let files_index = wimpi#parse_json_file(g:wimpi_index_path . '/_index_docs_with_keys.json',[])
 
     let files_menu = {}
     for k in files_in_menu
@@ -326,6 +317,7 @@ function! wimpimenu#menu_3rd_level(term, value)
           let files_menu[group_by_val] = []
         end
 
+        call add(files_menu[group_by_val], k)
         call add(files_menu[group_by_val], k)
 
       else
@@ -780,49 +772,49 @@ function! <SID>wimpimenu_execute(index) abort
 
         endif
 
-      elseif(item.event == 'newdiringroup')
-
-        call inputsave()
-        let name = input('Enter directory name: ', t:wimpimenu_taxo_term .'_'. t:wimpimenu_taxo_val)
-        call inputrestore()
-
-        echo name
-
-        if(!empty(name))
-
-          let newdir = wimpi#new_dir(name)
-
-          if(!empty(newdir))
-            let confFileName = $HOME ."/Dropbox/Apps/KiwiApp/config/cnf_idx_".t:wimpimenu_taxo_term.'_'.t:wimpimenu_taxo_val.'.yml'
-            let config = wimpi#parse_yaml_to_dict(confFileName)
-            if has_key(config, 'locations')
-              let locations = get(config,'locations')
-              if(type(locations)!=4)
-              let locations = {}
-              endif
-              let locations['dir'] = "file://".newdir
-              let config['locations'] = locations
-
-              let vimjson = []
-              call add(vimjson, json_encode(config))
-              echo vimjson
-
-              if writefile(vimjson, '/tmp/vimjsonconvert')
-                echomsg 'write error'
-              endif
-
-              call system("ruby -ryaml -rjson -e 'puts YAML.dump(JSON.load(ARGF))' < /tmp/vimjsonconvert > " . confFileName)
-
-            endif
-          else
-            echo "could not create directory"
-
-          endif
-
-        else
-          return 0
-        endif
-
+"      elseif(item.event == 'newdiringroup')
+"
+"        call inputsave()
+"        let name = input('Enter directory name: ', t:wimpimenu_taxo_term .'_'. t:wimpimenu_taxo_val)
+"        call inputrestore()
+"
+"        echo name
+"
+"        if(!empty(name))
+"
+"          let newdir = wimpi#new_dir(name)
+"
+"          if(!empty(newdir))
+""            let confFileName = $HOME ."/Dropbox/Apps/KiwiApp/config/cnf_idx_".t:wimpimenu_taxo_term.'_'.t:wimpimenu_taxo_val.'.yml'
+""            let config = wimpi#parse_yaml_to_dict(confFileName)
+"            let config = wimpimenu#termValueLeafConfig(t:wimpimenu_taxo_term, t:wimpimenu_taxo_val)
+"
+"            if has_key(config, 'locations')
+"              let locations = get(config,'locations')
+"              if(type(locations)!=4)
+"              let locations = {}
+"              endif
+"              let locations['dir'] = "file://".newdir
+"              let config['locations'] = locations
+"
+"              let vimjson = []
+"              call add(vimjson, json_encode(config))
+"
+"              if writefile(vimjson, '/tmp/vimjsonconvert')
+"                echomsg 'write error'
+"              endif
+"
+"              call system("ruby -ryaml -rjson -e 'puts YAML.dump(JSON.load(ARGF))' < /tmp/vimjsonconvert > " . confFileName)
+"
+"            endif
+"          else
+"            echo "could not create directory"
+"
+"          endif
+"
+"        else
+"          return 0
+"        endif
 
       elseif(item.event == 'newdocingroup')
 
@@ -832,7 +824,7 @@ function! <SID>wimpimenu_execute(index) abort
 
         echo name
         if(!empty(name))
-          call wimpi#new_document(name)
+          call wimpimenu#new_document_in_leaf(name)
         else
           return 0
         endif
@@ -841,7 +833,15 @@ function! <SID>wimpimenu_execute(index) abort
         if item.event =~ "wimpimenu#openterm"
           exec item.event
         elseif item.event =~ "!open"
-          exec item.event
+          if item.event =~ "file:///"
+            let dirstring = split(item.event, "file://")
+
+            if !filereadable(dirstring[1])
+              exe  "!mkdir -p '".dirstring[1]
+            endif
+          endif
+
+          silent exec item.event
         else
 
           let currentwidth = t:wimpimenu_lastmaxsize
@@ -870,13 +870,75 @@ function! <SID>wimpimenu_execute(index) abort
 
 endfunc
 
+function! wimpimenu#termValueLeafConfig(term, val)
+  let config = wimpi#parse_yaml_to_dict($HOME ."/Dropbox/Apps/KiwiApp/config/cnf_idx_".a:term.'_'.a:val.'.yml')
+  return config
+endfunction
+
+function! wimpimenu#new_document_in_leaf(...)
+  let title = join(a:000)
+  let fileName = wimpi#MdwiWordFilename(title)
+  let relativePath = fnameescape($HOME . '/Dropbox/Apps/KiwiApp/wiki/' . fileName)
+
+  if !filereadable(relativePath)
+    let taxo_term = ''
+    let taxo_val = ''
+
+    let taxoEntries = []
+    if t:wimpimenu_taxo_term != "" && t:wimpimenu_taxo_val != ""
+      let entry = {}
+      let entry['term'] = t:wimpimenu_taxo_term
+      let entry['value'] = t:wimpimenu_taxo_val
+      call add(taxoEntries, entry)
+
+      let config = wimpimenu#termValueLeafConfig(t:wimpimenu_taxo_term, t:wimpimenu_taxo_val)
+      if has_key(config, 'frontmatter_template')
+        let fm_template = get(config,'frontmatter_template')
+        if(type(fm_template)==4)
+          for fm_key in keys(fm_template)
+            let entry = {}
+            let entry['term'] = fm_key
+            let entry['value'] = get(fm_template,fm_key)
+            call add(taxoEntries, entry)
+          endfor
+        endif
+      endif
+    endif
+
+    let fileLines = wimpi#generate_first_content(title, taxoEntries)
+    if writefile(fileLines, relativePath)
+      echomsg 'write error'
+    endif
+  endif
+
+  if bufname('%') =~ "[wimpimenu]"
+    let currentwidth = t:wimpimenu_lastmaxsize
+    let currentWindow=winnr()
+
+    exec ':only'
+    execute ':botright vs '. relativePath
+
+    let newWindow=winnr()
+
+    exec currentWindow."wincmd w"
+    exec currentWindow."call wimpimenu#openandshow(0)"
+    setlocal foldcolumn=0
+    exec "vertical resize " . currentwidth
+    exec newWindow."wincmd w"
+
+  else
+    execute 'e '. relativePath
+  end
+
+endfunction
+
+
 "----------------------------------------------------------------------
 " select items by &ft, generate keymap and add some default items
 "----------------------------------------------------------------------
 function! Select_by_ft(mid, ft) abort
   " R = refresh
   " A = newdocingroup
-  " D = newdiringroup
   " U = hardrefresh
 
   let hint = '123456789abcdefhilmnoprstuvwxyzCIOPQSUX*'
@@ -947,16 +1009,16 @@ function! Select_by_ft(mid, ft) abort
 
 "    let ni = {'mode':1, 'text':'', 'event':''}
 
-    let confFileName = $HOME ."/Dropbox/Apps/KiwiApp/config/cnf_idx_".t:wimpimenu_taxo_term.'_'.t:wimpimenu_taxo_val.'.yml'
-    if filereadable(confFileName)
-      let item = {}
-      let item.mode = 0
-      let item.text = '<new directory>'
-      let item.event = 'newdiringroup'
-      let item.key = 'D'
-      let item.help = ''
-      let items += [item]
-    endif
+"   let confFileName = $HOME ."/Dropbox/Apps/KiwiApp/config/cnf_idx_".t:wimpimenu_taxo_term.'_'.t:wimpimenu_taxo_val.'.yml'
+"   if filereadable(confFileName)
+"     let item = {}
+"     let item.mode = 0
+"     let item.text = '<new directory>'
+"     let item.event = 'newdiringroup'
+"     let item.key = 'D'
+"     let item.help = ''
+"     let items += [item]
+"   endif
 
   endif
 
@@ -989,7 +1051,6 @@ function! Select_by_ft(mid, ft) abort
   return items
 
 endfunc
-
 
 "----------------------------------------------------------------------
 " expand menu items
