@@ -244,7 +244,6 @@ function! wimpimenu#menu_2nd_level(term)
   let termslist = wimpi#parse_json_file(g:wimpi_index_path . '/index_'.a:term.'.json', [])
 
   for k in sort(termslist)
-
     call wimpimenu#append( a:term. ": " . k, ":call wimpimenu#openterm(0,'".a:term."','".k."')", "...")
   endfor
 endfunction
@@ -285,10 +284,6 @@ function! wimpimenu#menu_3rd_level(term, value)
   if has_key(term_config, 'plural')
     let term_plural = get(term_config, 'plural')
   end
-
-
-"  let confFileName = $HOME ."/Dropbox/Apps/KiwiApp/config/cnf_idx_".a:term.'_'.a:value.'.yml'
-"  let config = wimpi#parse_yaml_to_dict(confFileName)
 
   call wimpimenu#reset()
   call wimpimenu#append("# " . toupper(a:term) . ' : ' . toupper(a:value), '')
