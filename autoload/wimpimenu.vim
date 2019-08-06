@@ -49,12 +49,6 @@ let t:wimpimenu_lastmaxsize = 0
 let t:wimpimenu_taxo_term = ""
 let t:wimpimenu_taxo_val = ""
 
-"augroup WimpiMenuTabInit
-"  autocmd!
-"  autocmd VimEnter,TabEnter * call wimpimenu#tabInitState()
-"augroup END
-
-
 "----------------------------------------------------------------------
 " Internal State
 "----------------------------------------------------------------------
@@ -270,6 +264,7 @@ function! wimpimenu#debug_info()
       call wimpimenu#append("t:wimpimenu_name = ".t:wimpimenu_name,'')
       call wimpimenu#append("t:wimpimenu_taxo_term = ".t:wimpimenu_taxo_term,'')
       call wimpimenu#append("t:wimpimenu_taxo_val = ".t:wimpimenu_taxo_val,'')
+      call wimpimenu#append("Loading time = ".t:wimpi_load_time,'')
 
 endfunction
 
@@ -441,6 +436,9 @@ function! wimpimenu#openterm(mid, taxo_term, taxo_value) abort
 endfunction
 
 function! wimpimenu#openandshow(mid) abort
+"function! wimpimenu#openandshow(mid)
+
+  let t:wimpi_start_load_time = localtime()
 
   if t:wimpimenu_taxo_term!="" && t:wimpimenu_taxo_val!=""
     call wimpimenu#menu_3rd_level(t:wimpimenu_taxo_term, t:wimpimenu_taxo_val)
@@ -454,6 +452,7 @@ function! wimpimenu#openandshow(mid) abort
   endif
 
   if g:wimpi_debug
+    let t:wimpi_load_time = localtime() - t:wimpi_start_load_time
     call wimpimenu#debug_info()
   endif
 
