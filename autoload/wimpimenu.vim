@@ -155,7 +155,7 @@ endfunc
 
 function! wimpimenu#recent_files()
   let files = []
-  let files = systemlist('ls -1t ~/Dropbox/Apps/KiwiApp/wiki | grep -ve "^index.*" | head -5')
+  let files = systemlist('ls -1t '.g:wimpi_root_path.'/wiki | grep -ve "^index.*" | head -5')
   return files
 endfunction
 
@@ -180,7 +180,7 @@ function! wimpimenu#partialFilesListing(files_list, sort)
   endif
 
   for tk in title_keys
-    call wimpimenu#append("" . tk, ":botright vs ". $HOME ."/Dropbox/Apps/KiwiApp/wiki/".titles[tk], "...")
+    call wimpimenu#append("" . tk, ":botright vs ". g:wimpi_root_path . "/wiki/".titles[tk], "...")
   endfor
 
 endfunction
@@ -206,7 +206,7 @@ function! wimpimenu#menu_1st_level()
   endfor
 
   call wimpimenu#append("# INDEX", '')
-  call wimpimenu#append("Alfabetisch", ":botright vs ". $HOME ."/Dropbox/Apps/KiwiApp/wiki/index.md", "...")
+  call wimpimenu#append("Alfabetisch", ":botright vs ". g:wimpi_root_path . "/wiki/index.md", "...")
 
   let index_keys_list = wimpi#parse_json_file(g:wimpi_index_path . '/_index_keys.json', [])
   for k in index_keys_list
@@ -224,7 +224,7 @@ function! wimpimenu#menu_1st_level()
   call wimpimenu#partialFilesListing( recent , 0 )
 
   call wimpimenu#append("# CONFIGURATION", '')
-  call wimpimenu#append("index configuration", ":botright vs ". $HOME ."/Dropbox/Apps/KiwiApp/config/wiki_indexes.yml", "...")
+  call wimpimenu#append("index configuration", ":botright vs ". g:wimpi_root_path . "/config/wiki_indexes.yml", "...")
 
 endfunction
 
@@ -232,16 +232,15 @@ function! wimpimenu#menu_2nd_level(term)
 
   call wimpimenu#reset()
   call wimpimenu#append("# " . toupper(a:term), '')
-
   call wimpimenu#append(".." , ":call wimpimenu#openterm(0,'','')", "...")
 
-  let termslist = wimpi#parse_json_file(g:wimpi_index_path . '/index_'.a:term.'.json', [])
+  let termslist = wimpi#parse_json_file( wimpi#l2_index_filepath(a:term), [] )
 
-  for k in sort(termslist)
-    call wimpimenu#append( a:term. ": " . k, ":call wimpimenu#openterm(0,'".a:term."','".k."')", "...")
+  for val in sort(termslist)
+    let files_in_menu = wimpi#parse_json_file( wimpi#l3_index_filepath(a:term, val) ,[])
+    call wimpimenu#append( a:term. ": " . val ." (".len(files_in_menu).")" , ":call wimpimenu#openterm(0,'".a:term."','".val."')", "...")
   endfor
 endfunction
-
 
 function! wimpimenu#index_term_config(term)
   if has_key(g:wimpi_index_config, 'index_keys')
@@ -292,7 +291,7 @@ function! wimpimenu#menu_3rd_level(term, value)
 
   call wimpimenu#append(".. (". term_plural .")" , ":call wimpimenu#openterm(0,'".a:term."','')", "...")
 
-  let files_in_menu = wimpi#parse_json_file(g:wimpi_index_path . '/index_'.a:term.'_'.a:value.'.json',[])
+  let files_in_menu = wimpi#parse_json_file(wimpi#l3_index_filepath( a:term, a:value), [])
 
   if has_key(config, 'group_by')
     let group_by =  get(config,'group_by')
@@ -345,7 +344,7 @@ function! wimpimenu#menu_3rd_level(term, value)
 
   call wimpimenu#append("### " . toupper('Configuration'), '')
   if has_key(config, 'config')
-    call wimpimenu#append("Open ". a:term." ".a:value." Config", ":botright vs ". $HOME ."/Dropbox/Apps/KiwiApp/config/cnf_idx_".a:term.'_'.a:value.'.yml', "...")
+    call wimpimenu#append("Open ". a:term." ".a:value." Config", ":botright vs ". wimpi#l3_config_filepath(a:term, a:value), "...")
   else
     call wimpimenu#append("Create ". a:term." ".a:value." Config", "createtaxoqualiconfig", "...")
   endif
@@ -738,7 +737,7 @@ function! <SID>wimpimenu_execute(index) abort
 
       elseif(item.event == 'createtaxoqualiconfig')
 
-        let confFileName = $HOME ."/Dropbox/Apps/KiwiApp/config/cnf_idx_".t:wimpimenu_taxo_term.'_'.t:wimpimenu_taxo_val.'.yml'
+        let confFileName = wimpi#l3_config_filepath(t:wimpimenu_taxo_term, t:wimpimenu_taxo_val)
 
         let fileLines = []
         call add(fileLines, '---')
@@ -865,15 +864,15 @@ function! <SID>wimpimenu_execute(index) abort
 
 endfunc
 
-function! wimpimenu#termValueLeafConfig(term, val)
-  let config = wimpi#parse_yaml_to_dict($HOME ."/Dropbox/Apps/KiwiApp/config/cnf_idx_".a:term.'_'.a:val.'.yml')
+function! wimpimenu#termValueLeafConfig(term, value)
+  let config = wimpi#parse_yaml_to_dict( wimpi#l3_config_filepath(a:term, a:value))
   return config
 endfunction
 
 function! wimpimenu#new_document_in_leaf(...)
   let title = join(a:000)
   let fileName = wimpi#MdwiWordFilename(title)
-  let relativePath = fnameescape($HOME . '/Dropbox/Apps/KiwiApp/wiki/' . fileName)
+  let relativePath = fnameescape(g:wimpi_root_path . '/wiki/' . fileName)
 
   if !filereadable(relativePath)
     let taxo_term = ''

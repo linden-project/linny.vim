@@ -229,7 +229,8 @@ if !exists('*MdwiCallFrontMatterLink')
     let indexFileTitle = 'index ' . yamlKey . ' ' . yamlVal
     let fileName = wimpi#MdwiWordFilename(indexFileTitle)
 
-    let relativePath = g:wimpi_index_path . '/index_'.tolower(yamlKey).'_'.tolower(yamlVal).'.json'
+    let relativePath = wimpi#l3_index_filepath(yamlKey, yamlVal)
+
     if filereadable(relativePath)
       call wimpimenu#openterm(0, yamlKey, yamlVal)
     else

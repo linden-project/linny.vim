@@ -1,9 +1,13 @@
 function! wimpi#Init()
-  let g:wimpi_index_config = wimpi#parse_yaml_to_dict($HOME . '/Dropbox/Apps/KiwiApp/config/wiki_indexes.yml')
-  if has_key(g:wimpi_index_config, 'index_files_path')
-    let g:wimpi_index_path = expand(g:wimpi_index_config['index_files_path'])
+
+  let g:wimpi_main_config = wimpi#parse_yaml_to_dict( expand('~/.wimpi/wimpi.yml') )
+  let g:wimpi_root_path = expand(g:wimpi_main_config['root_path'])
+  let g:wimpi_index_config = wimpi#parse_yaml_to_dict( expand( g:wimpi_root_path .'/config/wiki_indexes.yml'))
+
+  if has_key(g:wimpi_main_config, 'index_files_path')
+    let g:wimpi_index_path = expand(g:wimpi_main_config['index_files_path'])
   else
-    let g:wimpi_index_path = $HOME . '/Dropbox/Apps/KiwiApp/index'
+    let g:wimpi_index_path = expand(g:wimpi_root_path. '/index')
   end
 
   call wimpi#cache_index()
@@ -11,7 +15,7 @@ function! wimpi#Init()
 endfunction
 
 function! wimpi#PluginVersion()
-    return '0.2.8'
+    return '0.3.0'
 endfunction
 
 function! s:initVariable(var, value)
@@ -90,7 +94,7 @@ endfunction
 func! wimpi#browsetaxovals()
 
   let currentKey = MdwiYamlKeyUnderCursor()
-  let relativePath = fnameescape(g:wimpi_index_path . '/index_' . currentKey .'.json' )
+  let relativePath = fnameescape(wimpi#l2_index_filepath(currentKey))
 
   if filereadable(relativePath)
 
@@ -106,12 +110,12 @@ func! wimpi#browsetaxovals()
 endfunc
 
 function! wimpi#grep(...)
-  let awkWimpiGrep = "grep -nri ".'"'.join(a:000).'"'." ~/Dropbox/Apps/KiwiApp/wiki | awk -F".'"'.":".'"'." {'gsub(/^[ \t]/, ".'""'.", $3);print $1".'"'.'|"$2"| "$3'."'}"
+  let awkWimpiGrep = "grep -nri ".'"'.join(a:000).'"'." ". g:wimpi_root_path ."/wiki | awk -F".'"'.":".'"'." {'gsub(/^[ \t]/, ".'""'.", $3);print $1".'"'.'|"$2"| "$3'."'}"
   execute 'AsyncRun! '. awkWimpiGrep
 endfunction
 
 function! wimpi#move_to(dest)
-  let relativePath = fnameescape($HOME . '/Dropbox/Apps/KiwiApp/wiki/')
+  let relativePath = fnameescape( g:wimpi_root_path . '/wiki/')
   exec "!mkdir -p ". relativePath ."/".a:dest
   exec "!mv '%' " . relativePath . "/".a:dest."/"
   exec "bdelete"
@@ -167,3 +171,16 @@ function! wimpi#titlesForDocs(docs_list)
   return titles
 endfunction
 
+
+function! wimpi#l2_index_filepath(term)
+  return g:wimpi_index_path . '/L2-INDEX_TRM_'.tolower(a:term).'.json'
+endfunction
+
+function! wimpi#l3_index_filepath(term, value)
+  "L3-INDEX_TRM_klant_VAL_andreas de kock.json
+  return g:wimpi_index_path . '/L3-INDEX_TRM_'.tolower(a:term).'_VAL_'.tolower(a:value).'.json'
+endfunction
+
+function! wimpi#l3_config_filepath(term, value)
+  return g:wimpi_root_path ."/config/L3-CONF_TRM_".tolower(a:term).'_VAL_'.tolower(a:value).'.yml'
+endfunction
