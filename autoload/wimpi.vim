@@ -28,6 +28,22 @@ endfunction
 
 call s:initVariable("s:spaceReplaceChar", '_')
 
+"utility
+function! wimpi#FilenameToWord(filename)
+
+  let filename = substitute(a:filename, '_', ' ', 'g')
+  let word = '[[' . filename . ']]'
+
+  return word
+
+endfunction
+
+"user func for mapping
+function! wimpi#FilenameToWordToUnamedRegister()
+  let @@ = wimpi#FilenameToWord( expand('%:t:r') )
+endfunction
+
+
 function! wimpi#MdwiWordFilename(word)
   let file_name = ''
   "Same directory and same extension as the current file
