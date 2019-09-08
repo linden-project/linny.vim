@@ -1,6 +1,9 @@
 function! wimpi#Init()
 
   let g:wimpi_main_config = wimpi#parse_yaml_to_dict( expand('~/.wimpi/wimpi.yml') )
+
+  let g:wimpi_state_dir = expand('~/.wimpi/state')
+
   let g:wimpi_root_path = expand(g:wimpi_main_config['root_path'])
   let g:wimpi_index_config = wimpi#parse_yaml_to_dict( expand( g:wimpi_root_path .'/config/wiki_indexes.yml'))
 
@@ -116,13 +119,28 @@ func! wimpi#browsetaxovals()
 
     let lines = readfile(relativePath)
     let json = join(lines)
-    let dict = json_decode(json)
+    let tvList = json_decode(json)
+    let tvListNew = []
+
+"    for tv in tvList
+"      call add(tvListNew, wimpi#taxoValTitle(currentKey, tv))
+"    endfor
+
     call setline('.', currentKey .": ")
     call cursor(line('.'), strlen(currentKey)+3)
-    call complete(strlen(currentKey)+3, sort(dict))
+    call complete(strlen(currentKey)+3, sort(tvList))
   endif
 
   return ''
+endfunc
+
+func! wimpi#taxoValTitle(tk, tv)
+  let l3_config = wimpi#termValueLeafConfig(a:tk, a:tv)
+  if has_key(l3_config, 'title')
+    return get(l3_config, 'title')
+  else
+    return a:tv
+  end
 endfunc
 
 function! wimpi#grep(...)
@@ -136,7 +154,6 @@ function! wimpi#move_to(dest)
   exec "!mv '%' " . relativePath . "/".a:dest."/"
   exec "bdelete"
 endfunction
-
 
 function! wimpi#generate_first_content(title, taxoEntries)
   let fileLines = []
@@ -168,8 +185,13 @@ function! wimpi#parse_json_file(filePath, empty_return)
     let vars = json_decode(json)
     return vars
   endif
-  return empty_return
+  return a:empty_return
 endfunction
+
+function! wimpi#write_json_file(filePath, object)
+  call writefile([json_encode(a:object)], a:filePath)
+endfunction
+
 
 function! wimpi#docs_titles()
   let docs_titles = wimpi#parse_json_file(g:wimpi_index_path . '/_index_docs_with_title.json', [])
@@ -200,3 +222,19 @@ endfunction
 function! wimpi#l3_config_filepath(term, value)
   return g:wimpi_root_path ."/config/L3-CONF_TRM_".tolower(a:term).'_VAL_'.tolower(a:value).'.yml'
 endfunction
+
+function! wimpi#l3_state_filepath(term, value)
+
+  if !isdirectory(g:wimpi_state_dir)
+    exec "!mkdir ". g:wimpi_state_dir
+  endif
+
+  return g:wimpi_state_dir ."/L3-STATE_TRM_".tolower(a:term).'_VAL_'.tolower(a:value).'.json'
+endfunction
+
+
+function! wimpi#termValueLeafConfig(term, value)
+  let config = wimpi#parse_yaml_to_dict( wimpi#l3_config_filepath(a:term, a:value))
+  return config
+endfunction
+

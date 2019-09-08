@@ -71,7 +71,6 @@ function! NewWimpiTabNr()
   return g:wimpitabnr
 endfunction
 
-
 "----------------------------------------------------------------------
 " popup window management
 "----------------------------------------------------------------------
@@ -172,15 +171,30 @@ endfunction
 function! wimpimenu#partialFilesListing(files_list, sort)
 
   let titles = wimpi#titlesForDocs(a:files_list)
+  let t_sortable = {}
+  let i = 0
 
-  if a:sort
-    let title_keys = sort(keys(titles))
-  else
-    let title_keys = keys(titles)
-  endif
+  for k in keys(titles)
 
+    let entry = {}
+    let entry.orgTitle = k
+    let entry.orgFile = titles[k]
+
+    if a:sort == 'az'
+      let t_sortable[tolower(k)] = entry
+    elseif a:sort == 'date'
+      let modFileTime = getftime(g:wimpi_root_path . "/wiki/".titles[k])
+      let t_sortable[string(99999999999-modFileTime).k] = entry
+    else
+      let t_sortable[i] = entry
+      let i += 1
+    endif
+
+  endfor
+
+  let title_keys = sort(keys(t_sortable))
   for tk in title_keys
-    call wimpimenu#append("" . tk, ":botright vs ". g:wimpi_root_path . "/wiki/".titles[tk], "...")
+    call wimpimenu#append("" . t_sortable[tk]['orgTitle'], ":botright vs ". g:wimpi_root_path . "/wiki/".t_sortable[tk]['orgFile'], "...")
   endfor
 
 endfunction
@@ -191,7 +205,7 @@ function! wimpimenu#menu_1st_level()
 
   call wimpimenu#append("# STARRED DOCS", '')
   let starred = wimpimenu#starred_docs()
-  call wimpimenu#partialFilesListing( starred, 1 )
+  call wimpimenu#partialFilesListing( starred, 'az' )
 
   call wimpimenu#append("# STARRED LEAFS", '')
   let starred = wimpimenu#starred_terms()
@@ -221,7 +235,7 @@ function! wimpimenu#menu_1st_level()
 
   call wimpimenu#append("# RECENT", '')
   let recent = wimpimenu#recent_files()
-  call wimpimenu#partialFilesListing( recent , 0 )
+  call wimpimenu#partialFilesListing( recent , 'date' )
 
   call wimpimenu#append("# CONFIGURATION", '')
   call wimpimenu#append("index configuration", ":botright vs ". g:wimpi_root_path . "/config/wiki_indexes.yml", "...")
@@ -267,6 +281,125 @@ function! wimpimenu#debug_info()
 
 endfunction
 
+function! wimpimenu#termValueLeafState(term, value)
+
+  return wimpi#parse_json_file( wimpi#l3_state_filepath(a:term, a:value), {})
+
+endfunction
+
+function! wimpimenu#writeTermValueLeafState(term, value, l3_state)
+  call wimpi#write_json_file(wimpi#l3_state_filepath(a:term, a:value), a:l3_state)
+endfunction
+
+function! wimpimenu#cycle_3rd_view()
+
+  let l3_state = wimpimenu#termValueLeafState(t:wimpimenu_taxo_term, t:wimpimenu_taxo_val)
+  let active_view = wimpimenu#menu_l3_get_active_view(l3_state)
+
+  let views = wimpimenu#get_l3_views_list(t:wimpimenu_taxo_term, t:wimpimenu_taxo_val)
+
+  if (active_view+1) >= len(views)
+    let new_active_view = 0
+    let l3_state.active_view = 0
+  else
+    let l3_state.active_view = active_view + 1
+  end
+
+  call wimpimenu#writeTermValueLeafState(t:wimpimenu_taxo_term, t:wimpimenu_taxo_val, l3_state)
+
+endfunction
+
+function! wimpimenu#get_l3_views_list(term, value)
+
+  let config = wimpi#termValueLeafConfig(a:term, a:value)
+  let views_list = ["az", 'date']
+
+  if has_key(config, 'views')
+    let views = get(config,'views')
+
+    if(type(views)==4)
+      let views_list = views_list + keys(views)
+    endif
+  endif
+
+  return views_list
+
+endfunction
+
+function! wimpimenu#get_l3_views(term, value)
+
+  let config = wimpi#termValueLeafConfig(a:term, a:value)
+
+  let views_all = {}
+  let views_all.az = {'sort': 'az'}
+  let views_all.date = {'sort': 'date'}
+
+  if has_key(config, 'views')
+    let views = get(config,'views')
+
+    if(type(views)==4)
+      for view in keys(views)
+        let views_all[view] = get(views,view)
+      endfor
+
+    endif
+  endif
+
+  return views_all
+
+endfunction
+
+function! wimpimenu#menu_l3_get_active_view(l3_state)
+  if has_key(a:l3_state, 'active_view')
+   return get(a:l3_state, 'active_view')
+  else
+    return 0
+  end
+endfunction
+
+function! wimpimenu#menu_l3_current_view_props(active_view, views_list, views)
+    return a:views[a:views_list[a:active_view]]
+endfunction
+
+function! wimpimenu#termValueLeafState(term, value)
+  let filePath = wimpi#l3_state_filepath(a:term, a:value)
+  return wimpi#parse_json_file( filePath , {})
+endfunction
+
+function! wimpimenu#stringOfLengthWithChar(char, length)
+  let i = 0
+  let padString = ""
+  while a:length >= i
+    let padString = padString . a:char
+    let i += 1
+  endwhile
+
+  return padString
+endfunction
+
+function! wimpimenu#calcActiveViewArrow(views_list, active_view, padding_left)
+
+  let idx = 0
+  let arrow_string = wimpimenu#stringOfLengthWithChar(" ", a:padding_left)
+  let stopb = 0
+
+  for view in a:views_list
+    if idx == a:active_view
+      let padSize = round(len(view)/2)
+      let filstr = wimpimenu#stringOfLengthWithChar(" ", padSize)
+      let arrow_string = arrow_string . filstr . "▲"
+      let stopb = 1
+    else
+      if !stopb
+        let arrow_string = arrow_string . wimpimenu#stringOfLengthWithChar(" ", (len(view)+1))
+      endif
+    endif
+    let idx += 1
+
+  endfor
+  return arrow_string
+
+endfunction
 
 function! wimpimenu#menu_3rd_level(term, value)
 
@@ -275,30 +408,59 @@ function! wimpimenu#menu_3rd_level(term, value)
   let group_by =''
 
   let term_config = wimpimenu#index_term_config(a:term)
+  let l3_config = wimpi#termValueLeafConfig(a:term, a:value)
+  let l3_state = wimpimenu#termValueLeafState(a:term, a:value)
+
   if has_key(term_config, 'plural')
     let term_plural = get(term_config, 'plural')
   end
 
   call wimpimenu#reset()
+  call wimpimenu#append("/  <home>" , "home", "...")
+  call wimpimenu#append(".. <up> ". term_plural ."" , ":call wimpimenu#openterm(0,'".a:term."','')", "...")
   call wimpimenu#append("# " . toupper(a:term) . ' : ' . toupper(a:value), '')
 
-  let config = wimpimenu#termValueLeafConfig(a:term, a:value)
-  if has_key(config, 'infotext')
-    let infotext =  get(config,'infotext')
+  if has_key(l3_config, 'infotext')
+    let infotext =  get(l3_config,'infotext')
     call wimpimenu#append(infotext, '')
-    call wimpimenu#append("", '')
   endif
 
-  call wimpimenu#append(".. (". term_plural .")" , ":call wimpimenu#openterm(0,'".a:term."','')", "...")
+  let views_string = ""
+  let views_list = wimpimenu#get_l3_views_list(a:term, a:value)
+  let views = wimpimenu#get_l3_views(a:term, a:value)
+
+  for view in views_list
+    let views_string = views_string . "[" .view . "]"
+  endfor
+
+  let active_view = wimpimenu#menu_l3_get_active_view(l3_state)
+
+  let active_arrow_string = wimpimenu#calcActiveViewArrow(views_list, active_view, 10)
+
+  call wimpimenu#append("", '')
+  call wimpimenu#append("VIEW  ". views_string  , "cycleview", "...")
+  call wimpimenu#append(active_arrow_string, '')
+  if active_view < 2
+    call wimpimenu#append("", '')
+  end
 
   let files_in_menu = wimpi#parse_json_file(wimpi#l3_index_filepath( a:term, a:value), [])
 
-  if has_key(config, 'group_by')
-    let group_by =  get(config,'group_by')
+  let view_props = wimpimenu#menu_l3_current_view_props(active_view, views_list, views)
+
+  if has_key(view_props, 'sort')
+    let sort = get(view_props,'sort')
+  else
+    let sort = "az"
+  end
+
+  if has_key(view_props, 'group_by')
+    let group_by =  get(view_props,'group_by')
     let files_index = wimpi#parse_json_file(g:wimpi_index_path . '/_index_docs_with_keys.json',[])
 
     let files_menu = {}
     for k in files_in_menu
+      let hide = 0
       if has_key(files_index[k], group_by)
         let group_by_val =  tolower(get(files_index[k], group_by))
 
@@ -306,7 +468,6 @@ function! wimpimenu#menu_3rd_level(term, value)
           let files_menu[group_by_val] = []
         end
 
-        call add(files_menu[group_by_val], k)
         call add(files_menu[group_by_val], k)
 
       else
@@ -322,16 +483,15 @@ function! wimpimenu#menu_3rd_level(term, value)
 
     for group in sort(keys(files_menu))
       call wimpimenu#append("### " . wimpimenu#string_capitalize(group), '')
-      call wimpimenu#partialFilesListing( files_menu[group], 1 )
+      call wimpimenu#partialFilesListing( files_menu[group], sort )
     endfor
 
   else
-
-    call wimpimenu#partialFilesListing( files_in_menu, 1 )
+    call wimpimenu#partialFilesListing( files_in_menu, sort )
   endif
 
-  if has_key(config, 'locations')
-    let locations = get(config,'locations')
+  if has_key(l3_config, 'locations')
+    let locations = get(l3_config,'locations')
     if(type(locations)==4)
       call wimpimenu#append("### " . toupper('Locaties'), '')
 
@@ -343,7 +503,8 @@ function! wimpimenu#menu_3rd_level(term, value)
   endif
 
   call wimpimenu#append("### " . toupper('Configuration'), '')
-  if has_key(config, 'config')
+
+  if filereadable(wimpi#l3_config_filepath(a:term, a:value))
     call wimpimenu#append("Open ". a:term." ".a:value." Config", ":botright vs ". wimpi#l3_config_filepath(a:term, a:value), "...")
   else
     call wimpimenu#append("Create ". a:term." ".a:value." Config", "createtaxoqualiconfig", "...")
@@ -727,6 +888,10 @@ function! <SID>wimpimenu_execute(index) abort
       elseif(item.event == 'refresh')
         call wimpimenu#openandshow(0)
 
+      elseif(item.event == 'cycleview')
+        call wimpimenu#cycle_3rd_view()
+        call wimpimenu#openandshow(0)
+
       elseif(item.event == 'hardrefresh')
         call wimpi#Init()
         call wimpi#make_index()
@@ -741,13 +906,15 @@ function! <SID>wimpimenu_execute(index) abort
 
         let fileLines = []
         call add(fileLines, '---')
-        call add(fileLines, 'config: true')
+        call add(fileLines, 'title: '.wimpimenu#string_capitalize(t:wimpimenu_taxo_val))
         call add(fileLines, 'infotext: About '. t:wimpimenu_taxo_val)
-        call add(fileLines, 'group_by: type')
+        call add(fileLines, 'views:')
+        call add(fileLines, '  type:')
+        call add(fileLines, '    group_by: type')
         call add(fileLines, 'locations:')
         call add(fileLines, '  #website: https://www.'.t:wimpimenu_taxo_val.'.vim')
-        call add(fileLines, '  #dir1: file:///Applications/')
-        call add(fileLines, '  #file1: file:///Projects/file1.someformat')
+        "call add(fileLines, '  #dir1: file:///Applications/')
+        "call add(fileLines, '  #file1: file:///Projects/file1.someformat')
 
         if writefile(fileLines, confFileName)
           echomsg 'write error'
@@ -781,7 +948,7 @@ function! <SID>wimpimenu_execute(index) abort
 "          if(!empty(newdir))
 ""            let confFileName = $HOME ."/Dropbox/Apps/KiwiApp/config/cnf_idx_".t:wimpimenu_taxo_term.'_'.t:wimpimenu_taxo_val.'.yml'
 ""            let config = wimpi#parse_yaml_to_dict(confFileName)
-"            let config = wimpimenu#termValueLeafConfig(t:wimpimenu_taxo_term, t:wimpimenu_taxo_val)
+"            let config = wimpi#termValueLeafConfig(t:wimpimenu_taxo_term, t:wimpimenu_taxo_val)
 "
 "            if has_key(config, 'locations')
 "              let locations = get(config,'locations')
@@ -864,10 +1031,6 @@ function! <SID>wimpimenu_execute(index) abort
 
 endfunc
 
-function! wimpimenu#termValueLeafConfig(term, value)
-  let config = wimpi#parse_yaml_to_dict( wimpi#l3_config_filepath(a:term, a:value))
-  return config
-endfunction
 
 function! wimpimenu#new_document_in_leaf(...)
   let title = join(a:000)
@@ -885,7 +1048,7 @@ function! wimpimenu#new_document_in_leaf(...)
       let entry['value'] = t:wimpimenu_taxo_val
       call add(taxoEntries, entry)
 
-      let config = wimpimenu#termValueLeafConfig(t:wimpimenu_taxo_term, t:wimpimenu_taxo_val)
+      let config = wimpi#termValueLeafConfig(t:wimpimenu_taxo_term, t:wimpimenu_taxo_val)
       if has_key(config, 'frontmatter_template')
         let fm_template = get(config,'frontmatter_template')
         if(type(fm_template)==4)
@@ -935,7 +1098,7 @@ function! Select_by_ft(mid, ft) abort
   " A = newdocingroup
   " U = hardrefresh
 
-  let hint = '123456789abcdefhilmnoprstuvwxyzCIOPQSUX*'
+  let hint = '0123456789abcdefhilmdddstuvwxyzCIOPQSUX*'
 
   let items = []
   let index = 0
@@ -1016,15 +1179,15 @@ function! Select_by_ft(mid, ft) abort
 
   endif
 
-  if t:wimpimenu_taxo_term != ""
-    let item = {}
-    let item.mode = 0
-    let item.text = '<home>'
-    let item.event = 'home'
-    let item.key = '0'
-    let item.help = ''
-    let items += [item]
-  endif
+"  if t:wimpimenu_taxo_term != ""
+"    let item = {}
+"    let item.mode = 0
+"    let item.text = '<home>'
+"    let item.event = 'home'
+"    let item.key = '0'
+"    let item.help = ''
+"    let items += [item]
+"  endif
 
   let item = {}
   let item.mode = 0
@@ -1220,9 +1383,4 @@ if 1
   " nnoremap <F12> :call wimpimenu#toggle(0)<cr>
   " imap <expr> <F11> wimpimenu#bottom(0)
 endif
-
-
-
-
-
 
