@@ -106,7 +106,7 @@ endfunc
 
 function! Window_open(size)
 
-  echom a:size
+"  echom a:size
 
   if Window_exist()
     call Window_close()
@@ -248,12 +248,77 @@ function! wimpimenu#menu_2nd_level(term)
   call wimpimenu#append("# " . toupper(a:term), '')
   call wimpimenu#append(".." , ":call wimpimenu#openterm(0,'','')", "...")
 
+  let group_by = ''
+  let config = wimpi#termLeafConfig(a:term)
+
+  if has_key(config, 'views')
+    let views = get(config, 'views')
+    let views_list = keys(views)
+    if has_key(views[views_list[0]], 'group_by' )
+      let group_by = get(views[views_list[0]], 'group_by')
+    end
+  end
+
   let termslist = wimpi#parse_json_file( wimpi#l2_index_filepath(a:term), [] )
 
-  for val in sort(termslist)
-    let files_in_menu = wimpi#parse_json_file( wimpi#l3_index_filepath(a:term, val) ,[])
-    call wimpimenu#append( a:term. ": " . val ." (".len(files_in_menu).")" , ":call wimpimenu#openterm(0,'".a:term."','".val."')", "...")
-  endfor
+  if group_by != ''
+    let term_menu = {}
+
+    for val in sort(termslist)
+
+      let tvconf = wimpi#termValueLeafConfig(a:term, val)
+
+      if(has_key(tvconf, group_by))
+
+        let group_by_val = tolower(get(tvconf, group_by))
+
+        if !has_key(term_menu,group_by_val)
+          let term_menu[group_by_val] = []
+        end
+
+        call add(term_menu[group_by_val], val)
+      else
+        if !has_key(term_menu,'other')
+          let term_menu['other'] = []
+        end
+        call add(term_menu['other'], val)
+      end
+    endfor
+
+    for group in sort(keys(term_menu))
+      call wimpimenu#append("### " . wimpimenu#string_capitalize(group), '')
+
+      for val in term_menu[group]
+
+        let files_in_menu = wimpi#parse_json_file( wimpi#l3_index_filepath(a:term, val) ,[])
+        call wimpimenu#append( a:term. ": " . val ." (".len(files_in_menu).")" , ":call wimpimenu#openterm(0,'".a:term."','".val."')", "...")
+      endfor
+
+    endfor
+
+
+  else
+
+    for val in sort(termslist)
+
+      let files_in_menu = wimpi#parse_json_file( wimpi#l3_index_filepath(a:term, val) ,[])
+      call wimpimenu#append( a:term. ": " . val ." (".len(files_in_menu).")" , ":call wimpimenu#openterm(0,'".a:term."','".val."')", "...")
+
+    endfor
+  end
+
+
+
+
+  call wimpimenu#append("### " . toupper('Configuration'), '')
+
+  if filereadable(wimpi#l2_config_filepath(a:term))
+    call wimpimenu#append("Open ". a:term." Config", ":botright vs ". wimpi#l2_config_filepath(a:term), "...")
+  else
+    call wimpimenu#append("Create ". a:term." Config", "createl2config", "...")
+  endif
+
+
 endfunction
 
 function! wimpimenu#index_term_config(term)
@@ -418,12 +483,18 @@ function! wimpimenu#menu_3rd_level(term, value)
   call wimpimenu#reset()
   call wimpimenu#append("/  <home>" , "home", "...")
   call wimpimenu#append(".. <up> ". term_plural ."" , ":call wimpimenu#openterm(0,'".a:term."','')", "...")
+  "call wimpimenu#append("", '')
+  "call wimpimenu#append("-----------------------------------------", '')
   call wimpimenu#append("# " . toupper(a:term) . ' : ' . toupper(a:value), '')
 
-  if has_key(l3_config, 'infotext')
-    let infotext =  get(l3_config,'infotext')
-    call wimpimenu#append(infotext, '')
-  endif
+  call wimpimenu#append("-----------------------------------------", '')
+
+
+  "if has_key(l3_config, 'infotext')
+  "  let infotext =  get(l3_config,'infotext')
+  "
+  "call wimpimenu#append(infotext, '')
+  "endif
 
   let views_string = ""
   let views_list = wimpimenu#get_l3_views_list(a:term, a:value)
@@ -499,7 +570,6 @@ function! wimpimenu#menu_3rd_level(term, value)
         call wimpimenu#append("" . l, ":!open '". get(locations,l)."'", "...")
       endfor
     endif
-
   endif
 
   call wimpimenu#append("### " . toupper('Configuration'), '')
@@ -507,7 +577,7 @@ function! wimpimenu#menu_3rd_level(term, value)
   if filereadable(wimpi#l3_config_filepath(a:term, a:value))
     call wimpimenu#append("Open ". a:term." ".a:value." Config", ":botright vs ". wimpi#l3_config_filepath(a:term, a:value), "...")
   else
-    call wimpimenu#append("Create ". a:term." ".a:value." Config", "createtaxoqualiconfig", "...")
+    call wimpimenu#append("Create ". a:term." ".a:value." Config", "createl3config", "...")
   endif
 
 endfunc
@@ -900,7 +970,36 @@ function! <SID>wimpimenu_execute(index) abort
       elseif(item.event == 'home')
         call wimpimenu#openterm(0,'','')
 
-      elseif(item.event == 'createtaxoqualiconfig')
+      elseif(item.event == 'createl2config')
+
+        let confFileName = wimpi#l2_config_filepath(t:wimpimenu_taxo_term)
+
+        let fileLines = []
+        call add(fileLines, '---')
+        call add(fileLines, 'title: '.wimpimenu#string_capitalize(t:wimpimenu_taxo_term))
+        call add(fileLines, 'infotext: About '. t:wimpimenu_taxo_term)
+        call add(fileLines, 'views:')
+        call add(fileLines, '  type:')
+        call add(fileLines, '    group_by: type')
+
+        if writefile(fileLines, confFileName)
+          echomsg 'write error'
+        else
+          exec ':only'
+          let currentwidth = t:wimpimenu_lastmaxsize
+          let currentWindow=winnr()
+          execute ":botright vs ". confFileName
+          let newWindow=winnr()
+
+          exec currentWindow."wincmd w"
+          setlocal foldcolumn=0
+          exec "vertical resize " . currentwidth
+          exec currentWindow."call wimpimenu#openandshow(0)"
+          exec newWindow."wincmd w"
+
+        endif
+
+      elseif(item.event == 'createl3config')
 
         let confFileName = wimpi#l3_config_filepath(t:wimpimenu_taxo_term, t:wimpimenu_taxo_val)
 
@@ -932,50 +1031,6 @@ function! <SID>wimpimenu_execute(index) abort
           exec newWindow."wincmd w"
 
         endif
-
-"      elseif(item.event == 'newdiringroup')
-"
-"        call inputsave()
-"        let name = input('Enter directory name: ', t:wimpimenu_taxo_term .'_'. t:wimpimenu_taxo_val)
-"        call inputrestore()
-"
-"        echo name
-"
-"        if(!empty(name))
-"
-"          let newdir = wimpi#new_dir(name)
-"
-"          if(!empty(newdir))
-""            let confFileName = $HOME ."/Dropbox/Apps/KiwiApp/config/cnf_idx_".t:wimpimenu_taxo_term.'_'.t:wimpimenu_taxo_val.'.yml'
-""            let config = wimpi#parse_yaml_to_dict(confFileName)
-"            let config = wimpi#termValueLeafConfig(t:wimpimenu_taxo_term, t:wimpimenu_taxo_val)
-"
-"            if has_key(config, 'locations')
-"              let locations = get(config,'locations')
-"              if(type(locations)!=4)
-"              let locations = {}
-"              endif
-"              let locations['dir'] = "file://".newdir
-"              let config['locations'] = locations
-"
-"              let vimjson = []
-"              call add(vimjson, json_encode(config))
-"
-"              if writefile(vimjson, '/tmp/vimjsonconvert')
-"                echomsg 'write error'
-"              endif
-"
-"              call system("ruby -ryaml -rjson -e 'puts YAML.dump(JSON.load(ARGF))' < /tmp/vimjsonconvert > " . confFileName)
-"
-"            endif
-"          else
-"            echo "could not create directory"
-"
-"          endif
-"
-"        else
-"          return 0
-"        endif
 
       elseif(item.event == 'newdocingroup')
 
@@ -1103,6 +1158,7 @@ function! Select_by_ft(mid, ft) abort
   let items = []
   let index = 0
   let header = get(t:wimpimenu_header, a:mid, g:wimpimenu_version)
+  let header = ''
 
   if header != ''
     let ni = {'mode':3, 'text':'', 'event':'', 'help':''}

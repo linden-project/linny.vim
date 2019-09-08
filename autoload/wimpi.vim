@@ -219,6 +219,10 @@ function! wimpi#l3_index_filepath(term, value)
   return g:wimpi_index_path . '/L3-INDEX_TRM_'.tolower(a:term).'_VAL_'.tolower(a:value).'.json'
 endfunction
 
+function! wimpi#l2_config_filepath(term)
+  return g:wimpi_root_path ."/config/L2-CONF_TRM_".tolower(a:term).'.yml'
+endfunction
+
 function! wimpi#l3_config_filepath(term, value)
   return g:wimpi_root_path ."/config/L3-CONF_TRM_".tolower(a:term).'_VAL_'.tolower(a:value).'.yml'
 endfunction
@@ -237,4 +241,10 @@ function! wimpi#termValueLeafConfig(term, value)
   let config = wimpi#parse_yaml_to_dict( wimpi#l3_config_filepath(a:term, a:value))
   return config
 endfunction
+
+function! wimpi#termLeafConfig(term)
+  let config = wimpi#parse_yaml_to_dict( wimpi#l2_config_filepath(a:term))
+  return config
+endfunction
+
 
