@@ -113,18 +113,20 @@ endfunction
 func! wimpi#browsetaxovals()
 
   let currentKey = MdwiYamlKeyUnderCursor()
+
   let relativePath = fnameescape(wimpi#l2_index_filepath(currentKey))
 
   if filereadable(relativePath)
+    let termslistDict = wimpi#parse_json_file( relativePath, [] )
+    let tvList = []
 
-    let lines = readfile(relativePath)
-    let json = join(lines)
-    let tvList = json_decode(json)
-    let tvListNew = []
-
-"    for tv in tvList
-"      call add(tvListNew, wimpi#taxoValTitle(currentKey, tv))
-"    endfor
+    for trm in keys(termslistDict)
+      if has_key( termslistDict[trm], 'title')
+        call add(tvList, termslistDict[trm]['title'])
+      else
+        call add(tvList, trm)
+      end
+    endfor
 
     call setline('.', currentKey .": ")
     call cursor(line('.'), strlen(currentKey)+3)

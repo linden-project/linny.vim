@@ -259,18 +259,20 @@ function! wimpimenu#menu_2nd_level(term)
     end
   end
 
-  let termslist = wimpi#parse_json_file( wimpi#l2_index_filepath(a:term), [] )
+  let termslistDict = wimpi#parse_json_file( wimpi#l2_index_filepath(a:term), [] )
+  let termslist = keys(termslistDict)
 
   if group_by != ''
     let term_menu = {}
 
     for val in sort(termslist)
 
-      let tvconf = wimpi#termValueLeafConfig(a:term, val)
 
-      if(has_key(tvconf, group_by))
+      "let tvconf = wimpi#termValueLeafConfig(a:term, val)
 
-        let group_by_val = tolower(get(tvconf, group_by))
+      if(has_key(termslistDict[val], group_by))
+
+        let group_by_val = tolower(get(termslistDict[val], group_by))
 
         if !has_key(term_menu,group_by_val)
           let term_menu[group_by_val] = []
