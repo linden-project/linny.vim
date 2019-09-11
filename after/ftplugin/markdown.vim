@@ -80,7 +80,6 @@ function! WimpiFoldText()
   return repeat('▧', v:foldlevel) . repeat(' ', indent) . text .' ('. lines .')'
 endfunction
 
-
 function! s:initVariable(var, value)
     if !exists(a:var)
         exec 'let ' . a:var . ' = ' . "'" . a:value . "'"
@@ -99,6 +98,7 @@ call s:initVariable("s:endLink", ')')
 call s:initVariable("s:lastPosLine", 0)
 call s:initVariable("s:lastPosCol", 0)
 call s:initVariable("s:spaceReplaceChar", '_')
+
 
 " *********************************************************************
 " *                      Utilities
@@ -339,29 +339,6 @@ function! MdwiGetLink()
 endfunction
 
 " ******** CHECK FOR SPECIALE LINKS *****************
-function! MdwiWordHasFileSystemPathDir(word)
-  if a:word =~ "^DIR.*"
-    return trim(a:word[3:-1])
-  else
-    return ""
-  endif
-endfunction
-
-function! MdwiWordHasFileSystemPathFile(word)
-  if a:word =~ "^FILE.*"
-    return trim(a:word[4:-1])
-  else
-    return ""
-  endif
-endfunction
-
-function! MdwiWordHasShellCmd(word)
-  if a:word =~ "^SHELL.*"
-    return trim(a:word[5:-1])
-  else
-    return ""
-  endif
-endfunction
 
 " ******** Go to link *****************
 if !exists('*MdwiGotoLink')
@@ -414,24 +391,25 @@ if !exists('*MdwiGotoLinkMain')
     let word = MdwiGetWord()
 
     if !empty(word)
-      if(MdwiWordHasFileSystemPathDir(word)!="")
 
-        if(MdwiFileExist(MdwiFilePath(MdwiWordHasFileSystemPathDir(word))) != 1)
-          silent execute "!mkdir " . fnameescape(MdwiWordHasFileSystemPathDir(word))
+      if(wimpi_mdlangext#wikiWordHasPrefix(word , "DIR"))
+
+        if(MdwiFileExist(MdwiFilePath(wimpi_mdlangext#wikiWordWithPrefix(word, "DIR"))) != 1)
+          silent execute "!mkdir " . fnameescape(wimpi_mdlangext#wikiWordWithPrefix(word, "DIR"))
         endif
 
         " If clicked with CTRL open in NerdTee
         if(a:withCTRL)
-          execute 'NERDTree ' . fnameescape(MdwiWordHasFileSystemPathDir(word))
+          execute 'NERDTree ' . fnameescape(wimpi_mdlangext#wikiWordWithPrefix(word, "DIR"))
         else
-          silent execute "!open " . fnameescape(MdwiWordHasFileSystemPathDir(word))
+          silent execute "!open " . fnameescape(wimpi_mdlangext#wikiWordWithPrefix(word, "DIR"))
         endif
 
-      elseif(MdwiWordHasFileSystemPathFile(word)!="")
-          silent execute "!open " . fnameescape(MdwiWordHasFileSystemPathFile(word))
+      elseif(wimpi_mdlangext#wikiWordHasPrefix(word , "FILE"))
+        silent execute "!open " . fnameescape(wimpi_mdlangext#wikiWordWithPrefix(word, "FILE"))
 
-      elseif(MdwiWordHasShellCmd(word)!="")
-        execute "!" . MdwiWordHasShellCmd(word)
+      elseif(wimpi_mdlangext#wikiWordHasPrefix(word , "SHELL"))
+        execute "!" . wimpi_mdlangext#wikiWordWithPrefix(word, "SHELL")
       else
 
         let strCmd = ""

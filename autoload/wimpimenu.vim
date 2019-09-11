@@ -9,7 +9,6 @@
 
 " vim: set noet fenc=utf-8 ff=unix sts=4 sw=4 ts=4 :
 
-
 "----------------------------------------------------------------------
 " Global Options
 "----------------------------------------------------------------------
@@ -224,7 +223,7 @@ function! wimpimenu#menu_1st_level()
 
   let index_keys_list = wimpi#parse_json_file(g:wimpi_index_path . '/_index_keys.json', [])
   for k in index_keys_list
-    let term_config = wimpimenu#index_term_config(k)
+    let term_config = wimpi#index_term_config(k)
     if has_key(term_config, 'top_level')
       let top_level = get(term_config, 'top_level')
       if top_level
@@ -266,8 +265,6 @@ function! wimpimenu#menu_2nd_level(term)
     let term_menu = {}
 
     for val in sort(termslist)
-
-
       "let tvconf = wimpi#termValueLeafConfig(a:term, val)
 
       if(has_key(termslistDict[val], group_by))
@@ -323,18 +320,6 @@ function! wimpimenu#menu_2nd_level(term)
 
 endfunction
 
-function! wimpimenu#index_term_config(term)
-  if has_key(g:wimpi_index_config, 'index_keys')
-    let index_keys = get(g:wimpi_index_config,'index_keys')
-    if has_key(index_keys, a:term)
-      let term_config = get(index_keys, a:term)
-      return term_config
-    endif
-  endif
-
-  return {}
-
-endfunction
 
 function! wimpimenu#debug_info()
 
@@ -468,13 +453,17 @@ function! wimpimenu#calcActiveViewArrow(views_list, active_view, padding_left)
 
 endfunction
 
+function! wimpimenu#menu_divider()
+  call wimpimenu#append("-----------------------------------------", '')
+endfunction
+
 function! wimpimenu#menu_3rd_level(term, value)
 
   let term_plural = a:term
   let infotext =''
   let group_by =''
 
-  let term_config = wimpimenu#index_term_config(a:term)
+  let term_config = wimpi#index_term_config(a:term)
   let l3_config = wimpi#termValueLeafConfig(a:term, a:value)
   let l3_state = wimpimenu#termValueLeafState(a:term, a:value)
 
@@ -485,12 +474,9 @@ function! wimpimenu#menu_3rd_level(term, value)
   call wimpimenu#reset()
   call wimpimenu#append("/  <home>" , "home", "...")
   call wimpimenu#append(".. <up> ". term_plural ."" , ":call wimpimenu#openterm(0,'".a:term."','')", "...")
-  "call wimpimenu#append("", '')
-  "call wimpimenu#append("-----------------------------------------", '')
   call wimpimenu#append("# " . toupper(a:term) . ' : ' . toupper(a:value), '')
 
-  call wimpimenu#append("-----------------------------------------", '')
-
+  call wimpimenu#menu_divider()
 
   "if has_key(l3_config, 'infotext')
   "  let infotext =  get(l3_config,'infotext')
@@ -562,6 +548,9 @@ function! wimpimenu#menu_3rd_level(term, value)
   else
     call wimpimenu#partialFilesListing( files_in_menu, sort )
   endif
+
+  call wimpimenu#append("", '')
+  call wimpimenu#menu_divider()
 
   if has_key(l3_config, 'locations')
     let locations = get(l3_config,'locations')

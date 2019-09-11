@@ -238,6 +238,18 @@ function! wimpi#l3_state_filepath(term, value)
   return g:wimpi_state_dir ."/L3-STATE_TRM_".tolower(a:term).'_VAL_'.tolower(a:value).'.json'
 endfunction
 
+function! wimpi#index_term_config(term)
+  if has_key(g:wimpi_index_config, 'index_keys')
+    let index_keys = get(g:wimpi_index_config,'index_keys')
+    if has_key(index_keys, a:term)
+      let term_config = get(index_keys, a:term)
+      return term_config
+    endif
+  endif
+
+  return {}
+
+endfunction
 
 function! wimpi#termValueLeafConfig(term, value)
   let config = wimpi#parse_yaml_to_dict( wimpi#l3_config_filepath(a:term, a:value))
