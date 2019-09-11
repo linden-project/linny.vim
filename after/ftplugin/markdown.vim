@@ -232,7 +232,7 @@ if !exists('*MdwiCallFrontMatterLink')
     let relativePath = wimpi#l3_index_filepath(yamlKey, yamlVal)
 
     if filereadable(relativePath)
-      call wimpimenu#openterm(0, yamlKey, yamlVal)
+      call wimpi_menu#openterm(0, yamlKey, yamlVal)
     else
       echomsg "Can't open, does not exist"
     endif

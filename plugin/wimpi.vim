@@ -11,7 +11,7 @@ let g:wimpi_index_cli_command = 'cd $HOME/.vim/wimpi-script/ && rvm 2.5.1 do rub
 call wimpi#Init()
 
 command! -nargs=+ WimpiGrep :call wimpi#grep(<f-args>)
-command! -nargs=+ WimpiDoc :call wimpimenu#new_document_in_leaf(<f-args>)
+command! -nargs=+ WimpiDoc :call wimpi_menu#new_document_in_leaf(<f-args>)
 
 command! WimpiArchive :call wimpi#move_to('ARCHIVE')
 command! WimpiTrash :call wimpi#move_to('TRASH')
@@ -19,8 +19,8 @@ command! WimpiTrash :call wimpi#move_to('TRASH')
 let awkMissingFrontMatterCommand = "/usr/bin/awk 'FNR>1 {nextfile} /---/ { nextfile  } {print FILENAME". '"' . "|0| missing Front Matter" . '"' . "}' ".g:wimpi_root_path."/wiki/*.md"
 command! WimpiMissingFrontMatter :cexpr system(awkMissingFrontMatterCommand)
 
-command! WimpiMenuOpen :call wimpimenu#open()
-command! WimpiMenuClose :call wimpimenu#close()
+command! WimpiMenuOpen :call wimpi_menu#open()
+command! WimpiMenuClose :call wimpi_menu#close()
 
 " VALIDATE Wimpi Links
 augroup MarkdownTasks
