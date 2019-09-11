@@ -24,6 +24,6 @@ command! WimpiMenuClose :call wimpi_menu#close()
 
 " VALIDATE Wimpi Links
 augroup MarkdownTasks
-  autocmd BufEnter,WinEnter,BufWinEnter *.md call wimpi_mdlangext#FindNonExistingLinks()
+  autocmd BufEnter,WinEnter,BufWinEnter *.md call wimpi_wiki#FindNonExistingLinks()
 augroup END
 
