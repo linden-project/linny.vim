@@ -585,10 +585,8 @@ function! wimpi_menu#append(text, event, ...)
   let item.event = a:event
   let item.text = a:text
   let item.key = key
-  let item.ft = []
   let item.weight = weight
   let item.help = help
-
 
   if a:event != ''
     let item.mode = 0
@@ -598,10 +596,6 @@ function! wimpi_menu#append(text, event, ...)
     let item.mode = 2
     let item.text = matchstr(a:text, '^#\+\s*\zs.*')
   endif
-
-"  for ft in split(filetype, ',')
-"     let item.ft += [substitute(ft, '^\s*\(.\{-}\)\s*$', '\1', '')]
-"  endfor
 
   let index = -1
 
@@ -1118,7 +1112,6 @@ function! wimpi_menu#new_document_in_leaf(...)
 
 endfunction
 
-
 "----------------------------------------------------------------------
 " select items, generate keymap and add some default items
 "----------------------------------------------------------------------
@@ -1142,10 +1135,6 @@ function! Select_items() abort
   let lastmode = 2
   for item in t:wimpi_menu_items
 
-"    if len(item.ft) && index(item.ft, a:ft) < 0
-"      continue
-"    endif
-
     " insert empty line
     if item.mode == 2 && lastmode != 2
       let ni = {'mode':1, 'text':'', 'event':''}
@@ -1154,7 +1143,7 @@ function! Select_items() abort
     let lastmode = item.mode
 
     " allocate key for non-filetype specific items
-    if item.mode == 0 && len(item.ft) == 0
+    if item.mode == 0
 
       if item.key == ''
         let item.key = hint[index]
@@ -1177,7 +1166,7 @@ function! Select_items() abort
 
   " allocate key for filetype specific items
   for item in items
-    if item.mode == 0 && len(item.ft) > 0
+    if item.mode == 0
 
       if item.key == ''
         let item.key = hint[index]
