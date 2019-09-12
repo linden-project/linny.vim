@@ -581,7 +581,6 @@ function! wimpi_menu#append(text, event, ...)
 
   let item = {}
 
-
   let item.mode = 0
   let item.event = a:event
   let item.text = a:text
@@ -589,6 +588,8 @@ function! wimpi_menu#append(text, event, ...)
   let item.ft = []
   let item.weight = weight
   let item.help = help
+
+
   if a:event != ''
     let item.mode = 0
   elseif a:text[0] != '#'
@@ -597,14 +598,12 @@ function! wimpi_menu#append(text, event, ...)
     let item.mode = 2
     let item.text = matchstr(a:text, '^#\+\s*\zs.*')
   endif
-  for ft in split(filetype, ',')
-    let item.ft += [substitute(ft, '^\s*\(.\{-}\)\s*$', '\1', '')]
-  endfor
-  let index = -1
 
-  "if !has_key(t:wimpi_menu_items, t:wimpi_menu_mid)
-  "  let t:wimpi_menu_items[t:wimpi_menu_mid] = []
-  "endif
+"  for ft in split(filetype, ',')
+"     let item.ft += [substitute(ft, '^\s*\(.\{-}\)\s*$', '\1', '')]
+"  endfor
+
+  let index = -1
 
   let items = t:wimpi_menu_items
   let total = len(items)
@@ -620,18 +619,6 @@ function! wimpi_menu#append(text, event, ...)
   call insert(items, item, index)
   return index
 endfunc
-
-"function! wimpi_menu#current(mid)
-" let t:wimpi_menu_mid = a:mid
-"endfunc
-
-"function! wimpi_menu#header(header)
-"  let t:wimpi_menu_header = a:header
-"endfunc
-
-"function! wimpi_menu#footer(footer)
-"let t:wimpi_menu_footer = a:footer
-"endfunc
 
 function! wimpi_menu#list()
   for item in t:wimpi_menu_items
@@ -671,8 +658,8 @@ function! wimpi_menu#openandshow() abort
     call wimpi_menu#debug_info()
   endif
 
-  " select and arrange menu
-  let items = Select_by_ft(&ft)
+  let items = Select_items()
+
   let content = []
   let maxsize = 8
   let lastmode = 2
@@ -727,7 +714,7 @@ function! wimpi_menu#toggle() abort
   endif
 
   " select and arrange menu
-  let items = Select_by_ft(&ft)
+  let items = Select_items()
   let content = []
   let maxsize = 8
   let lastmode = 2
@@ -1133,13 +1120,9 @@ endfunction
 
 
 "----------------------------------------------------------------------
-" select items by &ft, generate keymap and add some default items
+" select items, generate keymap and add some default items
 "----------------------------------------------------------------------
-function! Select_by_ft(ft) abort
-
-  " R = refresh
-  " A = newdocingroup
-  " H = hardrefresh
+function! Select_items() abort
 
   let hint = '0123456789abdefhilmdstwxyzIOPQSX*'
 
@@ -1159,9 +1142,9 @@ function! Select_by_ft(ft) abort
   let lastmode = 2
   for item in t:wimpi_menu_items
 
-    if len(item.ft) && index(item.ft, a:ft) < 0
-      continue
-    endif
+"    if len(item.ft) && index(item.ft, a:ft) < 0
+"      continue
+"    endif
 
     " insert empty line
     if item.mode == 2 && lastmode != 2
@@ -1425,4 +1408,5 @@ if 0
   " nnoremap <F12> :call wimpi_menu#toggle(0)<cr>
   " imap <expr> <F11> wimpi_menu#bottom(0)
 endif
+
 
