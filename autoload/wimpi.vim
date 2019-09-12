@@ -1,4 +1,8 @@
+call wimpi_util#initVariable("g:wimpi_version", '0.4.1')
+
+
 function! wimpi#Init()
+  let g:wimpi_version = '0.4.1'
 
   let g:wimpi_main_config = wimpi#parse_yaml_to_dict( expand('~/.wimpi/wimpi.yml') )
 
@@ -18,7 +22,7 @@ function! wimpi#Init()
 endfunction
 
 function! wimpi#PluginVersion()
-    return '0.3.0'
+    return g:wimpi_version
 endfunction
 
 function! s:initVariable(var, value)

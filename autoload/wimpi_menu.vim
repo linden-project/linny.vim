@@ -1,46 +1,27 @@
 "======================================================================
 "
-" wimpi_menu.vim -
+" wimpi_menu.vim
 "
 " Inspired by QuickMenu of skywind
 " Last change: 2017/08/08 15:20:20
 "
 "======================================================================
 
-" vim: set noet fenc=utf-8 ff=unix sts=4 sw=4 ts=4 :
-
 "----------------------------------------------------------------------
 " Global Options
 "----------------------------------------------------------------------
-if !exists('g:wimpi_menu_max_width')
-  let g:wimpi_menu_max_width = 50
-endif
 
-if !exists('g:wimpi_menu_padding_left')
-  let g:wimpi_menu_padding_left = 3
-endif
-
-if !exists('g:wimpi_menu_padding_right')
-  let g:wimpi_menu_padding_right = 3
-endif
-
-if !exists('g:wimpi_menu_options')
-  let g:wimpi_menu_options = 'T'
-endif
-
-if !exists('g:wimpitabnr')
-  let g:wimpitabnr = 1
-endif
-
-if !exists('g:wimpi_debug')
-  let g:wimpi_debug = 0
-endif
-
-let g:wimpi_menu_version = 'Wimpi ' . wimpi#PluginVersion()
+call wimpi_util#initVariable("g:wimpi_menu_max_width", 50)
+call wimpi_util#initVariable("g:wimpi_menu_padding_left", 3)
+call wimpi_util#initVariable("g:wimpi_menu_padding_right", 3)
+call wimpi_util#initVariable("g:wimpi_menu_options", 'T')
+call wimpi_util#initVariable("g:wimpitabnr", 1)
+call wimpi_util#initVariable("g:wimpi_debug", 0)
 
 let t:wimpi_menu_items = {}
 let t:wimpi_menu_mid = 0
 let t:wimpi_menu_header = {}
+let t:wimpi_menu_footer = {}
 let t:wimpi_menu_cursor = {}
 "let t:wimpi_menu_name = ''
 let t:wimpi_menu_line = 0
@@ -56,6 +37,7 @@ function! wimpi_menu#tabInitState()
     let t:wimpi_menu_items = {}
     let t:wimpi_menu_mid = 0
     let t:wimpi_menu_header = {}
+    let t:wimpi_menu_footer = {}
     let t:wimpi_menu_cursor = {}
     let t:wimpi_menu_name = '[wimpi_menu]'.string(NewWimpiTabNr())
     let t:wimpi_menu_line = 0
@@ -243,9 +225,17 @@ endfunction
 
 function! wimpi_menu#menu_2nd_level(term)
 
+  let term_config = wimpi#index_term_config(a:term)
+  let term_plural = a:term
+  if has_key(term_config, 'plural')
+    let term_plural = get(term_config, 'plural')
+  end
+
   call wimpi_menu#reset()
-  call wimpi_menu#append("# " . toupper(a:term), '')
-  call wimpi_menu#append(".." , ":call wimpi_menu#openterm(0,'','')", "...")
+  call wimpi_menu#append("/  <home>" , "home", "...", '', '' ,'B')
+  call wimpi_menu#append("# " . toupper(term_plural), '')
+  call wimpi_menu#menu_divider()
+
 
   let group_by = ''
   let config = wimpi#termLeafConfig(a:term)
@@ -308,6 +298,8 @@ function! wimpi_menu#menu_2nd_level(term)
 
 
 
+  call wimpi_menu#append("", '')
+  call wimpi_menu#menu_divider()
 
   call wimpi_menu#append("### " . toupper('Configuration'), '')
 
@@ -459,21 +451,21 @@ endfunction
 
 function! wimpi_menu#menu_3rd_level(term, value)
 
-  let term_plural = a:term
   let infotext =''
   let group_by =''
 
-  let term_config = wimpi#index_term_config(a:term)
   let l3_config = wimpi#termValueLeafConfig(a:term, a:value)
   let l3_state = wimpi_menu#termValueLeafState(a:term, a:value)
 
+  let term_config = wimpi#index_term_config(a:term)
+  let term_plural = a:term
   if has_key(term_config, 'plural')
     let term_plural = get(term_config, 'plural')
   end
 
   call wimpi_menu#reset()
-  call wimpi_menu#append("/  <home>" , "home", "...")
-  call wimpi_menu#append(".. <up> ". term_plural ."" , ":call wimpi_menu#openterm(0,'".a:term."','')", "...")
+  call wimpi_menu#append("/  <home>" , "home", "...", '', '' ,'B')
+  call wimpi_menu#append(".. <up> ". term_plural ."" , ":call wimpi_menu#openterm(0,'".a:term."','')", "...",'','','U')
   call wimpi_menu#append("# " . toupper(a:term) . ' : ' . toupper(a:value), '')
 
   call wimpi_menu#menu_divider()
@@ -497,7 +489,7 @@ function! wimpi_menu#menu_3rd_level(term, value)
   let active_arrow_string = wimpi_menu#calcActiveViewArrow(views_list, active_view, 10)
 
   call wimpi_menu#append("", '')
-  call wimpi_menu#append("VIEW  ". views_string  , "cycleview", "...")
+  call wimpi_menu#append("VIEW  ". views_string  , "cycleview", "...", '', '', 'V')
   call wimpi_menu#append(active_arrow_string, '')
   if active_view < 2
     call wimpi_menu#append("", '')
@@ -566,9 +558,9 @@ function! wimpi_menu#menu_3rd_level(term, value)
   call wimpi_menu#append("### " . toupper('Configuration'), '')
 
   if filereadable(wimpi#l3_config_filepath(a:term, a:value))
-    call wimpi_menu#append("Open ". a:term." ".a:value." Config", ":botright vs ". wimpi#l3_config_filepath(a:term, a:value), "...")
+    call wimpi_menu#append("Open ". a:term." ".a:value." Config", ":botright vs ". wimpi#l3_config_filepath(a:term, a:value), "...",'','','C')
   else
-    call wimpi_menu#append("Create ". a:term." ".a:value." Config", "createl3config", "...")
+    call wimpi_menu#append("Create ". a:term." ".a:value." Config", "createl3config", "...",'','','C')
   endif
 
 endfunc
@@ -589,11 +581,15 @@ function! wimpi_menu#append(text, event, ...)
   let help = (a:0 >= 1)? a:1 : ''
   let filetype = (a:0 >= 2)? a:2 : ''
   let weight = (a:0 >= 3)? a:3 : 0
+  let key = (a:0 >= 4)? a:4 : ''
+
   let item = {}
+
+
   let item.mode = 0
   let item.event = a:event
   let item.text = a:text
-  let item.key = ''
+  let item.key = key
   let item.ft = []
   let item.weight = weight
   let item.help = help
@@ -637,6 +633,9 @@ function! wimpi_menu#header(header)
   let t:wimpi_menu_header[t:wimpi_menu_mid] = a:header
 endfunc
 
+function! wimpi_menu#footer(footer)
+  let t:wimpi_menu_footer[t:wimpi_menu_mid] = a:footer
+endfunc
 
 function! wimpi_menu#list()
   for item in t:wimpi_menu_items[t:wimpi_menu_mid]
@@ -781,6 +780,7 @@ function! Window_render(items, mid) abort
   let t:wimpi_menu.section_lines = []
   let t:wimpi_menu.text_lines = []
   let t:wimpi_menu.header_lines = []
+  let t:wimpi_menu.footer_lines = []
   for item in a:items
     let item.ln = ln
     call append('$', item.text)
@@ -790,8 +790,10 @@ function! Window_render(items, mid) abort
       let t:wimpi_menu.text_lines += [ln]
     elseif item.mode == 2
       let t:wimpi_menu.section_lines += [ln]
-    else
+    elseif item.mode == 3
       let t:wimpi_menu.header_lines += [ln]
+    elseif item.mode == 4
+      let t:wimpi_menu.footer_lines += [ln]
     endif
     let ln += 1
   endfor
@@ -929,6 +931,7 @@ function! <SID>wimpi_menu_execute(index) abort
   if a:index < 0 || a:index >= len(t:wimpi_menu.items)
     return
   endif
+
   let item = t:wimpi_menu.items[a:index]
 
   if item.mode != 0 || item.event == ''
@@ -1140,15 +1143,16 @@ endfunction
 " select items by &ft, generate keymap and add some default items
 "----------------------------------------------------------------------
 function! Select_by_ft(mid, ft) abort
+
   " R = refresh
   " A = newdocingroup
-  " U = hardrefresh
+  " H = hardrefresh
 
-  let hint = '0123456789abcdefhilmdddstuvwxyzCIOPQSUX*'
+  let hint = '0123456789abdefhilmdstwxyzIOPQSX*'
 
   let items = []
   let index = 0
-  let header = get(t:wimpi_menu_header, a:mid, g:wimpi_menu_version)
+  let footer = get(t:wimpi_menu_footer, a:mid, 'Wimpi ' . wimpi#PluginVersion())
   let header = ''
 
   if header != ''
@@ -1161,23 +1165,32 @@ function! Select_by_ft(mid, ft) abort
 
   let lastmode = 2
   for item in get(t:wimpi_menu_items, a:mid, [])
+
     if len(item.ft) && index(item.ft, a:ft) < 0
       continue
     endif
+
+    " insert empty line
     if item.mode == 2 && lastmode != 2
-      " insert empty line
       let ni = {'mode':1, 'text':'', 'event':''}
       let items += [ni]
     endif
     let lastmode = item.mode
+
     " allocate key for non-filetype specific items
     if item.mode == 0 && len(item.ft) == 0
-      let item.key = hint[index]
-      let index += 1
-      if index >= strlen(hint)
-        let index = strlen(hint) - 1
+
+      if item.key == ''
+        let item.key = hint[index]
+
+        let index += 1
+        if index >= strlen(hint)
+          let index = strlen(hint) - 1
+        endif
       endif
+
     endif
+
     let items += [item]
     if item.mode == 2
       " insert empty line
@@ -1189,7 +1202,11 @@ function! Select_by_ft(mid, ft) abort
   " allocate key for filetype specific items
   for item in items
     if item.mode == 0 && len(item.ft) > 0
-      let item.key = hint[index]
+
+      if item.key == ''
+        let item.key = hint[index]
+      endif
+
       let index += 1
       if index >= strlen(hint)
         let index = strlen(hint) - 1
@@ -1210,31 +1227,7 @@ function! Select_by_ft(mid, ft) abort
     let item.key = 'A'
     let item.help = ''
     let items += [item]
-
-"    let ni = {'mode':1, 'text':'', 'event':''}
-
-"   let confFileName = $HOME ."/Dropbox/Apps/KiwiApp/config/cnf_idx_".t:wimpi_menu_taxo_term.'_'.t:wimpi_menu_taxo_val.'.yml'
-"   if filereadable(confFileName)
-"     let item = {}
-"     let item.mode = 0
-"     let item.text = '<new directory>'
-"     let item.event = 'newdiringroup'
-"     let item.key = 'D'
-"     let item.help = ''
-"     let items += [item]
-"   endif
-
   endif
-
-"  if t:wimpi_menu_taxo_term != ""
-"    let item = {}
-"    let item.mode = 0
-"    let item.text = '<home>'
-"    let item.event = 'home'
-"    let item.key = '0'
-"    let item.help = ''
-"    let items += [item]
-"  endif
 
   let item = {}
   let item.mode = 0
@@ -1251,6 +1244,14 @@ function! Select_by_ft(mid, ft) abort
   let item.key = 'R'
   let item.help = ''
   let items += [item]
+
+  if footer != ''
+    let ni = {'mode':1, 'text':'', 'event':'', 'help':''}
+    let items += [ni]
+    let ni = {'mode':4, 'text':'', 'event':'', 'help':''}
+    let ni.text = footer
+    let items += [ni]
+  endif
 
   return items
 
@@ -1413,11 +1414,12 @@ endfunction
 "----------------------------------------------------------------------
 " testing case
 "----------------------------------------------------------------------
-if 1
+if 0
 
   call wimpi_menu#reset()
+  call wimpi_menu#append("/  <home>" , "home", "...", '', '' ,'r')
   call wimpi_menu#append('# Start', '')
-  call wimpi_menu#append('test1', 'echo 1', 'help 1')
+  call wimpi_menu#append('test1', 'echo 1', 'help 1', '0', '2', '3')
   call wimpi_menu#append('test2', 'echo 2', 'help 2')
 
   call wimpi_menu#append('# Misc', '')

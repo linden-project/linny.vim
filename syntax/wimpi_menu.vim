@@ -40,8 +40,11 @@ if exists('t:wimpi_menu.header_lines')
   endfor
 endif
 
-
-
+if exists('t:wimpi_menu.footer_lines')
+  for line in t:wimpi_menu.footer_lines
+    exec 'syntax region WimpimenuFooter start=/\%'. line .'l/ end=/$/'
+  endfor
+endif
 
 function! s:hllink(name, dest, alternative)
   let tohl = a:dest
@@ -64,6 +67,7 @@ HighLink	WimpimenuSelect			Title		StartifySelect
 HighLink	WimpimenuNumber			Number		StartifyNumber
 HighLink	WimpimenuSpecial		Comment		StartifySpecial
 HighLink	WimpimenuHeader			Title		StartifyHeader
+HighLink	WimpimenuFooter			Title		StartifySpecial
 HighLink	WimpimenuOption			Identifier  StartifyFile
 HighLink	WimpimenuHelp			Comment 	StartifySpecial	
 

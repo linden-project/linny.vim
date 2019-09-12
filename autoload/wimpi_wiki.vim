@@ -215,7 +215,6 @@ function! wimpi_wiki#CursorInFrontMatter()
 
 endfunction
 
-"if !exists('*wimpi_wiki#CallFrontMatterLink')
 function! wimpi_wiki#CallFrontMatterLink()
 
   let yamlKey = wimpi_wiki#YamlKeyUnderCursor()
@@ -232,9 +231,6 @@ function! wimpi_wiki#CallFrontMatterLink()
     echomsg "Can't open, does not exist"
   endif
 endfunction
-"endif
-
-
 
 function! wimpi_wiki#FilePath(fileName)
   let cur_file_name = bufname("%")
@@ -320,25 +316,19 @@ endfunction
 " ******** CHECK FOR SPECIALE LINKS *****************
 
 " ******** Go to link *****************
-"if !exists('*wimpi_wiki#GotoLink')
 function! wimpi_wiki#GotoLink()
   call wimpi_wiki#GotoLinkMain(0,0)
 endfunction
-"endif
 
 " ******** Go to link in new tab *************
-"if !exists('*wimpi_wiki#GotoLinkInNewTab')
 function! wimpi_wiki#GotoLinkInNewTab()
   call wimpi_wiki#GotoLinkMain(0,1)
 endfunction
-"endif
 
 " ******** Go to link main executer *****************
-"if !exists('*wimpi_wiki#GotoLinkWithCTRL')
 function! wimpi_wiki#GotoLinkWithCTRL()
   call wimpi_wiki#GotoLinkMain(1,0)
 endfunction
-"ndif
 
 function! wimpi_wiki#GenerateFirstContent(wikiTitle,fileLinesIn)
 
@@ -356,7 +346,6 @@ function! wimpi_wiki#GenerateFirstContent(wikiTitle,fileLinesIn)
 
 endfunction
 
-"if !exists('*wimpi_wiki#GotoLinkMain')
 function! wimpi_wiki#GotoLinkMain(withCTRL, openInNewTab)
 
   if wimpi_wiki#CursorInFrontMatter()
@@ -437,13 +426,9 @@ function! wimpi_wiki#GotoLinkMain(withCTRL, openInNewTab)
   endif
 
 endfunction
-"endif
 
 "Shift+Return to return to the previous buffer
-"if !exists('*wimpi_wiki#Return')
 function! wimpi_wiki#Return()
   exec 'buffer #'
   let ok = cursor(s:lastPosLine, s:lastPosCol)
 endfunction
-"endif
-
