@@ -18,12 +18,10 @@ call wimpi_util#initVariable("g:wimpi_menu_options", 'T')
 call wimpi_util#initVariable("g:wimpitabnr", 1)
 call wimpi_util#initVariable("g:wimpi_debug", 0)
 
-let t:wimpi_menu_items = {}
-let t:wimpi_menu_mid = 0
-let t:wimpi_menu_header = {}
-let t:wimpi_menu_footer = {}
-let t:wimpi_menu_cursor = {}
-"let t:wimpi_menu_name = ''
+let t:wimpi_menu_items = []
+let t:wimpi_menu_header = ''
+let t:wimpi_menu_footer = ''
+let t:wimpi_menu_cursor = 0
 let t:wimpi_menu_line = 0
 let t:wimpi_menu_lastmaxsize = 0
 let t:wimpi_menu_taxo_term = ""
@@ -34,11 +32,10 @@ let t:wimpi_menu_taxo_val = ""
 "----------------------------------------------------------------------
 function! wimpi_menu#tabInitState()
   if !exists('t:wimpi_menu_name')
-    let t:wimpi_menu_items = {}
-    let t:wimpi_menu_mid = 0
-    let t:wimpi_menu_header = {}
-    let t:wimpi_menu_footer = {}
-    let t:wimpi_menu_cursor = {}
+    let t:wimpi_menu_items = []
+    let t:wimpi_menu_header = ''
+    let t:wimpi_menu_footer = ''
+    let t:wimpi_menu_cursor = 0
     let t:wimpi_menu_name = '[wimpi_menu]'.string(NewWimpiTabNr())
     let t:wimpi_menu_line = 0
     let t:wimpi_menu_lastmaxsize = 0
@@ -197,7 +194,7 @@ function! wimpi_menu#menu_1st_level()
   endfor
 
   for sk in sort(keys(starred_list))
-    call wimpi_menu#append("" . wimpi_menu#string_capitalize(starred_list[sk]['term']) ." : " . starred_list[sk]['val'] , ":call wimpi_menu#openterm(0,'".starred_list[sk]['term']."','".starred_list[sk]['val']."')", "...")
+    call wimpi_menu#append("" . wimpi_menu#string_capitalize(starred_list[sk]['term']) ." : " . starred_list[sk]['val'] , ":call wimpi_menu#openterm('".starred_list[sk]['term']."','".starred_list[sk]['val']."')", "...")
   endfor
 
   call wimpi_menu#append("# INDEX", '')
@@ -209,7 +206,7 @@ function! wimpi_menu#menu_1st_level()
     if has_key(term_config, 'top_level')
       let top_level = get(term_config, 'top_level')
       if top_level
-        call wimpi_menu#append("Index: " . k, ":call wimpi_menu#openterm(0,'".k."','')", "...")
+        call wimpi_menu#append("Index: " . k, ":call wimpi_menu#openterm('".k."','')", "...")
       endif
     end
   endfor
@@ -280,7 +277,7 @@ function! wimpi_menu#menu_2nd_level(term)
       for val in term_menu[group]
 
         let files_in_menu = wimpi#parse_json_file( wimpi#l3_index_filepath(a:term, val) ,[])
-        call wimpi_menu#append( a:term. ": " . val ." (".len(files_in_menu).")" , ":call wimpi_menu#openterm(0,'".a:term."','".val."')", "...")
+        call wimpi_menu#append( a:term. ": " . val ." (".len(files_in_menu).")" , ":call wimpi_menu#openterm('".a:term."','".val."')", "...")
       endfor
 
     endfor
@@ -291,7 +288,7 @@ function! wimpi_menu#menu_2nd_level(term)
     for val in sort(termslist)
 
       let files_in_menu = wimpi#parse_json_file( wimpi#l3_index_filepath(a:term, val) ,[])
-      call wimpi_menu#append( a:term. ": " . val ." (".len(files_in_menu).")" , ":call wimpi_menu#openterm(0,'".a:term."','".val."')", "...")
+      call wimpi_menu#append( a:term. ": " . val ." (".len(files_in_menu).")" , ":call wimpi_menu#openterm('".a:term."','".val."')", "...")
 
     endfor
   end
@@ -317,7 +314,6 @@ function! wimpi_menu#debug_info()
 
       call wimpi_menu#append("### " . wimpi_menu#string_capitalize('debug'), '')
       call wimpi_menu#append("t:wimpi_menu_lastmaxsize = ".t:wimpi_menu_lastmaxsize,'')
-      call wimpi_menu#append("t:wimpi_menu_mid = ".t:wimpi_menu_mid,'')
       call wimpi_menu#append("t:wimpi_menu_name = ".t:wimpi_menu_name,'')
       call wimpi_menu#append("t:wimpi_menu_taxo_term = ".t:wimpi_menu_taxo_term,'')
       call wimpi_menu#append("t:wimpi_menu_taxo_val = ".t:wimpi_menu_taxo_val,'')
@@ -465,7 +461,7 @@ function! wimpi_menu#menu_3rd_level(term, value)
 
   call wimpi_menu#reset()
   call wimpi_menu#append("/  <home>" , "home", "...", '', '' ,'B')
-  call wimpi_menu#append(".. <up> ". term_plural ."" , ":call wimpi_menu#openterm(0,'".a:term."','')", "...",'','','U')
+  call wimpi_menu#append(".. <up> ". term_plural ."" , ":call wimpi_menu#openterm('".a:term."','')", "...",'','','U')
   call wimpi_menu#append("# " . toupper(a:term) . ' : ' . toupper(a:value), '')
 
   call wimpi_menu#menu_divider()
@@ -572,9 +568,9 @@ endfunc
 "----------------------------------------------------------------------
 
 function! wimpi_menu#reset()
-  let t:wimpi_menu_items[t:wimpi_menu_mid] = []
+  let t:wimpi_menu_items = []
   let t:wimpi_menu_line = 0
-  let t:wimpi_menu_cursor[t:wimpi_menu_mid] = 0
+  let t:wimpi_menu_cursor = 0
 endfunc
 
 function! wimpi_menu#append(text, event, ...)
@@ -605,10 +601,12 @@ function! wimpi_menu#append(text, event, ...)
     let item.ft += [substitute(ft, '^\s*\(.\{-}\)\s*$', '\1', '')]
   endfor
   let index = -1
-  if !has_key(t:wimpi_menu_items, t:wimpi_menu_mid)
-    let t:wimpi_menu_items[t:wimpi_menu_mid] = []
-  endif
-  let items = t:wimpi_menu_items[t:wimpi_menu_mid]
+
+  "if !has_key(t:wimpi_menu_items, t:wimpi_menu_mid)
+  "  let t:wimpi_menu_items[t:wimpi_menu_mid] = []
+  "endif
+
+  let items = t:wimpi_menu_items
   let total = len(items)
   for i in range(0, total - 1)
     if weight < items[i].weight
@@ -623,22 +621,20 @@ function! wimpi_menu#append(text, event, ...)
   return index
 endfunc
 
+"function! wimpi_menu#current(mid)
+" let t:wimpi_menu_mid = a:mid
+"endfunc
 
-function! wimpi_menu#current(mid)
-  let t:wimpi_menu_mid = a:mid
-endfunc
+"function! wimpi_menu#header(header)
+"  let t:wimpi_menu_header = a:header
+"endfunc
 
-
-function! wimpi_menu#header(header)
-  let t:wimpi_menu_header[t:wimpi_menu_mid] = a:header
-endfunc
-
-function! wimpi_menu#footer(footer)
-  let t:wimpi_menu_footer[t:wimpi_menu_mid] = a:footer
-endfunc
+"function! wimpi_menu#footer(footer)
+"let t:wimpi_menu_footer = a:footer
+"endfunc
 
 function! wimpi_menu#list()
-  for item in t:wimpi_menu_items[t:wimpi_menu_mid]
+  for item in t:wimpi_menu_items
     echo item
   endfor
 endfunc
@@ -649,14 +645,13 @@ endfunc
 " wimpi_menu interface
 "----------------------------------------------------------------------
 
-function! wimpi_menu#openterm(mid, taxo_term, taxo_value) abort
+function! wimpi_menu#openterm(taxo_term, taxo_value) abort
   let t:wimpi_menu_taxo_term = a:taxo_term
   let t:wimpi_menu_taxo_val = a:taxo_value
-  call wimpi_menu#openandshow(a:mid)
+  call wimpi_menu#openandshow()
 endfunction
 
-function! wimpi_menu#openandshow(mid) abort
-"function! wimpi_menu#openandshow(mid)
+function! wimpi_menu#openandshow() abort
 
   let t:wimpi_start_load_time = localtime()
 
@@ -677,7 +672,7 @@ function! wimpi_menu#openandshow(mid) abort
   endif
 
   " select and arrange menu
-  let items = Select_by_ft(a:mid, &ft)
+  let items = Select_by_ft(&ft)
   let content = []
   let maxsize = 8
   let lastmode = 2
@@ -699,7 +694,7 @@ function! wimpi_menu#openandshow(mid) abort
 
   if 1
     call Window_open(maxsize)
-    call Window_render(content, a:mid)
+    call Window_render(content)
     call Setup_keymaps(content)
   else
     for item in content
@@ -721,18 +716,18 @@ endfunction
 function! wimpi_menu#open()
   if !Window_exist()
     call wimpi_menu#tabInitState()
-    call wimpi_menu#openandshow(0)
+    call wimpi_menu#openandshow()
   endif
 endfunction
 
-function! wimpi_menu#toggle(mid) abort
+function! wimpi_menu#toggle() abort
   if Window_exist()
     call Window_close()
     return 0
   endif
 
   " select and arrange menu
-  let items = Select_by_ft(a:mid, &ft)
+  let items = Select_by_ft(&ft)
   let content = []
   let maxsize = 8
   let lastmode = 2
@@ -753,7 +748,7 @@ function! wimpi_menu#toggle(mid) abort
 
   if 1
     call Window_open(maxsize)
-    call Window_render(content, a:mid)
+    call Window_render(content)
     call Setup_keymaps(content)
   else
     for item in content
@@ -770,11 +765,10 @@ endfunc
 "----------------------------------------------------------------------
 " render text
 "----------------------------------------------------------------------
-function! Window_render(items, mid) abort
+function! Window_render(items) abort
   setlocal modifiable
   let ln = 2
   let t:wimpi_menu = {}
-  let t:wimpi_menu.mid = a:mid
   let t:wimpi_menu.padding_size = g:wimpi_menu_padding_left
   let t:wimpi_menu.option_lines = []
   let t:wimpi_menu.section_lines = []
@@ -814,8 +808,7 @@ endfunc
 function! Setup_keymaps(items)
 
   let ln = 0
-  let mid = t:wimpi_menu.mid
-  let cursor_pos = get(t:wimpi_menu_cursor, mid, 0)
+  let cursor_pos = t:wimpi_menu_cursor
   let nowait = ''
 
   if v:version >= 704 || (v:version == 703 && has('patch1261'))
@@ -939,7 +932,7 @@ function! <SID>wimpi_menu_execute(index) abort
   endif
 
   let t:wimpi_menu_line = a:index + 2
-  let t:wimpi_menu_cursor[t:wimpi_menu.mid] = t:wimpi_menu_line
+  let t:wimpi_menu_cursor = t:wimpi_menu_line
 
   redraw | echo "" | redraw
 
@@ -950,19 +943,19 @@ function! <SID>wimpi_menu_execute(index) abort
         close!
 
       elseif(item.event == 'refresh')
-        call wimpi_menu#openandshow(0)
+        call wimpi_menu#openandshow()
 
       elseif(item.event == 'cycleview')
         call wimpi_menu#cycle_3rd_view()
-        call wimpi_menu#openandshow(0)
+        call wimpi_menu#openandshow()
 
       elseif(item.event == 'hardrefresh')
         call wimpi#Init()
         call wimpi#make_index()
-        call wimpi_menu#openandshow(0)
+        call wimpi_menu#openandshow()
 
       elseif(item.event == 'home')
-        call wimpi_menu#openterm(0,'','')
+        call wimpi_menu#openterm('','')
 
       elseif(item.event == 'createl2config')
 
@@ -988,7 +981,7 @@ function! <SID>wimpi_menu_execute(index) abort
           exec currentWindow."wincmd w"
           setlocal foldcolumn=0
           exec "vertical resize " . currentwidth
-          exec currentWindow."call wimpi_menu#openandshow(0)"
+          exec currentWindow."call wimpi_menu#openandshow()"
           exec newWindow."wincmd w"
 
         endif
@@ -1021,7 +1014,7 @@ function! <SID>wimpi_menu_execute(index) abort
           exec currentWindow."wincmd w"
           setlocal foldcolumn=0
           exec "vertical resize " . currentwidth
-          exec currentWindow."call wimpi_menu#openandshow(0)"
+          exec currentWindow."call wimpi_menu#openandshow()"
           exec newWindow."wincmd w"
 
         endif
@@ -1127,7 +1120,7 @@ function! wimpi_menu#new_document_in_leaf(...)
     let newWindow=winnr()
 
     exec currentWindow."wincmd w"
-    exec currentWindow."call wimpi_menu#openandshow(0)"
+    exec currentWindow."call wimpi_menu#openandshow()"
     setlocal foldcolumn=0
     exec "vertical resize " . currentwidth
     exec newWindow."wincmd w"
@@ -1142,7 +1135,7 @@ endfunction
 "----------------------------------------------------------------------
 " select items by &ft, generate keymap and add some default items
 "----------------------------------------------------------------------
-function! Select_by_ft(mid, ft) abort
+function! Select_by_ft(ft) abort
 
   " R = refresh
   " A = newdocingroup
@@ -1152,7 +1145,7 @@ function! Select_by_ft(mid, ft) abort
 
   let items = []
   let index = 0
-  let footer = get(t:wimpi_menu_footer, a:mid, 'Wimpi ' . wimpi#PluginVersion())
+  let footer = 'Wimpi ' . wimpi#PluginVersion()
   let header = ''
 
   if header != ''
@@ -1164,7 +1157,7 @@ function! Select_by_ft(mid, ft) abort
   endif
 
   let lastmode = 2
-  for item in get(t:wimpi_menu_items, a:mid, [])
+  for item in t:wimpi_menu_items
 
     if len(item.ft) && index(item.ft, a:ft) < 0
       continue
