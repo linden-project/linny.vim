@@ -1,13 +1,9 @@
-call wimpi_util#initVariable("g:wimpi_version", '0.4.1')
-
+call wimpi_util#initVariable("g:wimpi_version", '0.4.2')
 
 function! wimpi#Init()
-  let g:wimpi_version = '0.4.1'
 
   let g:wimpi_main_config = wimpi#parse_yaml_to_dict( expand('~/.wimpi/wimpi.yml') )
-
   let g:wimpi_state_dir = expand('~/.wimpi/state')
-
   let g:wimpi_root_path = expand(g:wimpi_main_config['root_path'])
   let g:wimpi_index_config = wimpi#parse_yaml_to_dict( expand( g:wimpi_root_path .'/config/wiki_indexes.yml'))
 
