@@ -15,12 +15,12 @@ call wimpi_util#initVariable("g:wimpi_menu_max_width", 50)
 call wimpi_util#initVariable("g:wimpi_menu_padding_left", 3)
 call wimpi_util#initVariable("g:wimpi_menu_padding_right", 3)
 call wimpi_util#initVariable("g:wimpi_menu_options", 'T')
+call wimpi_util#initVariable("g:wimpi_menu_display_docs_count", 1)
+call wimpi_util#initVariable("g:wimpi_menu_display_taxo_count", 1)
 call wimpi_util#initVariable("g:wimpitabnr", 1)
-call wimpi_util#initVariable("g:wimpi_debug", 0)
+call wimpi_util#initVariable("g:wimpi_debug", 1)
 
 let t:wimpi_menu_items = []
-let t:wimpi_menu_header = ''
-let t:wimpi_menu_footer = ''
 let t:wimpi_menu_cursor = 0
 let t:wimpi_menu_line = 0
 let t:wimpi_menu_lastmaxsize = 0
@@ -33,8 +33,6 @@ let t:wimpi_menu_taxo_val = ""
 function! wimpi_menu#tabInitState()
   if !exists('t:wimpi_menu_name')
     let t:wimpi_menu_items = []
-    let t:wimpi_menu_header = ''
-    let t:wimpi_menu_footer = ''
     let t:wimpi_menu_cursor = 0
     let t:wimpi_menu_name = '[wimpi_menu]'.string(NewWimpiTabNr())
     let t:wimpi_menu_line = 0
@@ -83,8 +81,6 @@ function! Window_close()
 endfunc
 
 function! Window_open(size)
-
-"  echom a:size
 
   if Window_exist()
     call Window_close()
@@ -146,7 +142,7 @@ function! wimpi_menu#starred_docs()
   return docs
 endfunction
 
-function! wimpi_menu#partialFilesListing(files_list, sort)
+function! s:partial_files_listing(files_list, sort)
 
   let titles = wimpi#titlesForDocs(a:files_list)
   let t_sortable = {}
@@ -156,7 +152,7 @@ function! wimpi_menu#partialFilesListing(files_list, sort)
 
     let entry = {}
     let entry.orgTitle = k
-    let entry.orgFile = titles[k]
+    let entry.orgFile = g:wimpi_root_path . "/wiki/" . titles[k]
 
     if a:sort == 'az'
       let t_sortable[tolower(k)] = entry
@@ -172,20 +168,20 @@ function! wimpi_menu#partialFilesListing(files_list, sort)
 
   let title_keys = sort(keys(t_sortable))
   for tk in title_keys
-    call wimpi_menu#append("" . t_sortable[tk]['orgTitle'], ":botright vs ". g:wimpi_root_path . "/wiki/".t_sortable[tk]['orgFile'], "...")
+    call s:add_item_document(t_sortable[tk]['orgTitle'], t_sortable[tk]['orgFile'], '')
   endfor
 
 endfunction
 
-function! wimpi_menu#menu_1st_level()
+function! s:menu_1st_level()
 
   call wimpi_menu#reset()
 
-  call wimpi_menu#append("# STARRED DOCS", '')
+  call s:add_item_section("# STARRED DOCS")
   let starred = wimpi_menu#starred_docs()
-  call wimpi_menu#partialFilesListing( starred, 'az' )
+  call s:partial_files_listing( starred, 'az' )
 
-  call wimpi_menu#append("# STARRED LEAFS", '')
+  call s:add_item_section("# STARRED LEAFS")
   let starred = wimpi_menu#starred_terms()
   let starred_list = {}
 
@@ -194,11 +190,11 @@ function! wimpi_menu#menu_1st_level()
   endfor
 
   for sk in sort(keys(starred_list))
-    call wimpi_menu#append("" . wimpi_menu#string_capitalize(starred_list[sk]['term']) ." : " . starred_list[sk]['val'] , ":call wimpi_menu#openterm('".starred_list[sk]['term']."','".starred_list[sk]['val']."')", "...")
+    call s:add_item_document_taxo_key_val(starred_list[sk]['term'], starred_list[sk]['val'])
   endfor
 
-  call wimpi_menu#append("# INDEX", '')
-  call wimpi_menu#append("Alfabetisch", ":botright vs ". g:wimpi_root_path . "/wiki/index.md", "...")
+  call s:add_item_section("# INDEX")
+  call s:add_item_document("Alfabetisch", g:wimpi_root_path ."/wiki/index.md", 'a')
 
   let index_keys_list = wimpi#parse_json_file(g:wimpi_index_path . '/_index_keys.json', [])
   for k in index_keys_list
@@ -206,21 +202,21 @@ function! wimpi_menu#menu_1st_level()
     if has_key(term_config, 'top_level')
       let top_level = get(term_config, 'top_level')
       if top_level
-        call wimpi_menu#append("Index: " . k, ":call wimpi_menu#openterm('".k."','')", "...")
+        call s:add_item_document_taxo_key(k)
       endif
     end
   endfor
 
-  call wimpi_menu#append("# RECENT", '')
+  call s:add_item_section("# RECENT")
   let recent = wimpi_menu#recent_files()
-  call wimpi_menu#partialFilesListing( recent , 'date' )
+  call s:partial_files_listing( recent , 'date' )
 
-  call wimpi_menu#append("# CONFIGURATION", '')
-  call wimpi_menu#append("index configuration", ":botright vs ". g:wimpi_root_path . "/config/wiki_indexes.yml", "...")
+  call s:add_item_section("# CONFIGURATION")
+  call s:add_item_document("index configuration", g:wimpi_root_path ."/config/wiki_indexes.yml", 'C')
 
 endfunction
 
-function! wimpi_menu#menu_2nd_level(term)
+function! s:menu_2nd_level(term)
 
   let term_config = wimpi#index_term_config(a:term)
   let term_plural = a:term
@@ -229,9 +225,9 @@ function! wimpi_menu#menu_2nd_level(term)
   end
 
   call wimpi_menu#reset()
-  call wimpi_menu#append("/  <home>" , "home", "...", '', '' ,'B')
-  call wimpi_menu#append("# " . toupper(term_plural), '')
-  call wimpi_menu#menu_divider()
+  call s:add_item_special_event("/  <home>", "home", 'B')
+  call s:add_item_section("# " . toupper(term_plural) )
+  call s:add_item_divider()
 
 
   let group_by = ''
@@ -272,53 +268,41 @@ function! wimpi_menu#menu_2nd_level(term)
     endfor
 
     for group in sort(keys(term_menu))
-      call wimpi_menu#append("### " . wimpi_menu#string_capitalize(group), '')
+      call s:add_item_section("### " . wimpi_menu#string_capitalize(group) )
 
       for val in term_menu[group]
-
-        let files_in_menu = wimpi#parse_json_file( wimpi#l3_index_filepath(a:term, val) ,[])
-        call wimpi_menu#append( a:term. ": " . val ." (".len(files_in_menu).")" , ":call wimpi_menu#openterm('".a:term."','".val."')", "...")
+        call s:add_item_document_taxo_key_val(a:term, val )
       endfor
 
     endfor
-
-
   else
-
     for val in sort(termslist)
-
-      let files_in_menu = wimpi#parse_json_file( wimpi#l3_index_filepath(a:term, val) ,[])
-      call wimpi_menu#append( a:term. ": " . val ." (".len(files_in_menu).")" , ":call wimpi_menu#openterm('".a:term."','".val."')", "...")
-
+      call s:add_item_document_taxo_key_val(a:term, val )
     endfor
   end
 
+  call s:add_item_empty_line()
+  call s:add_item_divider()
 
-
-  call wimpi_menu#append("", '')
-  call wimpi_menu#menu_divider()
-
-  call wimpi_menu#append("### " . toupper('Configuration'), '')
+  call s:add_item_section("### " . toupper('Configuration'))
 
   if filereadable(wimpi#l2_config_filepath(a:term))
-    call wimpi_menu#append("Open ". a:term." Config", ":botright vs ". wimpi#l2_config_filepath(a:term), "...")
+    call s:add_item_document("Open ". a:term." Config", wimpi#l2_config_filepath(a:term),'C')
   else
-    call wimpi_menu#append("Create ". a:term." Config", "createl2config", "...")
+    call s:add_item_special_event("Create ". a:term." Config", "createl2config", 'C')
   endif
 
 
 endfunction
 
 
-function! wimpi_menu#debug_info()
-
-      call wimpi_menu#append("### " . wimpi_menu#string_capitalize('debug'), '')
-      call wimpi_menu#append("t:wimpi_menu_lastmaxsize = ".t:wimpi_menu_lastmaxsize,'')
-      call wimpi_menu#append("t:wimpi_menu_name = ".t:wimpi_menu_name,'')
-      call wimpi_menu#append("t:wimpi_menu_taxo_term = ".t:wimpi_menu_taxo_term,'')
-      call wimpi_menu#append("t:wimpi_menu_taxo_val = ".t:wimpi_menu_taxo_val,'')
-      call wimpi_menu#append("Loading time = ".t:wimpi_load_time,'')
-
+function! s:partial_debug_info()
+  call s:add_item_section("### " . wimpi_menu#string_capitalize('debug'))
+  call s:add_item_text("t:wimpi_menu_lastmaxsize = ".t:wimpi_menu_lastmaxsize)
+  call s:add_item_text("t:wimpi_menu_name = ".t:wimpi_menu_name)
+  call s:add_item_text("t:wimpi_menu_taxo_term = ".t:wimpi_menu_taxo_term)
+  call s:add_item_text("t:wimpi_menu_taxo_val = ".t:wimpi_menu_taxo_val)
+  call s:add_item_text("Loading time = ".t:wimpi_load_time)
 endfunction
 
 function! wimpi_menu#termValueLeafState(term, value)
@@ -441,11 +425,8 @@ function! wimpi_menu#calcActiveViewArrow(views_list, active_view, padding_left)
 
 endfunction
 
-function! wimpi_menu#menu_divider()
-  call wimpi_menu#append("-----------------------------------------", '')
-endfunction
 
-function! wimpi_menu#menu_3rd_level(term, value)
+function! s:menu_3rd_level(term, value)
 
   let infotext =''
   let group_by =''
@@ -460,17 +441,16 @@ function! wimpi_menu#menu_3rd_level(term, value)
   end
 
   call wimpi_menu#reset()
-  call wimpi_menu#append("/  <home>" , "home", "...", '', '' ,'B')
-  call wimpi_menu#append(".. <up> ". term_plural ."" , ":call wimpi_menu#openterm('".a:term."','')", "...",'','','U')
-  call wimpi_menu#append("# " . toupper(a:term) . ' : ' . toupper(a:value), '')
+  call s:add_item_special_event("/  <home>", "home", 'B')
+  call s:add_item_ex_event(".. <up> ". term_plural, ":call wimpi_menu#openterm('".a:term."','')", 'U')
+  call s:add_item_section("# " . toupper(a:term) . ' : ' . toupper(a:value))
 
-  call wimpi_menu#menu_divider()
+  call s:add_item_divider()
 
-  "if has_key(l3_config, 'infotext')
-  "  let infotext =  get(l3_config,'infotext')
-  "
-  "call wimpi_menu#append(infotext, '')
-  "endif
+  if has_key(l3_config, 'infotext')
+    let infotext =  get(l3_config,'infotext')
+    call s:add_item_text(infotext)
+  endif
 
   let views_string = ""
   let views_list = wimpi_menu#get_l3_views_list(a:term, a:value)
@@ -484,11 +464,11 @@ function! wimpi_menu#menu_3rd_level(term, value)
 
   let active_arrow_string = wimpi_menu#calcActiveViewArrow(views_list, active_view, 10)
 
-  call wimpi_menu#append("", '')
-  call wimpi_menu#append("VIEW  ". views_string  , "cycleview", "...", '', '', 'V')
-  call wimpi_menu#append(active_arrow_string, '')
+  call s:add_item_empty_line()
+  call s:add_item_special_event("VIEW  ". views_string  , "cycleview", 'V')
+  call s:add_item_text(active_arrow_string)
   if active_view < 2
-    call wimpi_menu#append("", '')
+    call s:add_item_empty_line()
   end
 
   let files_in_menu = wimpi#parse_json_file(wimpi#l3_index_filepath( a:term, a:value), [])
@@ -529,39 +509,48 @@ function! wimpi_menu#menu_3rd_level(term, value)
     endfor
 
     for group in sort(keys(files_menu))
-      call wimpi_menu#append("### " . wimpi_menu#string_capitalize(group), '')
-      call wimpi_menu#partialFilesListing( files_menu[group], sort )
+      call s:add_item_section("### " . wimpi_menu#string_capitalize(group))
+      call s:partial_files_listing( files_menu[group], sort )
     endfor
 
   else
-    call wimpi_menu#partialFilesListing( files_in_menu, sort )
+    call s:partial_files_listing( files_in_menu, sort )
   endif
 
-  call wimpi_menu#append("", '')
-  call wimpi_menu#menu_divider()
+  call s:add_item_empty_line()
+  call s:add_item_divider()
 
   if has_key(l3_config, 'locations')
     let locations = get(l3_config,'locations')
     if(type(locations)==4)
-      call wimpi_menu#append("### " . toupper('Locaties'), '')
+      call s:add_item_section("### " . toupper('Locaties'))
 
       for l in keys(locations)
-        call wimpi_menu#append("" . l, ":!open '". get(locations,l)."'", "...")
+        call s:add_item_external_location(l, get(locations,l))
       endfor
     endif
   endif
 
-  call wimpi_menu#append("### " . toupper('Configuration'), '')
+  call s:add_item_section("### " . toupper('Configuration'))
 
   if filereadable(wimpi#l3_config_filepath(a:term, a:value))
-    call wimpi_menu#append("Open ". a:term." ".a:value." Config", ":botright vs ". wimpi#l3_config_filepath(a:term, a:value), "...",'','','C')
+    call s:add_item_document("Open ". a:term." ".a:value." Config", wimpi#l3_config_filepath(a:term, a:value),'C')
   else
-    call wimpi_menu#append("Create ". a:term." ".a:value." Config", "createl3config", "...",'','','C')
+    call s:add_item_special_event("Create ". a:term." ".a:value." Config", "createl3config", 'C')
   endif
+
+  call s:add_item_empty_line()
+  call s:add_item_special_event("<new document>", "newdocingroup", 'A')
 
 endfunc
 
-
+function! s:partial_footer_items()
+  call s:add_item_empty_line()
+  call s:add_item_special_event("<hard refresh>", "hardrefresh", 'H')
+  call s:add_item_special_event("<refresh>", "refresh", 'R')
+  call s:add_item_empty_line()
+  call s:add_item_footer('Wimpi ' . wimpi#PluginVersion())
+endfunction
 
 "----------------------------------------------------------------------
 " menu operation
@@ -573,46 +562,159 @@ function! wimpi_menu#reset()
   let t:wimpi_menu_cursor = 0
 endfunc
 
-function! wimpi_menu#append(text, event, ...)
-  let help = (a:0 >= 1)? a:1 : ''
-  let filetype = (a:0 >= 2)? a:2 : ''
-  let weight = (a:0 >= 3)? a:3 : 0
-  let key = (a:0 >= 4)? a:4 : ''
-
+function! s:item_default()
   let item = {}
 
-  let item.mode = 0
-  let item.event = a:event
-  let item.text = a:text
-  let item.key = key
-  let item.weight = weight
-  let item.help = help
+  " 0 = option
+  " 1 = text
+  " 2 = section
+  " 3 = heading
+  " 4 = footer
+  let item.mode = 1
 
-  if a:event != ''
-    let item.mode = 0
-  elseif a:text[0] != '#'
-    let item.mode = 1
+  let item.event = ''
+  let item.text = ''
+  let item.key = ''     " keyboard key
+  let item.weight = 0   " sorting weight
+  let item.help = ''    " help text
+  return item
+endfunction
+
+function! s:add_item_empty_line()
+  let item = s:item_default()
+  call s:append_to_items(item)
+endfunction
+
+function! s:add_item_divider()
+  let item = s:item_default()
+  let item.text = "-----------------------------------------"
+  call s:append_to_items(item)
+endfunction
+
+function! s:add_item_header(text)
+  let item = s:item_default()
+  let item.mode = 3
+  let item.text = matchstr(a:text, '^#\+\s*\zs.*')
+  call s:append_to_items(item)
+endfunction
+
+function! s:add_item_footer(text)
+  let item = s:item_default()
+  let item.mode = 4
+  let item.text = a:text
+  call s:append_to_items(item)
+endfunction
+
+function! s:add_item_section(text)
+  call s:add_item_empty_line()
+
+  let item = s:item_default()
+  let item.mode = 2
+  let item.text = matchstr(a:text, '^#\+\s*\zs.*')
+
+  call s:append_to_items(item)
+
+  call s:add_item_empty_line()
+endfunction
+
+function! s:add_item_text(text)
+  let item = s:item_default()
+  let item.text = a:text
+  call s:append_to_items(item)
+endfunction
+
+function! s:add_item_document(title, abs_path, keyboard_key)
+  let item = s:item_default()
+  let item.mode = 0
+  let item.key = a:keyboard_key
+  let item.text = a:title
+  let item.event = ":botright vs ". a:abs_path
+  call s:append_to_items(item)
+endfunction
+
+function! s:add_item_document_taxo_key(taxo_key)
+  let item = s:item_default()
+  let item.mode = 0
+
+  if g:wimpi_menu_display_taxo_count
+    let files_in_menu = wimpi#parse_json_file( wimpi#l2_index_filepath(a:taxo_key) ,[])
+    let taxo_count = " (".len(files_in_menu).")"
   else
-    let item.mode = 2
-    let item.text = matchstr(a:text, '^#\+\s*\zs.*')
+    let taxo_count = ""
   endif
 
+  let item.text = "Index: " . a:taxo_key . taxo_count
+  let item.event = ":call wimpi_menu#openterm('". a:taxo_key ."','')"
+  call s:append_to_items(item)
+
+endfunction
+
+function! s:add_item_document_taxo_key_val(taxo_key, taxo_val)
+  let item = s:item_default()
+  let item.mode = 0
+
+  if g:wimpi_menu_display_docs_count
+    let files_in_menu = wimpi#parse_json_file( wimpi#l3_index_filepath(a:taxo_key,a:taxo_val) ,[])
+    let docs_count = " (".len(files_in_menu).")"
+  else
+    let docs_count = ""
+  endif
+
+  let item.text = wimpi_menu#string_capitalize(a:taxo_key) . ": " . a:taxo_val . docs_count
+  let item.event = ":call wimpi_menu#openterm('". a:taxo_key ."','" .a:taxo_val."')"
+  call s:append_to_items(item)
+endfunction
+
+function! s:add_item_special_event(title, event_id, keyboard_key)
+  let item = s:item_default()
+  let item.text = a:title
+  let item.mode = 0
+  let item.key = a:keyboard_key
+  let item.event = a:event_id
+
+  call s:append_to_items(item)
+endfunction
+
+function! s:add_item_ex_event(title, ex_event, keyboard_key )
+  let item = s:item_default()
+  let item.text = a:title
+  let item.mode = 0
+  let item.key = a:keyboard_key
+  let item.event = a:ex_event
+
+  call s:append_to_items(item)
+endfunction
+
+function! s:add_item_external_location(title, location)
+  let item = s:item_default()
+  let item.text = a:title
+  let item.mode = 0
+  let item.event = ":!open '". a:location."'"
+
+  call s:append_to_items(item)
+
+endfunction
+
+function s:append_to_items(item)
   let index = -1
 
   let items = t:wimpi_menu_items
   let total = len(items)
+
   for i in range(0, total - 1)
-    if weight < items[i].weight
+    if a:item.weight < items[i].weight
       let index = i
       break
     endif
   endfor
+
   if index < 0
     let index = total
   endif
-  call insert(items, item, index)
-  return index
-endfunc
+
+  call insert(items, a:item, index)
+
+endfunction
 
 function! wimpi_menu#list()
   for item in t:wimpi_menu_items
@@ -637,19 +739,20 @@ function! wimpi_menu#openandshow() abort
   let t:wimpi_start_load_time = localtime()
 
   if t:wimpi_menu_taxo_term!="" && t:wimpi_menu_taxo_val!=""
-    call wimpi_menu#menu_3rd_level(t:wimpi_menu_taxo_term, t:wimpi_menu_taxo_val)
+    call s:menu_3rd_level(t:wimpi_menu_taxo_term, t:wimpi_menu_taxo_val)
 
   elseif t:wimpi_menu_taxo_term!="" && t:wimpi_menu_taxo_val==""
-    call wimpi_menu#menu_2nd_level(t:wimpi_menu_taxo_term)
+    call s:menu_2nd_level(t:wimpi_menu_taxo_term)
 
   elseif t:wimpi_menu_taxo_term=="" && t:wimpi_menu_taxo_val==""
-    call wimpi_menu#menu_1st_level()
-
+    call s:menu_1st_level()
   endif
+
+  call s:partial_footer_items()
 
   if g:wimpi_debug
     let t:wimpi_load_time = localtime() - t:wimpi_start_load_time
-    call wimpi_menu#debug_info()
+    call s:partial_debug_info()
   endif
 
   let items = Select_items()
@@ -751,6 +854,7 @@ function! Window_render(items) abort
   let ln = 2
   let t:wimpi_menu = {}
   let t:wimpi_menu.padding_size = g:wimpi_menu_padding_left
+
   let t:wimpi_menu.option_lines = []
   let t:wimpi_menu.section_lines = []
   let t:wimpi_menu.text_lines = []
@@ -1113,110 +1217,46 @@ function! wimpi_menu#new_document_in_leaf(...)
 endfunction
 
 "----------------------------------------------------------------------
-" select items, generate keymap and add some default items
+" selectable items, generate keymap
 "----------------------------------------------------------------------
 function! Select_items() abort
 
-  let hint = '0123456789abdefhilmdstwxyzIOPQSX*'
+  let hint = '0123456789bdefhilmdstwxyzIOPQSX*'
 
   let items = []
   let index = 0
-  let footer = 'Wimpi ' . wimpi#PluginVersion()
-  let header = ''
-
-  if header != ''
-    let ni = {'mode':3, 'text':'', 'event':'', 'help':''}
-    let ni.text = header
-    let items += [ni]
-    let ni = {'mode':1, 'text':'', 'event':'', 'help':''}
-    let items += [ni]
-  endif
 
   let lastmode = 2
   for item in t:wimpi_menu_items
-
-    " insert empty line
-    if item.mode == 2 && lastmode != 2
-      let ni = {'mode':1, 'text':'', 'event':''}
-      let items += [ni]
-    endif
-    let lastmode = item.mode
-
-    " allocate key for non-filetype specific items
     if item.mode == 0
-
       if item.key == ''
         let item.key = hint[index]
 
         let index += 1
+
         if index >= strlen(hint)
           let index = strlen(hint) - 1
         endif
       endif
-
     endif
 
     let items += [item]
-    if item.mode == 2
-      " insert empty line
-      let ni = {'mode':1, 'text':'', 'event':''}
-      let items += [ni]
-    endif
   endfor
 
   " allocate key for filetype specific items
-  for item in items
-    if item.mode == 0
-
-      if item.key == ''
-        let item.key = hint[index]
-      endif
-
-      let index += 1
-      if index >= strlen(hint)
-        let index = strlen(hint) - 1
-      endif
-    endif
-  endfor
-
-  if len(items)
-    let item = {'mode':1, 'text':'', 'event':'', 'help':''}
-    let items += [item]
-  endif
-
-  if t:wimpi_menu_taxo_term !="" && t:wimpi_menu_taxo_val !=""
-    let item = {}
-    let item.mode = 0
-    let item.text = '<new document>'
-    let item.event = 'newdocingroup'
-    let item.key = 'A'
-    let item.help = ''
-    let items += [item]
-  endif
-
-  let item = {}
-  let item.mode = 0
-  let item.text = '<hard refresh>'
-  let item.event = 'hardrefresh'
-  let item.key = 'H'
-  let item.help = ''
-  let items += [item]
-
-  let item = {}
-  let item.mode = 0
-  let item.text = '<refresh>'
-  let item.event = 'refresh'
-  let item.key = 'R'
-  let item.help = ''
-  let items += [item]
-
-  if footer != ''
-    let ni = {'mode':1, 'text':'', 'event':'', 'help':''}
-    let items += [ni]
-    let ni = {'mode':4, 'text':'', 'event':'', 'help':''}
-    let ni.text = footer
-    let items += [ni]
-  endif
+"  for item in items
+"    if item.mode == 0
+"
+"      if item.key == ''
+"        let item.key = hint[index]
+"      endif
+"
+"      let index += 1
+"      if index >= strlen(hint)
+"        let index = strlen(hint) - 1
+"      endif
+"    endif
+"  endfor
 
   return items
 
@@ -1382,8 +1422,11 @@ endfunction
 if 0
 
   call wimpi_menu#reset()
-  call wimpi_menu#append("/  <home>" , "home", "...", '', '' ,'r')
+
+  call wimpi_menu#append("/  <home>" , "home", "...", '', '' ,'B')
+  call s:add_item_special_event("/  <home>", "home", 'B')
   call wimpi_menu#append('# Start', '')
+  call s:add_item_section('# Start 2')
   call wimpi_menu#append('test1', 'echo 1', 'help 1', '0', '2', '3')
   call wimpi_menu#append('test2', 'echo 2', 'help 2')
 
@@ -1393,9 +1436,12 @@ if 0
   call wimpi_menu#append("test5\nasdfafffff\njkjkj", 'echo 5')
   call wimpi_menu#append('text1', '')
   call wimpi_menu#append('text2', '')
+  call wimpi_menu#append("-----------------------------------------", '')
+  call wimpi_menu#append("some title", ":botright vs ". g:wimpi_root_path . "/wiki/sometitle.md", "...")
 
-  " nnoremap <F12> :call wimpi_menu#toggle(0)<cr>
-  " imap <expr> <F11> wimpi_menu#bottom(0)
+  call s:add_item_document("some title", g:wimpi_root_path . "/wiki/sometitle.md", '')
+
+  call wimpi_menu#list()
 endif
 
 
