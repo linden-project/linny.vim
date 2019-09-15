@@ -1,4 +1,4 @@
-call wimpi_util#initVariable("g:wimpi_version", '0.4.2')
+call wimpi_util#initVariable("g:wimpi_version", '0.4.3')
 
 function! wimpi#Init()
 
@@ -207,6 +207,15 @@ endfunction
 
 function! wimpi#l3_config_filepath(term, value)
   return g:wimpi_root_path ."/config/L3-CONF_TRM_".tolower(a:term).'_VAL_'.tolower(a:value).'.yml'
+endfunction
+
+function! wimpi#l2_state_filepath(term)
+
+  if !isdirectory(g:wimpi_state_dir)
+    exec "!mkdir ". g:wimpi_state_dir
+  endif
+
+  return g:wimpi_state_dir ."/L2-STATE_TRM_".tolower(a:term).'.json'
 endfunction
 
 function! wimpi#l3_state_filepath(term, value)
