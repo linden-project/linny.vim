@@ -1,4 +1,4 @@
-call wimpi_util#initVariable("g:wimpi_version", '0.4.3')
+call wimpi_util#initVariable("g:wimpi_version", '0.4.4')
 
 function! wimpi#Init()
 
@@ -32,18 +32,23 @@ endfunction
 call s:initVariable("s:spaceReplaceChar", '_')
 
 "utility
-function! wimpi#FilenameToWord(filename)
+function! wimpi#FilenameToWikiLink(filename)
 
-  let filename = substitute(a:filename, '_', ' ', 'g')
+  let filename = wimpi#FilenameToWord(a:filename)
   let word = '[[' . filename . ']]'
 
   return word
 
 endfunction
 
+function! wimpi#FilenameToWord(filename)
+  return substitute(a:filename, '_', ' ', 'g')
+
+endfunction
+
 "user func for mapping
 function! wimpi#FilenameToWordToUnamedRegister()
-  let @@ = wimpi#FilenameToWord( expand('%:t:r') )
+  let @@ = wimpi#FilenameToWikiLink( expand('%:t:r') )
 endfunction
 
 
@@ -78,7 +83,7 @@ function! wimpi#make_index()
 endfunction
 
 function! wimpi#cache_index()
-    let g:wimpi_cache_index_docs_titles =  wimpi#docs_titles()
+    let g:wimpi_cache_index_docs_titles = wimpi#docs_titles()
 endfunction
 
 function! wimpi#doc_title_from_index(filename)
