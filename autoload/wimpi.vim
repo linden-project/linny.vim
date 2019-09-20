@@ -1,14 +1,15 @@
 call wimpi_util#initVariable("g:wimpi_version", '0.4.4')
+call wimpi_util#initVariable("g:wimpi_main_config_file", '~/.wimpi/wimpi.yml')
 
 function! wimpi#Init()
 
-  let g:wimpi_main_config = wimpi#parse_yaml_to_dict( expand('~/.wimpi/wimpi.yml') )
+  let wimpi_main_config = wimpi#parse_yaml_to_dict( expand(g:wimpi_main_config_file) )
   let g:wimpi_state_dir = expand('~/.wimpi/state')
-  let g:wimpi_root_path = expand(g:wimpi_main_config['root_path'])
+  let g:wimpi_root_path = expand(wimpi_main_config['root_path'])
   let g:wimpi_index_config = wimpi#parse_yaml_to_dict( expand( g:wimpi_root_path .'/config/wiki_indexes.yml'))
 
-  if has_key(g:wimpi_main_config, 'index_files_path')
-    let g:wimpi_index_path = expand(g:wimpi_main_config['index_files_path'])
+  if has_key(wimpi_main_config, 'index_files_path')
+    let g:wimpi_index_path = expand(wimpi_main_config['index_files_path'])
   else
     let g:wimpi_index_path = expand(g:wimpi_root_path. '/index')
   end
