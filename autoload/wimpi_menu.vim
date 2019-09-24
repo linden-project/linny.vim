@@ -521,9 +521,12 @@ function! wimpi_menu#menu_get_active_view(state)
 endfunction
 
 function! wimpi_menu#menu_current_view_props(active_view, views_list, views)
+  if len(a:views_list) > a:active_view
     return a:views[a:views_list[a:active_view]]
+  else
+    return a:views[a:views_list[0]]
+  endif
 endfunction
-
 
 function! wimpi_menu#stringOfLengthWithChar(char, length)
   let i = 0

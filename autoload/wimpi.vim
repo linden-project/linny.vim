@@ -1,22 +1,52 @@
+
+
+
 call wimpi_util#initVariable("g:wimpi_version", '0.4.4')
-call wimpi_util#initVariable("g:wimpi_main_config_file", '~/.wimpi/wimpi.yml')
+
+" MAIN CONF SETTINGS
+call wimpi_util#initVariable("g:WIMPI_path_dbroot", '~/Wimpi')
+call wimpi_util#initVariable("g:WIMPI_path_dbindex", '~/.wimpi/index')
+call wimpi_util#initVariable("g:WIMPI_path_uistate", '~/.wimpi/state')
+call wimpi_util#initVariable("g:wimpi_index_cli_command", 'cd $HOME/.vim/wimpi-script/ && rvm 2.5.1 do ruby ./make_wiki_index.rb')
 
 function! wimpi#Init()
 
-  let wimpi_main_config = wimpi#parse_yaml_to_dict( expand(g:wimpi_main_config_file) )
-  let g:wimpi_state_dir = expand('~/.wimpi/state')
-  let g:wimpi_root_path = expand(wimpi_main_config['root_path'])
-  let g:wimpi_index_config = wimpi#parse_yaml_to_dict( expand( g:wimpi_root_path .'/config/wiki_indexes.yml'))
+  let g:wimpi_root_path = expand(g:WIMPI_path_dbroot)
+  let g:wimpi_state_path = expand(g:WIMPI_path_uistate)
+  let g:wimpi_index_path = expand(g:WIMPI_path_dbindex)
 
-  if has_key(wimpi_main_config, 'index_files_path')
-    let g:wimpi_index_path = expand(wimpi_main_config['index_files_path'])
-  else
-    let g:wimpi_index_path = expand(g:wimpi_root_path. '/index')
-  end
+  call wimpi#setup_paths()
+
+  let g:wimpi_index_config = wimpi#parse_yaml_to_dict( expand( g:wimpi_root_path .'/config/wiki_indexes.yml'))
 
   call wimpi#cache_index()
 
 endfunction
+
+function! wimpi#setup_paths()
+
+  call wimpi#fatal_check_dir(g:wimpi_root_path)
+
+  call wimpi#create_dir_if_not_exixt(g:wimpi_state_path)
+  call wimpi#fatal_check_dir(g:wimpi_state_path)
+
+  call wimpi#create_dir_if_not_exixt(g:wimpi_index_path)
+  call wimpi#fatal_check_dir(g:wimpi_index_path)
+endfunction
+
+function! wimpi#create_dir_if_not_exixt(path)
+  if !isdirectory(a:path)
+    call mkdir(a:path, "p")
+  endif
+endfunction
+
+function! wimpi#fatal_check_dir(path)
+  if !isdirectory(a:path)
+    echom "WIMPI CANNOT FUNCION! ERROR: " . a:path . "DOES NOT EXISTS."
+  endif
+endfunction
+
+
 
 function! wimpi#PluginVersion()
     return g:wimpi_version
@@ -216,21 +246,11 @@ function! wimpi#l3_config_filepath(term, value)
 endfunction
 
 function! wimpi#l2_state_filepath(term)
-
-  if !isdirectory(g:wimpi_state_dir)
-    exec "!mkdir ". g:wimpi_state_dir
-  endif
-
-  return g:wimpi_state_dir ."/L2-STATE_TRM_".tolower(a:term).'.json'
+  return g:wimpi_state_path ."/L2-STATE_TRM_".tolower(a:term).'.json'
 endfunction
 
 function! wimpi#l3_state_filepath(term, value)
-
-  if !isdirectory(g:wimpi_state_dir)
-    exec "!mkdir ". g:wimpi_state_dir
-  endif
-
-  return g:wimpi_state_dir ."/L3-STATE_TRM_".tolower(a:term).'_VAL_'.tolower(a:value).'.json'
+  return g:wimpi_state_path ."/L3-STATE_TRM_".tolower(a:term).'_VAL_'.tolower(a:value).'.json'
 endfunction
 
 function! wimpi#index_term_config(term)
