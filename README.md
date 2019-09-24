@@ -1,10 +1,7 @@
 wimpi-vim
 =========
 
-*wimpi-wim* is a Vim plugin part of the Wimpi Ecosystem. This plugin eases the
-navigation between files in a wimpi wiki based on markdown and can work
-together with the personal wiki app for iOS app
-https://github.com/landakram/kiwi
+Soon to be renamed.
 
 Installation
 -------------
