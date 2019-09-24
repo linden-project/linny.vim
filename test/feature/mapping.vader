@@ -1,0 +1,67 @@
+Before:
+  enew!
+  WimpiMenuOpen
+
+Do:
+  05
+
+Expect wimpi_menu (text menu):
+
+  [0]  /  <home>
+  [u]  .. <up> 
+
+  CUSTOMERS
+
+  -----------------------------------------
+
+  [v]  VIEW  [az][date]
+               ▲
+
+
+  Ungrouped
+
+  [00]  caesar (2)
+  [01]  the zoo (1)
+
+  -----------------------------------------
+
+  CONFIGURATION
+
+  [C]  Create customer Config
+
+  [H]  <hard refresh>
+  [R]  <refresh>
+
+  Wimpi 0.4.4
+
+Do:
+  v
+
+Expect wimpi_menu (sort date):
+
+  [0]  /  <home>
+  [u]  .. <up> 
+
+  CUSTOMERS
+
+  -----------------------------------------
+
+  [v]  VIEW  [az][date]
+                    ▲
+
+
+  Ungrouped
+
+  [00]  caesar (2)
+  [01]  the zoo (1)
+
+  -----------------------------------------
+
+  CONFIGURATION
+
+  [C]  Create customer Config
+
+  [H]  <hard refresh>
+  [R]  <refresh>
+
+  Wimpi 0.4.4

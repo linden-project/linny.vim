@@ -1,0 +1,22 @@
+filetype off
+
+set runtimepath+=vader.vim
+set runtimepath+=..
+
+"set tabstop=2                     " a tab is two spaces
+"set shiftwidth=2                  " an autoindent (with <<) is two spaces
+"set expandtab                     " use spaces, not tabs
+
+
+filetype plugin on
+syntax enable
+
+set hidden
+
+let g:wimpi_debug = 0
+let g:WIMPI_path_dbroot = './wimpi_db_root'
+let g:WIMPI_path_dbindex = './wimpi_index_files'
+let g:WIMPI_path_uistate = './wimpi_state_wimpi'
+let g:wimpi_index_cli_command = '/Users/pim/RnD/wimpix/bin/wimpix make -c ~/.wimpi/wimpi_dev.yml'
+let g:wimpi_menu_padding_left = 0
+let g:wimpi_menu_padding_right= 0

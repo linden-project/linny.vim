@@ -1,0 +1,8 @@
+---
+title: One
+infotext: About one
+views:
+  type:
+    group_by: type
+locations:
+  #website: https://www.one.vim

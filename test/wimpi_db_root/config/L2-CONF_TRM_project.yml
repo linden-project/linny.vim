@@ -1,0 +1,6 @@
+---
+title: Project
+infotext: About project
+views:
+  type:
+    group_by: type

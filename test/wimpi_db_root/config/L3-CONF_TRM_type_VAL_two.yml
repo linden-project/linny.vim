@@ -1,0 +1,10 @@
+---
+title: Two
+infotext: About two
+views:
+  type:
+    group_by: type
+  word:
+    group_by: word
+locations:
+  #website: https://www.two.vim

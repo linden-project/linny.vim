@@ -1,0 +1,38 @@
+---
+index_keys:
+  type:
+    singular: type
+    plural: types
+    type: has_many
+    top_level: true
+    about: Document type
+    features:
+      - sub_index
+  project:
+    singular: project
+    plural: projects
+    type: has_many
+    top_level: true
+    features:
+      - sub_index
+  customer:
+    singular: customer
+    plural: customers
+    type: has_many
+    top_level: true
+    features:
+      - sub_index
+  category:
+    singular: category
+    plural: categories
+    type: has_many
+    top_level: true
+    features:
+      - sub_index
+  archived:
+    singular: archived
+    plural: archived
+    type: has_many
+    top_level: false
+    features:
+      - sub_index
