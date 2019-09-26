@@ -1,5 +1,5 @@
 
-call linny_util#initVariable("g:linny_version", '0.4.5')
+call linny_util#initVariable("g:linny_version", '0.4.6')
 
 " MAIN CONF SETTINGS
 call linny_util#initVariable("g:linny_path_dbroot", '~/Linny')
@@ -124,7 +124,30 @@ function! linny#doc_title_from_index(filename)
   return a:filename
 endfunction
 
-func! linny#browsetaxovals()
+func! linny#browse_taxonomies()
+
+  "let currentKey = linny_wiki#YamlKeyUnderCursor()
+  "exec ":startinsert"
+
+  let relativePath = fnameescape(g:linny_index_path . '/_index_keys.json')
+
+  if filereadable(relativePath)
+    let taxonomiesList = linny#parse_json_file( relativePath, [] )
+
+    let taxList = []
+    for taxonomy in taxonomiesList
+      call add(taxList, taxonomy . ": ")
+    endfor
+
+    call setline('.', "")
+    call cursor(line('.'), 1)
+    call complete(1, sort(taxList))
+  endif
+
+  return ''
+endfunc
+
+func! linny#browse_taxonomy_terms()
 
   let currentKey = linny_wiki#YamlKeyUnderCursor()
 

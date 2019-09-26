@@ -19,7 +19,7 @@ execute 'syntax match LinnymenuBracket /.*\%'. (len(s:padding_left) + 5) .'c/ co
 
 syntax match LinnymenuNumber  /^\s*\[\zs[^BSVT]\{-}\ze\]/
 syntax match LinnymenuSelect  /^\s*\[\zs[BSVT]\{-}\ze\]/
-syntax match LinnymenuSpecial /\V<close>\|<quit>\|<refresh>/
+syntax match LinnymenuSpecial /\V<close>\|<quit>\|<xrefresh>/
 
 
 if exists('t:linny_menu.section_lines')
@@ -61,13 +61,13 @@ endfunc
 command! -nargs=* HighLink call s:hllink(<f-args>)
 
 
-HighLink	LinnymenuBracket		Delimiter	StartifyBracket
-HighLink	LinnymenuSection		Statement	StartifySection
-HighLink	LinnymenuSelect			Title		StartifySelect
-HighLink	LinnymenuNumber			Number		StartifyNumber
-HighLink	LinnymenuSpecial		Comment		StartifySpecial
-HighLink	LinnymenuHeader			Title		StartifyHeader
-HighLink	LinnymenuFooter			Title		StartifySpecial
-HighLink	LinnymenuOption			Identifier  StartifyFile
-HighLink	LinnymenuHelp			Comment 	StartifySpecial	
+hi def link  LinnymenuBracket  Delimiter
+hi def link  LinnymenuSection  Statement
+hi def link  LinnymenuSelect   Title
+hi def link  LinnymenuNumber   Number
+hi def link  LinnymenuSpecial  Comment
+hi def link  LinnymenuHeader   Title
+hi def link  LinnymenuFooter   Comment
+hi def link  LinnymenuOption   Identifier
+hi def link  LinnymenuHelp     Comment
 

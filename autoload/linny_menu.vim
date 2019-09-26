@@ -253,12 +253,12 @@ function! s:menu_1st_level()
 
   call linny_menu#reset()
 
-  call s:add_item_section("# STARRED DOCS")
+  call s:add_item_section("# Starred documents")
   let starred = linny_menu#starred_docs()
 
   call s:partial_files_listing( starred, {'sort':'az'}, 0)
 
-  call s:add_item_section("# STARRED LEAFS")
+  call s:add_item_section("# Starred terms")
   let starred = linny_menu#starred_terms()
   let starred_list = {}
 
@@ -270,11 +270,10 @@ function! s:menu_1st_level()
     call s:add_item_document_taxo_key_val(starred_list[sk]['term'], starred_list[sk]['val'])
   endfor
 
-  call s:add_item_section("# INDEX")
-  call s:add_item_document("Alfabetisch", g:linny_root_path ."/wiki/index.md", 'a')
+  call s:add_item_section("# Taxonomies")
 
   let index_keys_list = linny#parse_json_file(g:linny_index_path . '/_index_keys.json', [])
-  for k in index_keys_list
+  for k in sort(index_keys_list)
     let term_config = linny#index_term_config(k)
     if has_key(term_config, 'top_level')
       let top_level = get(term_config, 'top_level')
@@ -284,11 +283,16 @@ function! s:menu_1st_level()
     end
   endfor
 
-  call s:add_item_section("# RECENT")
+  call s:add_item_section("# All documents")
+  call s:add_item_document("Sorted A-Z", g:linny_root_path ."/wiki/index.md", 'a')
+  "call s:add_item_document("Sorted NEW-OLD", g:linny_root_path ."/wiki/index.md", 'a')
+
+
+  call s:add_item_section("# Recently modifies documents")
   let recent = linny_menu#recent_files()
   call s:partial_files_listing( recent , {'sort':'date'}, 0)
 
-  call s:add_item_section("# CONFIGURATION")
+  call s:add_item_section("# Configuration")
   call s:add_item_document("index configuration", g:linny_root_path ."/config/wiki_indexes.yml", 'c')
 
 endfunction
@@ -707,8 +711,8 @@ function! s:menu_3rd_level(term, value)
 endfunc
 
 function! s:partial_footer_items()
-  call s:add_item_empty_line()
-  call s:add_item_special_event("<hard refresh>", "hardrefresh", 'H')
+"  call s:add_item_empty_line()
+"  call s:add_item_special_event("<hard refresh>", "hardrefresh", 'H')
   call s:add_item_special_event("<refresh>", "refresh", 'R')
   call s:add_item_empty_line()
   call s:add_item_footer('Linny ' . linny#PluginVersion())
@@ -841,7 +845,7 @@ function! s:add_item_section(text)
 
   call s:append_to_items(item)
 
-  call s:add_item_empty_line()
+"  call s:add_item_empty_line()
 endfunction
 
 function! s:add_item_text(text)
@@ -872,7 +876,7 @@ function! s:add_item_document_taxo_key(taxo_key)
     let taxo_count = ""
   endif
 
-  let item.text = "Index: " . a:taxo_key . taxo_count
+  let item.text = "" . linny_menu#string_capitalize(a:taxo_key) . taxo_count
   let item.event = ":call linny_menu#openterm('". a:taxo_key ."','')"
   call s:append_to_items(item)
 
@@ -1311,9 +1315,6 @@ function! <SID>linny_menu_execute(index) abort
       if(item.event == 'close')
         close!
 
-      elseif(item.event == 'refresh')
-        call linny_menu#openandshow()
-
       elseif(item.event == 'cycle_l2_view')
         call linny_menu#cycle_l2_view()
         call linny_menu#openandshow()
@@ -1322,7 +1323,7 @@ function! <SID>linny_menu_execute(index) abort
         call linny_menu#cycle_l3_view()
         call linny_menu#openandshow()
 
-      elseif(item.event == 'hardrefresh')
+      elseif(item.event == 'refresh')
         call linny#Init()
         call linny#make_index()
         call linny_menu#openandshow()
@@ -1383,7 +1384,7 @@ function! <SID>linny_menu_execute(index) abort
             let dirstring = split(item.event, "file://")
 
             if !filereadable(dirstring[1])
-              exe  "!mkdir -p '".dirstring[1]
+              silent exe "!mkdir -p '".dirstring[1]
             endif
           endif
 
