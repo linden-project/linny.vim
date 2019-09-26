@@ -1,7 +1,5 @@
 
-
-
-call linny_util#initVariable("g:linny_version", '0.4.4')
+call linny_util#initVariable("g:linny_version", '0.4.5')
 
 " MAIN CONF SETTINGS
 call linny_util#initVariable("g:linny_path_dbroot", '~/Linny')
