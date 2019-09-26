@@ -52,10 +52,12 @@ endfunction
 " popup window management
 "----------------------------------------------------------------------
 function! Window_exist()
+
   if !exists('t:linny_menu_bid')
     let t:linny_menu_bid = -1
     return 0
   endif
+
   return t:linny_menu_bid > 0 && bufexists(t:linny_menu_bid)
 endfunc
 
@@ -63,6 +65,11 @@ function! Window_close()
 
   if !exists('t:linny_menu_bid')
     return 0
+  endif
+
+  "if last window, first create new one
+  if winbufnr(2) == -1
+    exec "below vnew"
   endif
 
   if &buftype == 'nofile' && &ft == 'linny_menu'
@@ -1254,7 +1261,6 @@ function! linny_menu#open_or_create_taxo_key_val()
   let ln = line('.')
   let item = s:get_item_by_index(ln - 2)
 
-  echo item
   if has_key(item,'option_type')
     if get(item,'option_type') == 'taxo_key_val'
       call s:createl3config(item.option_data.taxo_key, item.option_data.taxo_val)
