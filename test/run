@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 
-rm -Rf test/wimpi_state_wimpi/*
+rm -Rf test/linny_state/*
 # Change to directory of this script.
 cd "${0%/*}"
 

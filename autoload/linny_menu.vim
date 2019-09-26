@@ -1,6 +1,6 @@
 "======================================================================
 "
-" wimpi_menu.vim
+" linny_menu.vim
 "
 " Inspired by QuickMenu of skywind
 " Last change: 2017/08/08 15:20:20
@@ -11,70 +11,70 @@
 " Global Options
 "----------------------------------------------------------------------
 
-call wimpi_util#initVariable("g:wimpi_menu_max_width", 50)
-call wimpi_util#initVariable("g:wimpi_menu_padding_left", 3)
-call wimpi_util#initVariable("g:wimpi_menu_padding_right", 3)
-call wimpi_util#initVariable("g:wimpi_menu_options", 'T')
-call wimpi_util#initVariable("g:wimpi_menu_display_docs_count", 1)
-call wimpi_util#initVariable("g:wimpi_menu_display_taxo_count", 1)
-call wimpi_util#initVariable("g:wimpitabnr", 1)
-call wimpi_util#initVariable("g:wimpi_debug", 1)
+call linny_util#initVariable("g:linny_menu_max_width", 50)
+call linny_util#initVariable("g:linny_menu_padding_left", 3)
+call linny_util#initVariable("g:linny_menu_padding_right", 3)
+call linny_util#initVariable("g:linny_menu_options", 'T')
+call linny_util#initVariable("g:linny_menu_display_docs_count", 1)
+call linny_util#initVariable("g:linny_menu_display_taxo_count", 1)
+call linny_util#initVariable("g:linnytabnr", 1)
+call linny_util#initVariable("g:linny_debug", 1)
 
-let t:wimpi_menu_items = []
-let t:wimpi_menu_cursor = 0
-let t:wimpi_menu_line = 0
-let t:wimpi_menu_lastmaxsize = 0
-let t:wimpi_menu_taxo_term = ""
-let t:wimpi_menu_taxo_val = ""
-let t:wimpi_menu_current_menu_type = "not_set"
+let t:linny_menu_items = []
+let t:linny_menu_cursor = 0
+let t:linny_menu_line = 0
+let t:linny_menu_lastmaxsize = 0
+let t:linny_menu_taxo_term = ""
+let t:linny_menu_taxo_val = ""
+let t:linny_menu_current_menu_type = "not_set"
 
 "----------------------------------------------------------------------
 " Internal State
 "----------------------------------------------------------------------
-function! wimpi_menu#tabInitState()
-  if !exists('t:wimpi_menu_name')
-    let t:wimpi_menu_items = []
-    let t:wimpi_menu_cursor = 0
-    let t:wimpi_menu_name = '[wimpi_menu]'.string(NewWimpiTabNr())
-    let t:wimpi_menu_line = 0
-    let t:wimpi_menu_lastmaxsize = 0
-    let t:wimpi_menu_taxo_term = ""
-    let t:wimpi_menu_taxo_val = ""
+function! linny_menu#tabInitState()
+  if !exists('t:linny_menu_name')
+    let t:linny_menu_items = []
+    let t:linny_menu_cursor = 0
+    let t:linny_menu_name = '[linny_menu]'.string(NewLinnyTabNr())
+    let t:linny_menu_line = 0
+    let t:linny_menu_lastmaxsize = 0
+    let t:linny_menu_taxo_term = ""
+    let t:linny_menu_taxo_val = ""
   endif
 endfunction
 
-function! NewWimpiTabNr()
-  let g:wimpitabnr = g:wimpitabnr + 1
-  return g:wimpitabnr
+function! NewLinnyTabNr()
+  let g:linnytabnr = g:linnytabnr + 1
+  return g:linnytabnr
 endfunction
 
 "----------------------------------------------------------------------
 " popup window management
 "----------------------------------------------------------------------
 function! Window_exist()
-  if !exists('t:wimpi_menu_bid')
-    let t:wimpi_menu_bid = -1
+  if !exists('t:linny_menu_bid')
+    let t:linny_menu_bid = -1
     return 0
   endif
-  return t:wimpi_menu_bid > 0 && bufexists(t:wimpi_menu_bid)
+  return t:linny_menu_bid > 0 && bufexists(t:linny_menu_bid)
 endfunc
 
 function! Window_close()
 
-  if !exists('t:wimpi_menu_bid')
+  if !exists('t:linny_menu_bid')
     return 0
   endif
 
-  if &buftype == 'nofile' && &ft == 'wimpi_menu'
-    if bufname('%') == t:wimpi_menu_name
+  if &buftype == 'nofile' && &ft == 'linny_menu'
+    if bufname('%') == t:linny_menu_name
       silent close!
-      let t:wimpi_menu_bid = -1
+      let t:linny_menu_bid = -1
     endif
   endif
 
-  if t:wimpi_menu_bid > 0 && bufexists(t:wimpi_menu_bid)
-    silent exec 'bwipeout ' . t:wimpi_menu_bid
-    let t:wimpi_menu_bid = -1
+  if t:linny_menu_bid > 0 && bufexists(t:linny_menu_bid)
+    silent exec 'bwipeout ' . t:linny_menu_bid
+    let t:linny_menu_bid = -1
   endif
 
   redraw | echo "" | redraw
@@ -89,7 +89,7 @@ function! Window_open(size)
 
   let size = a:size
   let size = (size < 4)? 4 : size
-  let size = (size > g:wimpi_menu_max_width)? g:wimpi_menu_max_width : size
+  let size = (size > g:linny_menu_max_width)? g:linny_menu_max_width : size
   if size > winwidth(0)
     let size = winwidth(0) - 1
     if size < 4
@@ -97,10 +97,10 @@ function! Window_open(size)
     endif
   endif
   let savebid = bufnr('%')
-  if stridx(g:wimpi_menu_options, 'T') < 0
-    exec "silent! rightbelow ".size.'vne '.t:wimpi_menu_name
+  if stridx(g:linny_menu_options, 'T') < 0
+    exec "silent! rightbelow ".size.'vne '.t:linny_menu_name
   else
-    exec "silent! leftabove ".size.'vne '.t:wimpi_menu_name
+    exec "silent! leftabove ".size.'vne '.t:linny_menu_name
   endif
   if savebid == bufnr('%')
     return 0
@@ -123,24 +123,24 @@ function! Window_open(size)
     setlocal fdc=0
   endif
 
-  let t:wimpi_menu_bid = bufnr('%')
+  let t:linny_menu_bid = bufnr('%')
   return 1
 endfunc
 
 
-function! wimpi_menu#recent_files()
+function! linny_menu#recent_files()
   let files = []
-  let files = systemlist('ls -1t '.g:wimpi_root_path.'/wiki | grep -ve "^index.*" | head -5')
+  let files = systemlist('ls -1t '.g:linny_root_path.'/wiki | grep -ve "^index.*" | head -5')
   return files
 endfunction
 
-function! wimpi_menu#starred_terms()
-  let terms = wimpi#parse_json_file(g:wimpi_index_path . '/_index_term_values_starred.json', [])
+function! linny_menu#starred_terms()
+  let terms = linny#parse_json_file(g:linny_index_path . '/_index_term_values_starred.json', [])
   return terms
 endfunction
 
-function! wimpi_menu#starred_docs()
-  let docs = wimpi#parse_json_file(g:wimpi_index_path . '/_index_docs_starred.json', [])
+function! linny_menu#starred_docs()
+  let docs = linny#parse_json_file(g:linny_index_path . '/_index_docs_starred.json', [])
   return docs
 endfunction
 
@@ -170,7 +170,7 @@ function! s:partial_files_listing(files_list, view_props, bool_extra_file_info)
 
           let replace = ""
           if found2 == 'title'
-            let replace = wimpi#doc_title_from_index(filel.file)
+            let replace = linny#doc_title_from_index(filel.file)
             if !replace
               let replace = ""
               let replace = filel.file
@@ -203,12 +203,12 @@ function! s:partial_files_listing(files_list, view_props, bool_extra_file_info)
         call add(simple_list,filel.file)
       endfor
 
-      let titles = wimpi#titlesForDocs(simple_list)
+      let titles = linny#titlesForDocs(simple_list)
 
     endif
 
   else
-    let titles = wimpi#titlesForDocs(a:files_list)
+    let titles = linny#titlesForDocs(a:files_list)
   end
 
 
@@ -219,12 +219,12 @@ function! s:partial_files_listing(files_list, view_props, bool_extra_file_info)
 
     let entry = {}
     let entry.orgTitle = k
-    let entry.orgFile = g:wimpi_root_path . "/wiki/" . titles[k]
+    let entry.orgFile = g:linny_root_path . "/wiki/" . titles[k]
 
     if vsort == 'az'
       let t_sortable[tolower(k)] = entry
     elseif vsort == 'date'
-      let modFileTime = getftime(g:wimpi_root_path . "/wiki/".titles[k])
+      let modFileTime = getftime(g:linny_root_path . "/wiki/".titles[k])
       let t_sortable[string(99999999999-modFileTime).k] = entry
     else
       let t_sortable[i] = entry
@@ -242,17 +242,17 @@ endfunction
 
 function! s:menu_1st_level()
 
-  let t:wimpi_menu_current_menu_type = "menu_1st_level"
+  let t:linny_menu_current_menu_type = "menu_1st_level"
 
-  call wimpi_menu#reset()
+  call linny_menu#reset()
 
   call s:add_item_section("# STARRED DOCS")
-  let starred = wimpi_menu#starred_docs()
+  let starred = linny_menu#starred_docs()
 
   call s:partial_files_listing( starred, {'sort':'az'}, 0)
 
   call s:add_item_section("# STARRED LEAFS")
-  let starred = wimpi_menu#starred_terms()
+  let starred = linny_menu#starred_terms()
   let starred_list = {}
 
   for i in starred
@@ -264,11 +264,11 @@ function! s:menu_1st_level()
   endfor
 
   call s:add_item_section("# INDEX")
-  call s:add_item_document("Alfabetisch", g:wimpi_root_path ."/wiki/index.md", 'a')
+  call s:add_item_document("Alfabetisch", g:linny_root_path ."/wiki/index.md", 'a')
 
-  let index_keys_list = wimpi#parse_json_file(g:wimpi_index_path . '/_index_keys.json', [])
+  let index_keys_list = linny#parse_json_file(g:linny_index_path . '/_index_keys.json', [])
   for k in index_keys_list
-    let term_config = wimpi#index_term_config(k)
+    let term_config = linny#index_term_config(k)
     if has_key(term_config, 'top_level')
       let top_level = get(term_config, 'top_level')
       if top_level
@@ -278,43 +278,43 @@ function! s:menu_1st_level()
   endfor
 
   call s:add_item_section("# RECENT")
-  let recent = wimpi_menu#recent_files()
+  let recent = linny_menu#recent_files()
   call s:partial_files_listing( recent , {'sort':'date'}, 0)
 
   call s:add_item_section("# CONFIGURATION")
-  call s:add_item_document("index configuration", g:wimpi_root_path ."/config/wiki_indexes.yml", 'c')
+  call s:add_item_document("index configuration", g:linny_root_path ."/config/wiki_indexes.yml", 'c')
 
 endfunction
 
 function! s:menu_2nd_level(term)
 
-  let t:wimpi_menu_current_menu_type = "menu_2nd_level"
+  let t:linny_menu_current_menu_type = "menu_2nd_level"
 
-  let term_config = wimpi#index_term_config(a:term)
+  let term_config = linny#index_term_config(a:term)
   let term_plural = a:term
   if has_key(term_config, 'plural')
     let term_plural = get(term_config, 'plural')
   end
-  let l2_config = wimpi#termLeafConfig(a:term)
+  let l2_config = linny#termLeafConfig(a:term)
 
-  call wimpi_menu#reset()
+  call linny_menu#reset()
   call s:add_item_special_event("/  <home>", "home", '0')
   call s:add_item_special_event(".. <up> ", "home", 'u')
   call s:add_item_section("# " . toupper(term_plural) )
   call s:add_item_divider()
 
   let views_string = ""
-  let views_list = wimpi_menu#get_views_list(l2_config)
-  let views = wimpi_menu#get_views(l2_config)
+  let views_list = linny_menu#get_views_list(l2_config)
+  let views = linny_menu#get_views(l2_config)
 
   for view in views_list
     let views_string = views_string . "[" .view . "]"
   endfor
 
-  let l2_state = wimpi_menu#termLeafState(a:term)
-  let active_view = wimpi_menu#menu_get_active_view(l2_state)
+  let l2_state = linny_menu#termLeafState(a:term)
+  let active_view = linny_menu#menu_get_active_view(l2_state)
 
-  let active_arrow_string = wimpi_menu#calcActiveViewArrow(views_list, active_view, 10)
+  let active_arrow_string = linny_menu#calcActiveViewArrow(views_list, active_view, 10)
 
   call s:add_item_empty_line()
   call s:add_item_special_event("VIEW  ". views_string  , "cycle_l2_view", 'v')
@@ -323,7 +323,7 @@ function! s:menu_2nd_level(term)
     call s:add_item_empty_line()
   end
 
-  let view_props = wimpi_menu#menu_current_view_props(active_view, views_list, views)
+  let view_props = linny_menu#menu_current_view_props(active_view, views_list, views)
 
   if has_key(view_props, 'sort')
     let sort = get(view_props,'sort')
@@ -343,7 +343,7 @@ function! s:menu_2nd_level(term)
 
 
 
-  let termslistDict = wimpi#parse_json_file( wimpi#l2_index_filepath(a:term), [] )
+  let termslistDict = linny#parse_json_file( linny#l2_index_filepath(a:term), [] )
   let termslist = keys(termslistDict)
 
   let term_menu = {}
@@ -383,7 +383,7 @@ function! s:menu_2nd_level(term)
   endfor
 
   for group in sort(keys(term_menu))
-    call s:add_item_section("### " . wimpi_menu#string_capitalize(group) )
+    call s:add_item_section("### " . linny_menu#string_capitalize(group) )
 
     for val in term_menu[group]
       call s:add_item_document_taxo_key_val(a:term, val )
@@ -396,8 +396,8 @@ function! s:menu_2nd_level(term)
 
   call s:add_item_section("### " . toupper('Configuration'))
 
-  if filereadable(wimpi#l2_config_filepath(a:term))
-    call s:add_item_document("Open ". a:term." Config", wimpi#l2_config_filepath(a:term),'c')
+  if filereadable(linny#l2_config_filepath(a:term))
+    call s:add_item_document("Open ". a:term." Config", linny#l2_config_filepath(a:term),'c')
   else
     call s:add_item_special_event("Create ". a:term." Config", "createl2config", 'C')
   endif
@@ -407,42 +407,42 @@ endfunction
 
 
 function! s:partial_debug_info()
-  call s:add_item_section("### " . wimpi_menu#string_capitalize('debug'))
-  call s:add_item_text("t:wimpi_menu_lastmaxsize = ".t:wimpi_menu_lastmaxsize)
-  call s:add_item_text("t:wimpi_menu_name = ".t:wimpi_menu_name)
-  call s:add_item_text("t:wimpi_menu_taxo_term = ".t:wimpi_menu_taxo_term)
-  call s:add_item_text("t:wimpi_menu_taxo_val = ".t:wimpi_menu_taxo_val)
-  call s:add_item_text("Loading time = ".t:wimpi_load_time)
+  call s:add_item_section("### " . linny_menu#string_capitalize('debug'))
+  call s:add_item_text("t:linny_menu_lastmaxsize = ".t:linny_menu_lastmaxsize)
+  call s:add_item_text("t:linny_menu_name = ".t:linny_menu_name)
+  call s:add_item_text("t:linny_menu_taxo_term = ".t:linny_menu_taxo_term)
+  call s:add_item_text("t:linny_menu_taxo_val = ".t:linny_menu_taxo_val)
+  call s:add_item_text("Loading time = ".t:linny_load_time)
 endfunction
 
-function! wimpi_menu#termValueLeafState(term, value)
-  let filePath = wimpi#l3_state_filepath(a:term, a:value)
-  return wimpi#parse_json_file( filePath , {})
+function! linny_menu#termValueLeafState(term, value)
+  let filePath = linny#l3_state_filepath(a:term, a:value)
+  return linny#parse_json_file( filePath , {})
 endfunction
 
-function! wimpi_menu#termLeafState(term)
-  let filePath = wimpi#l2_state_filepath(a:term)
-  return wimpi#parse_json_file( filePath , {})
+function! linny_menu#termLeafState(term)
+  let filePath = linny#l2_state_filepath(a:term)
+  return linny#parse_json_file( filePath , {})
 endfunction
 
-"function! wimpi_menu#termValueLeafState(term, value)
-"  return wimpi#parse_json_file( wimpi#l3_state_filepath(a:term, a:value), {})
+"function! linny_menu#termValueLeafState(term, value)
+"  return linny#parse_json_file( linny#l3_state_filepath(a:term, a:value), {})
 "endfunction
 "
-function! wimpi_menu#writeTermLeafState(term, state)
-  call wimpi#write_json_file(wimpi#l2_state_filepath(a:term), a:state)
+function! linny_menu#writeTermLeafState(term, state)
+  call linny#write_json_file(linny#l2_state_filepath(a:term), a:state)
 endfunction
 
-function! wimpi_menu#writeTermValueLeafState(term, value, l3_state)
-  call wimpi#write_json_file(wimpi#l3_state_filepath(a:term, a:value), a:l3_state)
+function! linny_menu#writeTermValueLeafState(term, value, l3_state)
+  call linny#write_json_file(linny#l3_state_filepath(a:term, a:value), a:l3_state)
 endfunction
 
-function! wimpi_menu#cycle_l2_view()
+function! linny_menu#cycle_l2_view()
 
-  let state = wimpi_menu#termLeafState(t:wimpi_menu_taxo_term)
-  let active_view = wimpi_menu#menu_get_active_view(state)
-  let config = wimpi#termLeafConfig(t:wimpi_menu_taxo_term)
-  let views = wimpi_menu#get_views_list(config)
+  let state = linny_menu#termLeafState(t:linny_menu_taxo_term)
+  let active_view = linny_menu#menu_get_active_view(state)
+  let config = linny#termLeafConfig(t:linny_menu_taxo_term)
+  let views = linny_menu#get_views_list(config)
 
   if (active_view+1) >= len(views)
     let new_active_view = 0
@@ -451,17 +451,17 @@ function! wimpi_menu#cycle_l2_view()
     let state.active_view = active_view + 1
   end
 
-  call wimpi_menu#writeTermLeafState(t:wimpi_menu_taxo_term, state)
+  call linny_menu#writeTermLeafState(t:linny_menu_taxo_term, state)
 
 endfunction
 
 
-function! wimpi_menu#cycle_l3_view()
+function! linny_menu#cycle_l3_view()
 
-  let state = wimpi_menu#termValueLeafState(t:wimpi_menu_taxo_term, t:wimpi_menu_taxo_val)
-  let active_view = wimpi_menu#menu_get_active_view(state)
-  let config = wimpi#termValueLeafConfig(t:wimpi_menu_taxo_term, t:wimpi_menu_taxo_val)
-  let views = wimpi_menu#get_views_list(config)
+  let state = linny_menu#termValueLeafState(t:linny_menu_taxo_term, t:linny_menu_taxo_val)
+  let active_view = linny_menu#menu_get_active_view(state)
+  let config = linny#termValueLeafConfig(t:linny_menu_taxo_term, t:linny_menu_taxo_val)
+  let views = linny_menu#get_views_list(config)
 
   if (active_view+1) >= len(views)
     let new_active_view = 0
@@ -470,11 +470,11 @@ function! wimpi_menu#cycle_l3_view()
     let state.active_view = active_view + 1
   end
 
-  call wimpi_menu#writeTermValueLeafState(t:wimpi_menu_taxo_term, t:wimpi_menu_taxo_val, state)
+  call linny_menu#writeTermValueLeafState(t:linny_menu_taxo_term, t:linny_menu_taxo_val, state)
 
 endfunction
 
-function! wimpi_menu#get_views_list(config)
+function! linny_menu#get_views_list(config)
 
   let views_list = ["az", 'date']
 
@@ -490,7 +490,7 @@ function! wimpi_menu#get_views_list(config)
 
 endfunction
 
-function! wimpi_menu#get_views(config)
+function! linny_menu#get_views(config)
 
 
   let views_all = {}
@@ -512,7 +512,7 @@ function! wimpi_menu#get_views(config)
 
 endfunction
 
-function! wimpi_menu#menu_get_active_view(state)
+function! linny_menu#menu_get_active_view(state)
   if has_key(a:state, 'active_view')
    return get(a:state, 'active_view')
   else
@@ -520,7 +520,7 @@ function! wimpi_menu#menu_get_active_view(state)
   end
 endfunction
 
-function! wimpi_menu#menu_current_view_props(active_view, views_list, views)
+function! linny_menu#menu_current_view_props(active_view, views_list, views)
   if len(a:views_list) > a:active_view
     return a:views[a:views_list[a:active_view]]
   else
@@ -528,7 +528,7 @@ function! wimpi_menu#menu_current_view_props(active_view, views_list, views)
   endif
 endfunction
 
-function! wimpi_menu#stringOfLengthWithChar(char, length)
+function! linny_menu#stringOfLengthWithChar(char, length)
   let i = 0
   let padString = ""
   while a:length >= i
@@ -539,21 +539,21 @@ function! wimpi_menu#stringOfLengthWithChar(char, length)
   return padString
 endfunction
 
-function! wimpi_menu#calcActiveViewArrow(views_list, active_view, padding_left)
+function! linny_menu#calcActiveViewArrow(views_list, active_view, padding_left)
 
   let idx = 0
-  let arrow_string = wimpi_menu#stringOfLengthWithChar(" ", a:padding_left)
+  let arrow_string = linny_menu#stringOfLengthWithChar(" ", a:padding_left)
   let stopb = 0
 
   for view in a:views_list
     if idx == a:active_view
       let padSize = round(len(view)/2)
-      let filstr = wimpi_menu#stringOfLengthWithChar(" ", padSize)
+      let filstr = linny_menu#stringOfLengthWithChar(" ", padSize)
       let arrow_string = arrow_string . filstr . "▲"
       let stopb = 1
     else
       if !stopb
-        let arrow_string = arrow_string . wimpi_menu#stringOfLengthWithChar(" ", (len(view)+1))
+        let arrow_string = arrow_string . linny_menu#stringOfLengthWithChar(" ", (len(view)+1))
       endif
     endif
     let idx += 1
@@ -566,23 +566,23 @@ endfunction
 
 function! s:menu_3rd_level(term, value)
 
-  let t:wimpi_menu_current_menu_type = "menu_3rd_level"
+  let t:linny_menu_current_menu_type = "menu_3rd_level"
 
   let infotext =''
   let group_by =''
 
-  let l3_config = wimpi#termValueLeafConfig(a:term, a:value)
+  let l3_config = linny#termValueLeafConfig(a:term, a:value)
 
-  let term_config = wimpi#index_term_config(a:term)
+  let term_config = linny#index_term_config(a:term)
   let term_plural = a:term
   if has_key(term_config, 'plural')
     let term_plural = get(term_config, 'plural')
   end
 
-  call wimpi_menu#reset()
+  call linny_menu#reset()
 
   call s:add_item_special_event("/  <home>", "home", '0')
-  call s:add_item_ex_event(".. <up> ". term_plural, ":call wimpi_menu#openterm('".a:term."','')", 'u')
+  call s:add_item_ex_event(".. <up> ". term_plural, ":call linny_menu#openterm('".a:term."','')", 'u')
   call s:add_item_section("# " . toupper(a:term) . ' : ' . toupper(a:value))
 
   call s:add_item_divider()
@@ -594,17 +594,17 @@ function! s:menu_3rd_level(term, value)
 
 
   let views_string = ""
-  let views_list = wimpi_menu#get_views_list(l3_config)
-  let views = wimpi_menu#get_views(l3_config)
+  let views_list = linny_menu#get_views_list(l3_config)
+  let views = linny_menu#get_views(l3_config)
 
   for view in views_list
     let views_string = views_string . "[" .view . "]"
   endfor
 
-  let l3_state = wimpi_menu#termValueLeafState(a:term, a:value)
-  let active_view = wimpi_menu#menu_get_active_view(l3_state)
+  let l3_state = linny_menu#termValueLeafState(a:term, a:value)
+  let active_view = linny_menu#menu_get_active_view(l3_state)
 
-  let active_arrow_string = wimpi_menu#calcActiveViewArrow(views_list, active_view, 10)
+  let active_arrow_string = linny_menu#calcActiveViewArrow(views_list, active_view, 10)
 
   call s:add_item_empty_line()
   call s:add_item_special_event("VIEW  ". views_string  , "cycle_l3_view", 'v')
@@ -613,12 +613,12 @@ function! s:menu_3rd_level(term, value)
     call s:add_item_empty_line()
   end
 
-  let files_in_menu = wimpi#parse_json_file(wimpi#l3_index_filepath( a:term, a:value), [])
+  let files_in_menu = linny#parse_json_file(linny#l3_index_filepath( a:term, a:value), [])
 
-  let view_props = wimpi_menu#menu_current_view_props(active_view, views_list, views)
+  let view_props = linny_menu#menu_current_view_props(active_view, views_list, views)
 
 
-  let files_index = wimpi#parse_json_file(g:wimpi_index_path . '/_index_docs_with_keys.json',[])
+  let files_index = linny#parse_json_file(g:linny_index_path . '/_index_docs_with_keys.json',[])
 
   "  if has_key(view_props, 'group_by')
   "  let group_by =  get(view_props,'group_by')
@@ -668,7 +668,7 @@ function! s:menu_3rd_level(term, value)
   endfor
 
   for group in sort(keys(files_menu))
-    call s:add_item_section("### " . wimpi_menu#string_capitalize(group))
+    call s:add_item_section("### " . linny_menu#string_capitalize(group))
     call s:partial_files_listing( files_menu[group], view_props , 1)
   endfor
 
@@ -688,8 +688,8 @@ function! s:menu_3rd_level(term, value)
 
   call s:add_item_section("### " . toupper('Configuration'))
 
-  if filereadable(wimpi#l3_config_filepath(a:term, a:value))
-    call s:add_item_document("Open ". a:term." ".a:value." Config", wimpi#l3_config_filepath(a:term, a:value),'c')
+  if filereadable(linny#l3_config_filepath(a:term, a:value))
+    call s:add_item_document("Open ". a:term." ".a:value." Config", linny#l3_config_filepath(a:term, a:value),'c')
   else
     call s:add_item_special_event("Create ". a:term." ".a:value." Config", "createl3config", 'c')
   endif
@@ -704,7 +704,7 @@ function! s:partial_footer_items()
   call s:add_item_special_event("<hard refresh>", "hardrefresh", 'H')
   call s:add_item_special_event("<refresh>", "refresh", 'R')
   call s:add_item_empty_line()
-  call s:add_item_footer('Wimpi ' . wimpi#PluginVersion())
+  call s:add_item_footer('Linny ' . linny#PluginVersion())
 endfunction
 
 function! s:displayFileAskViewProps(view_props, file_dict)
@@ -769,10 +769,10 @@ endfunction
 " menu operation
 "----------------------------------------------------------------------
 
-function! wimpi_menu#reset()
-  let t:wimpi_menu_items = []
-  let t:wimpi_menu_line = 0
-  let t:wimpi_menu_cursor = 0
+function! linny_menu#reset()
+  let t:linny_menu_items = []
+  let t:linny_menu_line = 0
+  let t:linny_menu_cursor = 0
 endfunc
 
 
@@ -858,15 +858,15 @@ function! s:add_item_document_taxo_key(taxo_key)
   let item = s:item_default()
   let item.mode = 0
 
-  if g:wimpi_menu_display_taxo_count
-    let files_in_menu = wimpi#parse_json_file( wimpi#l2_index_filepath(a:taxo_key) ,[])
+  if g:linny_menu_display_taxo_count
+    let files_in_menu = linny#parse_json_file( linny#l2_index_filepath(a:taxo_key) ,[])
     let taxo_count = " (".len(files_in_menu).")"
   else
     let taxo_count = ""
   endif
 
   let item.text = "Index: " . a:taxo_key . taxo_count
-  let item.event = ":call wimpi_menu#openterm('". a:taxo_key ."','')"
+  let item.event = ":call linny_menu#openterm('". a:taxo_key ."','')"
   call s:append_to_items(item)
 
 endfunction
@@ -878,16 +878,16 @@ function! s:add_item_document_taxo_key_val(taxo_key, taxo_val)
   let item.option_data.taxo_val = a:taxo_val
   let item.mode = 0
 
-  if g:wimpi_menu_display_docs_count
-    let files_in_menu = wimpi#parse_json_file( wimpi#l3_index_filepath(a:taxo_key,a:taxo_val) ,[])
+  if g:linny_menu_display_docs_count
+    let files_in_menu = linny#parse_json_file( linny#l3_index_filepath(a:taxo_key,a:taxo_val) ,[])
     let docs_count = " (".len(files_in_menu).")"
   else
     let docs_count = ""
   endif
 
-"  let item.text = wimpi#taxoValTitle(a:taxo_key, a:taxo_val) . docs_count
+"  let item.text = linny#taxoValTitle(a:taxo_key, a:taxo_val) . docs_count
   let item.text = a:taxo_val . docs_count
-  let item.event = ":call wimpi_menu#openterm('". a:taxo_key ."','" .a:taxo_val."')"
+  let item.event = ":call linny_menu#openterm('". a:taxo_key ."','" .a:taxo_val."')"
   call s:append_to_items(item)
 endfunction
 
@@ -924,7 +924,7 @@ endfunction
 function s:append_to_items(item)
   let index = -1
 
-  let items = t:wimpi_menu_items
+  let items = t:linny_menu_items
   let total = len(items)
 
   for i in range(0, total - 1)
@@ -942,18 +942,18 @@ function s:append_to_items(item)
 
 endfunction
 
-function! wimpi_menu#list()
-  for item in t:wimpi_menu_items
+function! linny_menu#list()
+  for item in t:linny_menu_items
     echo item
   endfor
 endfunc
 
 function! s:get_item_by_index(index)
-  if a:index < 0 || a:index >= len(t:wimpi_menu.items)
+  if a:index < 0 || a:index >= len(t:linny_menu.items)
     return
   endif
 
-  let item = t:wimpi_menu.items[a:index]
+  let item = t:linny_menu.items[a:index]
 
   return item
 endfunction
@@ -962,33 +962,33 @@ endfunction
 "}}}
 
 "----------------------------------------------------------------------
-" wimpi_menu interface
+" linny_menu interface
 "----------------------------------------------------------------------
 
-function! wimpi_menu#openterm(taxo_term, taxo_value) abort
-  let t:wimpi_menu_taxo_term = a:taxo_term
-  let t:wimpi_menu_taxo_val = a:taxo_value
-  call wimpi_menu#openandshow()
+function! linny_menu#openterm(taxo_term, taxo_value) abort
+  let t:linny_menu_taxo_term = a:taxo_term
+  let t:linny_menu_taxo_val = a:taxo_value
+  call linny_menu#openandshow()
 endfunction
 
-function! wimpi_menu#openandshow() abort
+function! linny_menu#openandshow() abort
 
-  let t:wimpi_start_load_time = localtime()
+  let t:linny_start_load_time = localtime()
 
-  if t:wimpi_menu_taxo_term!="" && t:wimpi_menu_taxo_val!=""
-    call s:menu_3rd_level(t:wimpi_menu_taxo_term, t:wimpi_menu_taxo_val)
+  if t:linny_menu_taxo_term!="" && t:linny_menu_taxo_val!=""
+    call s:menu_3rd_level(t:linny_menu_taxo_term, t:linny_menu_taxo_val)
 
-  elseif t:wimpi_menu_taxo_term!="" && t:wimpi_menu_taxo_val==""
-    call s:menu_2nd_level(t:wimpi_menu_taxo_term)
+  elseif t:linny_menu_taxo_term!="" && t:linny_menu_taxo_val==""
+    call s:menu_2nd_level(t:linny_menu_taxo_term)
 
-  elseif t:wimpi_menu_taxo_term=="" && t:wimpi_menu_taxo_val==""
+  elseif t:linny_menu_taxo_term=="" && t:linny_menu_taxo_val==""
     call s:menu_1st_level()
   endif
 
   call s:partial_footer_items()
 
-  if g:wimpi_debug
-    let t:wimpi_load_time = localtime() - t:wimpi_start_load_time
+  if g:linny_debug
+    let t:linny_load_time = localtime() - t:linny_start_load_time
     call s:partial_debug_info()
   endif
 
@@ -1010,8 +1010,8 @@ function! wimpi_menu#openandshow() abort
     let content += hr
   endfor
 
-  let maxsize += g:wimpi_menu_padding_right
-  let t:wimpi_menu_lastmaxsize = maxsize
+  let maxsize += g:linny_menu_padding_right
+  let t:linny_menu_lastmaxsize = maxsize
 
   if 1
     call Window_open(maxsize)
@@ -1027,21 +1027,21 @@ function! wimpi_menu#openandshow() abort
   return 1
 endfunc
 
-function! wimpi_menu#close()
+function! linny_menu#close()
   if Window_exist()
     call Window_close()
     return 0
   endif
 endfunction
 
-function! wimpi_menu#open()
+function! linny_menu#open()
   if !Window_exist()
-    call wimpi_menu#tabInitState()
-    call wimpi_menu#openandshow()
+    call linny_menu#tabInitState()
+    call linny_menu#openandshow()
   endif
 endfunction
 
-function! wimpi_menu#toggle() abort
+function! linny_menu#toggle() abort
   if Window_exist()
     call Window_close()
     return 0
@@ -1065,7 +1065,7 @@ function! wimpi_menu#toggle() abort
     let content += hr
   endfor
 
-  let maxsize += g:wimpi_menu_padding_right
+  let maxsize += g:linny_menu_padding_right
 
   if 1
     call Window_open(maxsize)
@@ -1089,34 +1089,34 @@ endfunc
 function! Window_render(items) abort
   setlocal modifiable
   let ln = 2
-  let t:wimpi_menu = {}
-  let t:wimpi_menu.padding_size = g:wimpi_menu_padding_left
+  let t:linny_menu = {}
+  let t:linny_menu.padding_size = g:linny_menu_padding_left
 
-  let t:wimpi_menu.option_lines = []
-  let t:wimpi_menu.section_lines = []
-  let t:wimpi_menu.text_lines = []
-  let t:wimpi_menu.header_lines = []
-  let t:wimpi_menu.footer_lines = []
+  let t:linny_menu.option_lines = []
+  let t:linny_menu.section_lines = []
+  let t:linny_menu.text_lines = []
+  let t:linny_menu.header_lines = []
+  let t:linny_menu.footer_lines = []
   for item in a:items
     let item.ln = ln
     call append('$', item.text)
     if item.mode == 0
-      let t:wimpi_menu.option_lines += [ln]
+      let t:linny_menu.option_lines += [ln]
     elseif item.mode == 1
-      let t:wimpi_menu.text_lines += [ln]
+      let t:linny_menu.text_lines += [ln]
     elseif item.mode == 2
-      let t:wimpi_menu.section_lines += [ln]
+      let t:linny_menu.section_lines += [ln]
     elseif item.mode == 3
-      let t:wimpi_menu.header_lines += [ln]
+      let t:linny_menu.header_lines += [ln]
     elseif item.mode == 4
-      let t:wimpi_menu.footer_lines += [ln]
+      let t:linny_menu.footer_lines += [ln]
     endif
     let ln += 1
   endfor
   setlocal nomodifiable readonly
-  setlocal ft=wimpi_menu
-  let t:wimpi_menu.items = a:items
-  let opt = g:wimpi_menu_options
+  setlocal ft=linny_menu
+  let t:linny_menu.items = a:items
+  let opt = g:linny_menu_options
 
   if stridx(opt, 'L') >= 0
     setlocal cursorline
@@ -1130,7 +1130,7 @@ endfunc
 function! Setup_keymaps(items)
 
   let ln = 0
-  let cursor_pos = t:wimpi_menu_cursor
+  let cursor_pos = t:linny_menu_cursor
   let nowait = ''
 
   if v:version >= 704 || (v:version == 703 && has('patch1261'))
@@ -1139,39 +1139,39 @@ function! Setup_keymaps(items)
 
   for item in a:items
     if item.key != ''
-      let cmd = ' :call <SID>wimpi_menu_execute('.ln.')<cr>'
+      let cmd = ' :call <SID>linny_menu_execute('.ln.')<cr>'
       exec "noremap <buffer>".nowait."<silent> ".item.key. cmd
     endif
     let ln += 1
   endfor
 
-  " noremap <silent> <buffer> 0 :call <SID>wimpi_menu_close()<cr>
-  " noremap <silent> <buffer> q :call <SID>wimpi_menu_close()<cr>
+  " noremap <silent> <buffer> 0 :call <SID>linny_menu_close()<cr>
+  " noremap <silent> <buffer> q :call <SID>linny_menu_close()<cr>
   "
 
-  if t:wimpi_menu_current_menu_type == "menu_1st_level"
-    noremap <silent> <buffer> t :call wimpi_menu#open_document_in_new_tab()<cr>
-  elseif t:wimpi_menu_current_menu_type == "menu_2nd_level"
-    noremap <silent> <buffer> s :call wimpi_menu#open_or_create_taxo_key_val()<cr>
-  elseif t:wimpi_menu_current_menu_type == "menu_3rd_level"
-    noremap <silent> <buffer> t :call wimpi_menu#open_document_in_new_tab()<cr>
+  if t:linny_menu_current_menu_type == "menu_1st_level"
+    noremap <silent> <buffer> t :call linny_menu#open_document_in_new_tab()<cr>
+  elseif t:linny_menu_current_menu_type == "menu_2nd_level"
+    noremap <silent> <buffer> s :call linny_menu#open_or_create_taxo_key_val()<cr>
+  elseif t:linny_menu_current_menu_type == "menu_3rd_level"
+    noremap <silent> <buffer> t :call linny_menu#open_document_in_new_tab()<cr>
   endif
 
 
-  noremap <silent> <buffer> <CR> :call <SID>wimpi_menu_enter()<cr>
+  noremap <silent> <buffer> <CR> :call <SID>linny_menu_enter()<cr>
 
-  let t:wimpi_menu_line = 0
+  let t:linny_menu_line = 0
   if cursor_pos > 0
     call cursor(cursor_pos, 1)
   endif
-  let t:wimpi_menu.showhelp = 0
+  let t:linny_menu.showhelp = 0
   call Set_cursor()
-  augroup wimpi_menu
+  augroup linny_menu
     autocmd CursorMoved <buffer> call Set_cursor()
     autocmd InsertEnter <buffer> call feedkeys("\<ESC>")
   augroup END
 
-  let t:wimpi_menu.showhelp = (stridx(g:wimpi_menu_options, 'H') >= 0)? 1 : 0
+  let t:linny_menu.showhelp = (stridx(g:linny_menu_options, 'H') >= 0)? 1 : 0
 
 endfunc
 
@@ -1181,16 +1181,16 @@ endfunc
 "----------------------------------------------------------------------
 function! Set_cursor() abort
   let curline = line('.')
-  let lastline = t:wimpi_menu_line
+  let lastline = t:linny_menu_line
   let movement = (curline < lastline)? -1 : 1
   let find = -1
-  let size = len(t:wimpi_menu.items)
+  let size = len(t:linny_menu.items)
   while 1
     let index = curline - 2
     if index < 0 || index >= size
       break
     endif
-    let item = t:wimpi_menu.items[index]
+    let item = t:linny_menu.items[index]
     if item.mode == 0 && item.event != ''
       let find = index
       break
@@ -1199,9 +1199,9 @@ function! Set_cursor() abort
   endwhile
   if find < 0
     let curline = line('.')
-    let curdiff = abs(curline - t:wimpi_menu.option_lines[0])
-    let select = t:wimpi_menu.option_lines[0]
-    for line in t:wimpi_menu.option_lines
+    let curdiff = abs(curline - t:linny_menu.option_lines[0])
+    let select = t:linny_menu.option_lines[0]
+    for line in t:linny_menu.option_lines
       let newdiff = abs(curline - line)
       if newdiff < curdiff
         let curdiff = newdiff
@@ -1216,15 +1216,15 @@ function! Set_cursor() abort
     echohl None
     return
   endif
-  let t:wimpi_menu_line = find + 2
-  call cursor(t:wimpi_menu_line, g:wimpi_menu_padding_left + 2)
+  let t:linny_menu_line = find + 2
+  call cursor(t:linny_menu_line, g:linny_menu_padding_left + 2)
 
-  if t:wimpi_menu.showhelp
-    let help = t:wimpi_menu.items[find].help
-    let key = t:wimpi_menu.items[find].key
-    echohl wimpi_menuHelp
+  if t:linny_menu.showhelp
+    let help = t:linny_menu.items[find].help
+    let key = t:linny_menu.items[find].key
+    echohl linny_menuHelp
     if help != ''
-      call Cmdmsg('['.key.']: '.help, 'wimpi_menuHelp')
+      call Cmdmsg('['.key.']: '.help, 'linny_menuHelp')
     else
       echo ''
     endif
@@ -1236,7 +1236,7 @@ endfunc
 " SPECIAL 3RD LEVEL ACTIONS {{{
 "----------------------------------------------------------------------
 "
-function! wimpi_menu#open_document_in_new_tab()
+function! linny_menu#open_document_in_new_tab()
 
   let ln = line('.')
   let item = s:get_item_by_index(ln - 2)
@@ -1250,7 +1250,7 @@ function! wimpi_menu#open_document_in_new_tab()
 endfunc
 
 
-function! wimpi_menu#open_or_create_taxo_key_val()
+function! linny_menu#open_or_create_taxo_key_val()
   let ln = line('.')
   let item = s:get_item_by_index(ln - 2)
 
@@ -1266,9 +1266,9 @@ endfunction
 
 
 "----------------------------------------------------------------------
-" close wimpi_menu
+" close linny_menu
 "----------------------------------------------------------------------
-function! <SID>wimpi_menu_close()
+function! <SID>linny_menu_close()
   close
   redraw | echo "" | redraw
 endfunc
@@ -1277,16 +1277,16 @@ endfunc
 "----------------------------------------------------------------------
 " execute selected
 "----------------------------------------------------------------------
-function! <SID>wimpi_menu_enter() abort
+function! <SID>linny_menu_enter() abort
   let ln = line('.')
-  call <SID>wimpi_menu_execute(ln - 2)
+  call <SID>linny_menu_execute(ln - 2)
 endfunc
 
 
 "----------------------------------------------------------------------
 " execute item
 "----------------------------------------------------------------------
-function! <SID>wimpi_menu_execute(index) abort
+function! <SID>linny_menu_execute(index) abort
 
   let item = s:get_item_by_index(a:index)
 
@@ -1294,8 +1294,8 @@ function! <SID>wimpi_menu_execute(index) abort
     return
   endif
 
-  let t:wimpi_menu_line = a:index + 2
-  let t:wimpi_menu_cursor = t:wimpi_menu_line
+  let t:linny_menu_line = a:index + 2
+  let t:linny_menu_cursor = t:linny_menu_line
 
   redraw | echo "" | redraw
 
@@ -1306,32 +1306,32 @@ function! <SID>wimpi_menu_execute(index) abort
         close!
 
       elseif(item.event == 'refresh')
-        call wimpi_menu#openandshow()
+        call linny_menu#openandshow()
 
       elseif(item.event == 'cycle_l2_view')
-        call wimpi_menu#cycle_l2_view()
-        call wimpi_menu#openandshow()
+        call linny_menu#cycle_l2_view()
+        call linny_menu#openandshow()
 
       elseif(item.event == 'cycle_l3_view')
-        call wimpi_menu#cycle_l3_view()
-        call wimpi_menu#openandshow()
+        call linny_menu#cycle_l3_view()
+        call linny_menu#openandshow()
 
       elseif(item.event == 'hardrefresh')
-        call wimpi#Init()
-        call wimpi#make_index()
-        call wimpi_menu#openandshow()
+        call linny#Init()
+        call linny#make_index()
+        call linny_menu#openandshow()
 
       elseif(item.event == 'home')
-        call wimpi_menu#openterm('','')
+        call linny_menu#openterm('','')
 
       elseif(item.event == 'createl2config')
 
-        let confFileName = wimpi#l2_config_filepath(t:wimpi_menu_taxo_term)
+        let confFileName = linny#l2_config_filepath(t:linny_menu_taxo_term)
 
         let fileLines = []
         call add(fileLines, '---')
-        call add(fileLines, 'title: '.wimpi_menu#string_capitalize(t:wimpi_menu_taxo_term))
-        call add(fileLines, 'infotext: About '. t:wimpi_menu_taxo_term)
+        call add(fileLines, 'title: '.linny_menu#string_capitalize(t:linny_menu_taxo_term))
+        call add(fileLines, 'infotext: About '. t:linny_menu_taxo_term)
         call add(fileLines, 'views:')
         call add(fileLines, '  type:')
         call add(fileLines, '    group_by: type')
@@ -1340,7 +1340,7 @@ function! <SID>wimpi_menu_execute(index) abort
           echomsg 'write error'
         else
           exec ':only'
-          let currentwidth = t:wimpi_menu_lastmaxsize
+          let currentwidth = t:linny_menu_lastmaxsize
           let currentWindow=winnr()
           execute ":botright vs ". confFileName
           let newWindow=winnr()
@@ -1348,13 +1348,13 @@ function! <SID>wimpi_menu_execute(index) abort
           exec currentWindow."wincmd w"
           setlocal foldcolumn=0
           exec "vertical resize " . currentwidth
-          exec currentWindow."call wimpi_menu#openandshow()"
+          exec currentWindow."call linny_menu#openandshow()"
           exec newWindow."wincmd w"
 
         endif
 
       elseif(item.event == 'createl3config')
-        call s:createl3config(t:wimpi_menu_taxo_term, t:wimpi_menu_taxo_val)
+        call s:createl3config(t:linny_menu_taxo_term, t:linny_menu_taxo_val)
 
       elseif(item.event == 'newdocingroup')
 
@@ -1364,13 +1364,13 @@ function! <SID>wimpi_menu_execute(index) abort
 
         echo name
         if(!empty(name))
-          call wimpi_menu#new_document_in_leaf(name)
+          call linny_menu#new_document_in_leaf(name)
         else
           return 0
         endif
 
       elseif item.event[0] != '='
-        if item.event =~ "wimpi_menu#openterm"
+        if item.event =~ "linny_menu#openterm"
           exec item.event
         elseif item.event =~ "!open"
           if item.event =~ "file:///"
@@ -1384,7 +1384,7 @@ function! <SID>wimpi_menu_execute(index) abort
           silent exec item.event
         else
 
-          let currentwidth = t:wimpi_menu_lastmaxsize
+          let currentwidth = t:linny_menu_lastmaxsize
           let currentWindow=winnr()
 
           exec ':only'
@@ -1411,12 +1411,12 @@ function! <SID>wimpi_menu_execute(index) abort
 endfunc
 
 function! s:createl3config(taxo_term, taxo_val)
-  let confFileName = wimpi#l3_config_filepath(a:taxo_term, a:taxo_val)
+  let confFileName = linny#l3_config_filepath(a:taxo_term, a:taxo_val)
 
   if filereadable(confFileName)
 
       exec ':only'
-      let currentwidth = t:wimpi_menu_lastmaxsize
+      let currentwidth = t:linny_menu_lastmaxsize
       let currentWindow=winnr()
       execute ":botright vs ". confFileName
       let newWindow=winnr()
@@ -1424,13 +1424,13 @@ function! s:createl3config(taxo_term, taxo_val)
       exec currentWindow."wincmd w"
       setlocal foldcolumn=0
       exec "vertical resize " . currentwidth
-      exec currentWindow."call wimpi_menu#openandshow()"
+      exec currentWindow."call linny_menu#openandshow()"
       exec newWindow."wincmd w"
 
   else
     let fileLines = []
     call add(fileLines, '---')
-    call add(fileLines, 'title: '.wimpi_menu#string_capitalize(a:taxo_val))
+    call add(fileLines, 'title: '.linny_menu#string_capitalize(a:taxo_val))
     call add(fileLines, 'infotext: About '. a:taxo_val)
     call add(fileLines, 'views:')
     call add(fileLines, '  type:')
@@ -1444,7 +1444,7 @@ function! s:createl3config(taxo_term, taxo_val)
       echomsg 'write error'
     else
       exec ':only'
-      let currentwidth = t:wimpi_menu_lastmaxsize
+      let currentwidth = t:linny_menu_lastmaxsize
       let currentWindow=winnr()
       execute ":botright vs ". confFileName
       let newWindow=winnr()
@@ -1452,30 +1452,30 @@ function! s:createl3config(taxo_term, taxo_val)
       exec currentWindow."wincmd w"
       setlocal foldcolumn=0
       exec "vertical resize " . currentwidth
-      exec currentWindow."call wimpi_menu#openandshow()"
+      exec currentWindow."call linny_menu#openandshow()"
       exec newWindow."wincmd w"
     endif
   end
 
 endfunction
 
-function! wimpi_menu#new_document_in_leaf(...)
+function! linny_menu#new_document_in_leaf(...)
   let title = join(a:000)
-  let fileName = wimpi_wiki#WordFilename(title)
-  let relativePath = fnameescape(g:wimpi_root_path . '/wiki/' . fileName)
+  let fileName = linny_wiki#WordFilename(title)
+  let relativePath = fnameescape(g:linny_root_path . '/wiki/' . fileName)
 
   if !filereadable(relativePath)
     let taxo_term = ''
     let taxo_val = ''
 
     let taxoEntries = []
-    if t:wimpi_menu_taxo_term != "" && t:wimpi_menu_taxo_val != ""
+    if t:linny_menu_taxo_term != "" && t:linny_menu_taxo_val != ""
       let entry = {}
-      let entry['term'] = t:wimpi_menu_taxo_term
-      let entry['value'] = t:wimpi_menu_taxo_val
+      let entry['term'] = t:linny_menu_taxo_term
+      let entry['value'] = t:linny_menu_taxo_val
       call add(taxoEntries, entry)
 
-      let config = wimpi#termValueLeafConfig(t:wimpi_menu_taxo_term, t:wimpi_menu_taxo_val)
+      let config = linny#termValueLeafConfig(t:linny_menu_taxo_term, t:linny_menu_taxo_val)
       if has_key(config, 'frontmatter_template')
         let fm_template = get(config,'frontmatter_template')
         if(type(fm_template)==4)
@@ -1489,14 +1489,14 @@ function! wimpi_menu#new_document_in_leaf(...)
       endif
     endif
 
-    let fileLines = wimpi#generate_first_content(title, taxoEntries)
+    let fileLines = linny#generate_first_content(title, taxoEntries)
     if writefile(fileLines, relativePath)
       echomsg 'write error'
     endif
   endif
 
-  if bufname('%') =~ "[wimpi_menu]"
-    let currentwidth = t:wimpi_menu_lastmaxsize
+  if bufname('%') =~ "[linny_menu]"
+    let currentwidth = t:linny_menu_lastmaxsize
     let currentWindow=winnr()
 
     exec ':only'
@@ -1505,7 +1505,7 @@ function! wimpi_menu#new_document_in_leaf(...)
     let newWindow=winnr()
 
     exec currentWindow."wincmd w"
-    exec currentWindow."call wimpi_menu#openandshow()"
+    exec currentWindow."call linny_menu#openandshow()"
     setlocal foldcolumn=0
     exec "vertical resize " . currentwidth
     exec newWindow."wincmd w"
@@ -1534,7 +1534,7 @@ function! Select_items() abort
   let index = 0
 
   let lastmode = 2
-  for item in t:wimpi_menu_items
+  for item in t:linny_menu_items
     if item.mode == 0
       if item.key == ''
         let item.key = PrePad(index, 2,0)
@@ -1558,7 +1558,7 @@ function! Menu_expand(item) abort
   let text = Expand_text(a:item.text)
   let help = ''
   let index = 0
-  let padding = repeat(' ', g:wimpi_menu_padding_left)
+  let padding = repeat(' ', g:linny_menu_padding_left)
 
   if a:item.mode == 0
     let help = Expand_text(get(a:item, 'help', ''))
@@ -1711,7 +1711,7 @@ function! Highlight(standard, startify)
   exec "echohl ". (hlexists(a:startify)? a:startify : a:standard)
 endfunc
 
-function! wimpi_menu#string_capitalize(capstring)
+function! linny_menu#string_capitalize(capstring)
   return toupper(strpart(a:capstring, 0, 1)).strpart(a:capstring,1)
 endfunction
 
@@ -1721,27 +1721,27 @@ endfunction
 "----------------------------------------------------------------------
 if 0
 
-  call wimpi_menu#reset()
+  call linny_menu#reset()
 
-  call wimpi_menu#append("/  <home>" , "home", "...", '', '' ,'0')
+  call linny_menu#append("/  <home>" , "home", "...", '', '' ,'0')
   call s:add_item_special_event("/  <home>", "home", '0')
-  call wimpi_menu#append('# Start', '')
+  call linny_menu#append('# Start', '')
   call s:add_item_section('# Start 2')
-  call wimpi_menu#append('test1', 'echo 1', 'help 1', '0', '2', '3')
-  call wimpi_menu#append('test2', 'echo 2', 'help 2')
+  call linny_menu#append('test1', 'echo 1', 'help 1', '0', '2', '3')
+  call linny_menu#append('test2', 'echo 2', 'help 2')
 
-  call wimpi_menu#append('# Misc', '')
-  call wimpi_menu#append('test3', 'echo 3')
-  call wimpi_menu#append('test4', 'echo 4')
-  call wimpi_menu#append("test5\nasdfafffff\njkjkj", 'echo 5')
-  call wimpi_menu#append('text1', '')
-  call wimpi_menu#append('text2', '')
-  call wimpi_menu#append("-----------------------------------------", '')
-  call wimpi_menu#append("some title", ":botright vs ". g:wimpi_root_path . "/wiki/sometitle.md", "...")
+  call linny_menu#append('# Misc', '')
+  call linny_menu#append('test3', 'echo 3')
+  call linny_menu#append('test4', 'echo 4')
+  call linny_menu#append("test5\nasdfafffff\njkjkj", 'echo 5')
+  call linny_menu#append('text1', '')
+  call linny_menu#append('text2', '')
+  call linny_menu#append("-----------------------------------------", '')
+  call linny_menu#append("some title", ":botright vs ". g:linny_root_path . "/wiki/sometitle.md", "...")
 
-  call s:add_item_document("some title", g:wimpi_root_path . "/wiki/sometitle.md", '')
+  call s:add_item_document("some title", g:linny_root_path . "/wiki/sometitle.md", '')
 
-  call wimpi_menu#list()
+  call linny_menu#list()
 endif
 
 

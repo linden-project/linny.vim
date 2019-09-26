@@ -57,8 +57,8 @@ function! MarkdownFold()
   return "="
 endfunction
 
-set foldtext=WimpiFoldText()
-function! WimpiFoldText()
+set foldtext=LinnyFoldText()
+function! LinnyFoldText()
   let line = getline(v:foldstart)
 
   "if line =~ '^----*$'
@@ -79,19 +79,19 @@ function! WimpiFoldText()
   return repeat('▧', v:foldlevel) . repeat(' ', indent) . text .' ('. lines .')'
 endfunction
 
-"command! -buffer MdwiGotoLink call wimpi_wiki#GotoLink()
+"command! -buffer MdwiGotoLink call linny_wiki#GotoLink()
 "nnoremap <buffer> <script> <Plug>MdwiGotoLink :MdwiGotoLink<CR>
 "if !hasmapto('<Plug>MdwiGotoLink')
 "  nmap <buffer> <silent> <CR> <Plug>MdwiGotoLink
 "endif
 "
-"command! -buffer MdwiGotoLinkInNewTab call wimpi_wiki#GotoLinkInNewTab()
+"command! -buffer MdwiGotoLinkInNewTab call linny_wiki#GotoLinkInNewTab()
 "nnoremap <buffer> <script> <Plug>MdwiGotoLinkInNewTab :MdwiGotoLinkInNewTab<CR>
 "if !hasmapto('<Plug>MdwiGotoLinkInNewTab')
 "  nmap <buffer> <silent> <CR> <Plug>MdwiGotoLinkInNewTab
 "endif
 
-command! -buffer MdwiReturn call wimpi_wiki#Return()
+command! -buffer MdwiReturn call linny_wiki#Return()
 nnoremap <buffer> <script> <Plug>MdwiReturn :MdwiReturn<CR>
 if !hasmapto('<Plug>MdwiReturn')
   nmap <buffer> <silent> <Leader><CR> <Plug>MdwiReturn

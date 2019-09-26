@@ -1,37 +1,19 @@
-wimpi-vim
+linny-vim
 =========
 
 Soon to be renamed.
 
-Installation
--------------
+## Installation
 
-Install using your favorite package manager. 'mipmip/wimpi-vim'
+Install using your favorite package manager. 'mipmip/linny.vim'
 
-Usage
------
+## Usage
 
-With the default key mappings :
+WIP
 
-**Link creation:**
+## Change key mappings in your vim config file
 
- - Hit the ENTER key when the cursor is on a text between double brackets : [[a title]]
- - The link will be created and the corresponding file will be loaded in the buffer.
-
-**Navigation:**
-
- - Hit the ENTER key when the cursor is on a wiki link
- - The corresponding link file is loaded in the current buffer.
- - Hit Leader key + ENTER to go back
-
-Change key mappings in your vim config file
---------
-
-Create or go to link :
-`nnoremap  <CR> :MdwiGotoLink`
-
-Return to previous page  :
-`nnoremap  <Leader><CR> :MdwiReturn`
+WIP
 
 ### Depends on
 
@@ -43,4 +25,4 @@ Return to previous page  :
 
 License
 
-Copyright (c) Pim Snel. Distributed under the same terms as Vim itself. See :help license.
+Copyright 2019 (c) Pim Snel. Distributed under the same terms as Vim itself. See :help license.

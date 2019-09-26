@@ -1,9 +1,9 @@
 Before:
   enew!
-  WimpiMenuOpen
+  LinnyMenuOpen
 
 Execute (Check buffer options):
-  AssertEqual 'wimpi_menu',   &filetype
+  AssertEqual 'linny_menu',   &filetype
   AssertEqual 'wipe',     &bufhidden
   AssertEqual 'nofile',         &buftype
   AssertEqual 0,          &buflisted

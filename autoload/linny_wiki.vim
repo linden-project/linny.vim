@@ -19,7 +19,7 @@ call s:initVariable("s:lastPosLine", 0)
 call s:initVariable("s:lastPosCol", 0)
 
 
-function! wimpi_wiki#wikiWordHasPrefix(word, prefix)
+function! linny_wiki#wikiWordHasPrefix(word, prefix)
   if a:word =~ "^".a:prefix."*"
     return 1
   else
@@ -27,7 +27,7 @@ function! wimpi_wiki#wikiWordHasPrefix(word, prefix)
   endif
 endfunction
 
-function! wimpi_wiki#wikiWordWithPrefix(word, prefix)
+function! linny_wiki#wikiWordWithPrefix(word, prefix)
   if a:word =~ "^".a:prefix."*"
     return trim(a:word[len(a:prefix):-1])
   else
@@ -35,7 +35,7 @@ function! wimpi_wiki#wikiWordWithPrefix(word, prefix)
   endif
 endfunction
 
-function! wimpi_wiki#FindNonExistingLinks()
+function! linny_wiki#FindNonExistingLinks()
 
   let pat='\[\[.*\]\]'
   let filelines=getline(1, '$')
@@ -54,10 +54,10 @@ function! wimpi_wiki#FindNonExistingLinks()
 
         let word = mstr[2:-3]
 
-        if wimpi_wiki#wikiWordHasPrefix(word, "DIR") || wimpi_wiki#wikiWordHasPrefix(word, "FILE") || wimpi_wiki#wikiWordHasPrefix(word, "SHELL")
+        if linny_wiki#wikiWordHasPrefix(word, "DIR") || linny_wiki#wikiWordHasPrefix(word, "FILE") || linny_wiki#wikiWordHasPrefix(word, "SHELL")
         else
-          let fileName = wimpi_wiki#WordFilename(word)
-          if(wimpi_wiki#FileExist(wimpi_wiki#FilePath(fileName)) != 1)
+          let fileName = linny_wiki#WordFilename(word)
+          if(linny_wiki#FileExist(linny_wiki#FilePath(fileName)) != 1)
             call matchadd('Todo', '\[\['.word.'\]\]')
           endif
         end
@@ -79,7 +79,7 @@ endfunction
 " *                      Utilities
 " *********************************************************************
 
-function! wimpi_wiki#FileExist(relativePath)
+function! linny_wiki#FileExist(relativePath)
 
   if filereadable(a:relativePath)
     return 1
@@ -89,7 +89,7 @@ function! wimpi_wiki#FileExist(relativePath)
 
 endfunction
 
-function! wimpi_wiki#WordFilename(word)
+function! linny_wiki#WordFilename(word)
   let file_name = ''
   "Same directory and same extension as the current file
   if !empty(a:word)
@@ -109,7 +109,7 @@ function! wimpi_wiki#WordFilename(word)
   return file_name
 endfunction
 
-function! wimpi_wiki#StrBetween(startStr, endStr)
+function! linny_wiki#StrBetween(startStr, endStr)
   let str = ''
 
   "Get string between <startStr> and <endStr>
@@ -127,13 +127,13 @@ endfunction
 
 "YAML functions"
 
-function! wimpi_wiki#GetIndentationStep()
+function! linny_wiki#GetIndentationStep()
   call cursor(1,1)
   call search('^\s')
   return indent(".")
 endfunction
 
-function! wimpi_wiki#AddParentKeys()
+function! linny_wiki#AddParentKeys()
   let goToLineCmd = ':' . s:inputLineNumber
   :exec goToLineCmd
 
@@ -155,7 +155,7 @@ function! wimpi_wiki#AddParentKeys()
   endwhile
 endfunction
 
-function! wimpi_wiki#YamlKeyUnderCursor()
+function! linny_wiki#YamlKeyUnderCursor()
   let s:inputLineCol = col('.')
   let s:inputLineNumber = line('.')
 
@@ -171,10 +171,10 @@ function! wimpi_wiki#YamlKeyUnderCursor()
   "    let s:keys = [currentKey]
   "
   "    if !empty(currentLine)
-  "        let s:indentationStep = wimpi_wiki#GetIndentationStep()
+  "        let s:indentationStep = linny_wiki#GetIndentationStep()
   "        let s:currentIndent = indent(s:inputLineNumber)
   "
-  "        :call wimpi_wiki#AddParentKeys()
+  "        :call linny_wiki#AddParentKeys()
   "        :call reverse(s:keys)
   "
   "        :call cursor(s:inputLineNumber, s:inputLineCol)
@@ -184,7 +184,7 @@ function! wimpi_wiki#YamlKeyUnderCursor()
   "    endif
 endfunction
 
-function! wimpi_wiki#YamlValUnderCursor()
+function! linny_wiki#YamlValUnderCursor()
   let inputLineNumber = line('.')
 
   let currentLine = getline(inputLineNumber)
@@ -197,7 +197,7 @@ function! wimpi_wiki#YamlValUnderCursor()
   endif
 endfunction
 
-function! wimpi_wiki#CursorInFrontMatter()
+function! linny_wiki#CursorInFrontMatter()
 
   let origPos = getpos('.')
 
@@ -215,24 +215,24 @@ function! wimpi_wiki#CursorInFrontMatter()
 
 endfunction
 
-function! wimpi_wiki#CallFrontMatterLink()
+function! linny_wiki#CallFrontMatterLink()
 
-  let yamlKey = wimpi_wiki#YamlKeyUnderCursor()
-  let yamlVal = wimpi_wiki#YamlValUnderCursor()
+  let yamlKey = linny_wiki#YamlKeyUnderCursor()
+  let yamlVal = linny_wiki#YamlValUnderCursor()
 
   let indexFileTitle = 'index ' . yamlKey . ' ' . yamlVal
-  let fileName = wimpi_wiki#WordFilename(indexFileTitle)
+  let fileName = linny_wiki#WordFilename(indexFileTitle)
 
-  let relativePath = wimpi#l3_index_filepath(yamlKey, yamlVal)
+  let relativePath = linny#l3_index_filepath(yamlKey, yamlVal)
 
   if filereadable(relativePath)
-    call wimpi_menu#openterm(yamlKey, yamlVal)
+    call linny_menu#openterm(yamlKey, yamlVal)
   else
     echomsg "Can't open, does not exist"
   endif
 endfunction
 
-function! wimpi_wiki#FilePath(fileName)
+function! linny_wiki#FilePath(fileName)
   let cur_file_name = bufname("%")
   let dir = fnamemodify(cur_file_name, ":h")
   if !empty(dir)
@@ -250,7 +250,7 @@ endfunction
 " *                      Words
 " *********************************************************************
 
-function! wimpi_wiki#FindWordPos()
+function! linny_wiki#FindWordPos()
   let origPos = getpos('.')
   let newPos = origPos
   let endPos = searchpos(s:endWord, 'W', line('.'))
@@ -268,12 +268,12 @@ function! wimpi_wiki#FindWordPos()
   return newPos
 endfunction
 
-function! wimpi_wiki#GetWord()
+function! linny_wiki#GetWord()
   let word = ''
-  let wordPos = wimpi_wiki#FindWordPos()
+  let wordPos = linny_wiki#FindWordPos()
   if (wordPos != getpos('.'))
     let ok = cursor(wordPos[1], wordPos[2])
-    let word = wimpi_wiki#StrBetween(s:startWord, s:endWord)
+    let word = linny_wiki#StrBetween(s:startWord, s:endWord)
   endif
   return word
 endfunction
@@ -281,7 +281,7 @@ endfunction
 " *********************************************************************
 " *                      Links
 " *********************************************************************
-function! wimpi_wiki#FindLinkPos()
+function! linny_wiki#FindLinkPos()
   let origPos = getpos('.')
   let newPos = origPos
   let startPos = searchpos(s:startWord, 'bW', line('.'))
@@ -302,13 +302,13 @@ function! wimpi_wiki#FindLinkPos()
   return newPos
 endfunction
 
-function! wimpi_wiki#GetLink()
+function! linny_wiki#GetLink()
   let link = ''
   "Is there a link defined ?
-  let linkPos = wimpi_wiki#FindLinkPos()
+  let linkPos = linny_wiki#FindLinkPos()
   if (linkPos != getpos('.'))
     let ok = cursor(linkPos[1], linkPos[2])
-    let link = wimpi_wiki#StrBetween(s:startLink, s:endLink)
+    let link = linny_wiki#StrBetween(s:startLink, s:endLink)
   endif
   return link
 endfunction
@@ -316,21 +316,21 @@ endfunction
 " ******** CHECK FOR SPECIALE LINKS *****************
 
 " ******** Go to link *****************
-function! wimpi_wiki#GotoLink()
-  call wimpi_wiki#GotoLinkMain(0,0)
+function! linny_wiki#GotoLink()
+  call linny_wiki#GotoLinkMain(0,0)
 endfunction
 
 " ******** Go to link in new tab *************
-function! wimpi_wiki#GotoLinkInNewTab()
-  call wimpi_wiki#GotoLinkMain(0,1)
+function! linny_wiki#GotoLinkInNewTab()
+  call linny_wiki#GotoLinkMain(0,1)
 endfunction
 
 " ******** Go to link main executer *****************
-function! wimpi_wiki#GotoLinkWithCTRL()
-  call wimpi_wiki#GotoLinkMain(1,0)
+function! linny_wiki#GotoLinkWithCTRL()
+  call linny_wiki#GotoLinkMain(1,0)
 endfunction
 
-function! wimpi_wiki#GenerateFirstContent(wikiTitle,fileLinesIn)
+function! linny_wiki#GenerateFirstContent(wikiTitle,fileLinesIn)
 
   if len(a:fileLinesIn) > 0
     let fileLines = a:fileLinesIn
@@ -346,38 +346,38 @@ function! wimpi_wiki#GenerateFirstContent(wikiTitle,fileLinesIn)
 
 endfunction
 
-function! wimpi_wiki#GotoLinkMain(withCTRL, openInNewTab)
+function! linny_wiki#GotoLinkMain(withCTRL, openInNewTab)
 
-  if wimpi_wiki#CursorInFrontMatter()
-    call wimpi_wiki#CallFrontMatterLink()
+  if linny_wiki#CursorInFrontMatter()
+    call linny_wiki#CallFrontMatterLink()
   end
 
 
   let s:lastPosLine = line('.')
   let s:lastPosCol = col('.')
 
-  let word = wimpi_wiki#GetWord()
+  let word = linny_wiki#GetWord()
 
   if !empty(word)
 
-    if(wimpi_wiki#wikiWordHasPrefix(word , "DIR"))
+    if(linny_wiki#wikiWordHasPrefix(word , "DIR"))
 
-      if(wimpi_wiki#FileExist(wimpi_wiki#FilePath(wimpi_wiki#wikiWordWithPrefix(word, "DIR"))) != 1)
-        silent execute "!mkdir " . fnameescape(wimpi_wiki#wikiWordWithPrefix(word, "DIR"))
+      if(linny_wiki#FileExist(linny_wiki#FilePath(linny_wiki#wikiWordWithPrefix(word, "DIR"))) != 1)
+        silent execute "!mkdir " . fnameescape(linny_wiki#wikiWordWithPrefix(word, "DIR"))
       endif
 
       " If clicked with CTRL open in NerdTee
       if(a:withCTRL)
-        execute 'NERDTree ' . fnameescape(wimpi_wiki#wikiWordWithPrefix(word, "DIR"))
+        execute 'NERDTree ' . fnameescape(linny_wiki#wikiWordWithPrefix(word, "DIR"))
       else
-        silent execute "!open " . fnameescape(wimpi_wiki#wikiWordWithPrefix(word, "DIR"))
+        silent execute "!open " . fnameescape(linny_wiki#wikiWordWithPrefix(word, "DIR"))
       endif
 
-    elseif(wimpi_wiki#wikiWordHasPrefix(word , "FILE"))
-      silent execute "!open " . fnameescape(wimpi_wiki#wikiWordWithPrefix(word, "FILE"))
+    elseif(linny_wiki#wikiWordHasPrefix(word , "FILE"))
+      silent execute "!open " . fnameescape(linny_wiki#wikiWordWithPrefix(word, "FILE"))
 
-    elseif(wimpi_wiki#wikiWordHasPrefix(word , "SHELL"))
-      execute "!" . wimpi_wiki#wikiWordWithPrefix(word, "SHELL")
+    elseif(linny_wiki#wikiWordHasPrefix(word , "SHELL"))
+      execute "!" . linny_wiki#wikiWordWithPrefix(word, "SHELL")
     else
 
       let strCmd = ""
@@ -396,17 +396,17 @@ function! wimpi_wiki#GotoLinkMain(withCTRL, openInNewTab)
         end
       endif
 
-      let fileName = wimpi_wiki#GetLink()
+      let fileName = linny_wiki#GetLink()
       if (empty(fileName))
 
-        let fileName = wimpi_wiki#WordFilename(word)
+        let fileName = linny_wiki#WordFilename(word)
 
         "Write title to the new document if file not exist
-        if(wimpi_wiki#FileExist(wimpi_wiki#FilePath(fileName)) != 1)
+        if(linny_wiki#FileExist(linny_wiki#FilePath(fileName)) != 1)
 
-          let fileLines = wimpi_wiki#GenerateFirstContent(word,fileLines)
+          let fileLines = linny_wiki#GenerateFirstContent(word,fileLines)
 
-          if writefile(fileLines, wimpi_wiki#FilePath(fileName))
+          if writefile(fileLines, linny_wiki#FilePath(fileName))
             echomsg 'write error'
           endif
 
@@ -414,7 +414,7 @@ function! wimpi_wiki#GotoLinkMain(withCTRL, openInNewTab)
         endif
       endif
 
-      let link = wimpi_wiki#FilePath(fileName)
+      let link = linny_wiki#FilePath(fileName)
 
       let openCmd='edit'
       if(a:openInNewTab)
@@ -428,7 +428,7 @@ function! wimpi_wiki#GotoLinkMain(withCTRL, openInNewTab)
 endfunction
 
 "Shift+Return to return to the previous buffer
-function! wimpi_wiki#Return()
+function! linny_wiki#Return()
   exec 'buffer #'
   let ok = cursor(s:lastPosLine, s:lastPosCol)
 endfunction

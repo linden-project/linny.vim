@@ -1,0 +1,24 @@
+*linny.txt*   Personal Document Database
+
+
+          A document database utilizing front matter and makrdown
+
+==============================================================================
+CONTENTS                                                       *linny-contents*
+
+    1. Usage ........................... |LinnyUsage|
+    2. Mappings ........................ |LinnyMappings|
+    3. Configuration ................... |LinnyConfiguration|
+        3.1 g:linny_autoreturn ......... |LinnyConfiguration_autoreturn|
+    4. License ......................... |LinnyLicense|
+    5. Bugs ............................ |LinnyBugs|
+    6. Contributing .................... |LinnyContributing|
+    7. Changelog ....................... |LinnyChangelog|
+
+==============================================================================
+1. Usage                                                           *LinnyUsage*
+
+
+
+==============================================================================
+2. Mappings                                                     *LinnyMappings*

@@ -1,11 +1,11 @@
 Before:
   enew!
-  WimpiMenuOpen
+  LinnyMenuOpen
 
 Do:
   05
 
-Expect wimpi_menu (text menu):
+Expect linny_menu (text menu):
 
   [0]  /  <home>
   [u]  .. <up> 
@@ -32,12 +32,12 @@ Expect wimpi_menu (text menu):
   [H]  <hard refresh>
   [R]  <refresh>
 
-  Wimpi 0.4.4
+  Linny 0.4.4
 
 Do:
   v
 
-Expect wimpi_menu (sort date):
+Expect linny_menu (sort date):
 
   [0]  /  <home>
   [u]  .. <up> 
@@ -64,4 +64,4 @@ Expect wimpi_menu (sort date):
   [H]  <hard refresh>
   [R]  <refresh>
 
-  Wimpi 0.4.4
+  Linny 0.4.4
