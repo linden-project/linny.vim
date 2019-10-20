@@ -310,7 +310,7 @@ function! s:menu_level1(term)
 
   call linny_menu#reset()
   call s:add_item_special_event("/  <home>", "home", '0')
-  call s:add_item_special_event(".. <up> ", "home", 'u')
+  call s:add_item_special_event(".. <up>", "home", 'u')
   call s:add_item_section("# " . toupper(term_plural) )
   call s:add_item_divider()
 
