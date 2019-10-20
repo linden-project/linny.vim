@@ -6,9 +6,6 @@ function! s:initVariable(var, value)
   return 0
 endfunction
 
-"Initialize variables
-"call s:initVariable("s:footer", "_Footer")
-"call s:initVariable("s:sidebar", "_Sidebar")
 call s:initVariable("s:startWord", '[[')
 call s:initVariable("s:endWord", ']]')
 call s:initVariable("s:startLink", '(')
@@ -17,6 +14,28 @@ call s:initVariable("s:spaceReplaceChar", '_')
 
 call s:initVariable("s:lastPosLine", 0)
 call s:initVariable("s:lastPosCol", 0)
+
+function! linny_wiki#wikiWordHasTag(word)
+  for tagKey in keys(g:linny_tags_register)
+    if a:word =~ "^".tagKey."*"
+      return tagKey
+    endif
+  endfor
+
+  return 0
+endfunction
+
+function! linny_wiki#wikiExecuteTagAction(word, tagKey, withCTRL)
+  let inner = trim(a:word[len(a:tagKey):-1])
+
+  if a:withCTRL
+    let action = "primaryAction"
+  else
+    let action = "secondaryAction"
+  endif
+
+  execute "call ".g:linny_tags_register[a:tagKey][action]."(\"".inner."\")"
+endfunction
 
 
 function! linny_wiki#wikiWordHasPrefix(word, prefix)
@@ -54,7 +73,7 @@ function! linny_wiki#FindNonExistingLinks()
 
         let word = mstr[2:-3]
 
-        if linny_wiki#wikiWordHasPrefix(word, "DIR") || linny_wiki#wikiWordHasPrefix(word, "FILE") || linny_wiki#wikiWordHasPrefix(word, "SHELL")
+        if linny_wiki#wikiWordHasPrefix(word, "DIR") || linny_wiki#wikiWordHasPrefix(word, "FILE") || linny_wiki#wikiWordHasTag(word)
         else
           let fileName = linny_wiki#WordFilename(word)
           if(linny_wiki#FileExist(linny_wiki#FilePath(fileName)) != 1)
@@ -360,7 +379,11 @@ function! linny_wiki#GotoLinkMain(withCTRL, openInNewTab)
 
   if !empty(word)
 
-    if(linny_wiki#wikiWordHasPrefix(word , "DIR"))
+    let tag = linny_wiki#wikiWordHasTag(word)
+    if(tag != '')
+      call linny_wiki#wikiExecuteTagAction(word, tag, a:withCTRL)
+
+    elseif(linny_wiki#wikiWordHasPrefix(word , "DIR"))
 
       if(linny_wiki#FileExist(linny_wiki#FilePath(linny_wiki#wikiWordWithPrefix(word, "DIR"))) != 1)
         silent execute "!mkdir " . fnameescape(linny_wiki#wikiWordWithPrefix(word, "DIR"))
@@ -375,9 +398,6 @@ function! linny_wiki#GotoLinkMain(withCTRL, openInNewTab)
 
     elseif(linny_wiki#wikiWordHasPrefix(word , "FILE"))
       silent execute "!open " . fnameescape(linny_wiki#wikiWordWithPrefix(word, "FILE"))
-
-    elseif(linny_wiki#wikiWordHasPrefix(word , "SHELL"))
-      execute "!" . linny_wiki#wikiWordWithPrefix(word, "SHELL")
     else
 
       let strCmd = ""
