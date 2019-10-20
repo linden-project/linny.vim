@@ -223,7 +223,7 @@ function! linny_wiki#CallFrontMatterLink()
   let indexFileTitle = 'index ' . yamlKey . ' ' . yamlVal
   let fileName = linny_wiki#WordFilename(indexFileTitle)
 
-  let relativePath = linny#l3_index_filepath(yamlKey, yamlVal)
+  let relativePath = linny#l2_index_filepath(yamlKey, yamlVal)
 
   if filereadable(relativePath)
     call linny_menu#openterm(yamlKey, yamlVal)

@@ -15,7 +15,7 @@ function! linny#Init()
 
   call linny#setup_paths()
 
-  let g:linny_index_config = linny#parse_yaml_to_dict( expand( g:linny_root_path .'/config/wiki_indexes.yml'))
+  let g:linny_index_config = linny#parse_yaml_to_dict( expand( g:linny_root_path .'/config/L0-CONF-ROOT.yml'))
 
   call linny#cache_index()
 
@@ -129,7 +129,7 @@ func! linny#browse_taxonomies()
   "let currentKey = linny_wiki#YamlKeyUnderCursor()
   "exec ":startinsert"
 
-  let relativePath = fnameescape(g:linny_index_path . '/_index_keys.json')
+  let relativePath = fnameescape(g:linny_index_path . '/_index_taxonomies.json')
 
   if filereadable(relativePath)
     let taxonomiesList = linny#parse_json_file( relativePath, [] )
@@ -173,12 +173,12 @@ func! linny#browse_taxonomy_terms()
   return ''
 endfunc
 
-func! linny#taxoValTitle(tk, tv)
-  let l3_config = linny#termValueLeafConfig(a:tk, a:tv)
-  if has_key(l3_config, 'title')
-    return get(l3_config, 'title')
+func! linny#taxTermTitle(tax, term)
+  let l2_config = linny#termConfig(a:tax, a:term)
+  if has_key(l2_config, 'title')
+    return get(l2_config, 'title')
   else
-    return a:tv
+    return a:term
   end
 endfunc
 
@@ -249,37 +249,36 @@ function! linny#titlesForDocs(docs_list)
 endfunction
 
 
-function! linny#l2_index_filepath(term)
-  return g:linny_index_path . '/L2-INDEX_TRM_'.tolower(a:term).'.json'
+function! linny#l1_index_filepath(tax)
+  return g:linny_index_path . '/L1-INDEX-TAX-'.tolower(a:tax).'.json'
 endfunction
 
-function! linny#l3_index_filepath(term, value)
-  "L3-INDEX_TRM_klant_VAL_andreas de kock.json
-  return g:linny_index_path . '/L3-INDEX_TRM_'.tolower(a:term).'_VAL_'.tolower(a:value).'.json'
+function! linny#l2_index_filepath(tax, term)
+  return g:linny_index_path . '/L2-INDEX-TAX-'.tolower(a:tax).'-TRM-'.tolower(a:term).'.json'
 endfunction
 
-function! linny#l2_config_filepath(term)
-  return g:linny_root_path ."/config/L2-CONF_TRM_".tolower(a:term).'.yml'
+function! linny#l1_config_filepath(tax)
+  return g:linny_root_path ."/config/L1-CONF-TAX-".tolower(a:tax).'.yml'
 endfunction
 
-function! linny#l3_config_filepath(term, value)
-  return g:linny_root_path ."/config/L3-CONF_TRM_".tolower(a:term).'_VAL_'.tolower(a:value).'.yml'
+function! linny#l2_config_filepath(tax, term)
+  return g:linny_root_path ."/config/L2-CONF-TAX-".tolower(a:tax).'-TRM-'.tolower(a:term).'.yml'
 endfunction
 
-function! linny#l2_state_filepath(term)
-  return g:linny_state_path ."/L2-STATE_TRM_".tolower(a:term).'.json'
+function! linny#l1_state_filepath(tax)
+  return g:linny_state_path ."/L1-STATE-TAX-".tolower(a:tax).'.json'
 endfunction
 
-function! linny#l3_state_filepath(term, value)
-  return g:linny_state_path ."/L3-STATE_TRM_".tolower(a:term).'_VAL_'.tolower(a:value).'.json'
+function! linny#l2_state_filepath(tax, term)
+  return g:linny_state_path ."/L2-STATE-TRM-".tolower(a:tax).'-TRM-'.tolower(a:term).'.json'
 endfunction
 
-function! linny#index_term_config(term)
+function! linny#index_tax_config(tax)
   if has_key(g:linny_index_config, 'index_keys')
     let index_keys = get(g:linny_index_config,'index_keys')
-    if has_key(index_keys, a:term)
-      let term_config = get(index_keys, a:term)
-      return term_config
+    if has_key(index_keys, a:tax)
+      let tax_config = get(index_keys, a:tax)
+      return tax_config
     endif
   endif
 
@@ -287,13 +286,13 @@ function! linny#index_term_config(term)
 
 endfunction
 
-function! linny#termValueLeafConfig(term, value)
-  let config = linny#parse_yaml_to_dict( linny#l3_config_filepath(a:term, a:value))
+function! linny#taxConfig(tax)
+  let config = linny#parse_yaml_to_dict( linny#l1_config_filepath(a:tax))
   return config
 endfunction
 
-function! linny#termLeafConfig(term)
-  let config = linny#parse_yaml_to_dict( linny#l2_config_filepath(a:term))
+function! linny#termConfig(tax, term)
+  let config = linny#parse_yaml_to_dict( linny#l2_config_filepath(a:tax, a:term))
   return config
 endfunction
 
