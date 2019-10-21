@@ -17,12 +17,12 @@ call s:initVariable("s:lastPosCol", 0)
 
 function! linny_wiki#wikiWordHasTag(word)
   for tagKey in keys(g:linny_tags_register)
-    if a:word =~ "^".tagKey."*"
+    if a:word =~ "^".tagKey." *"
       return tagKey
     endif
   endfor
 
-  return 0
+  return ''
 endfunction
 
 function! linny_wiki#wikiExecuteTagAction(word, tagKey, withCTRL)
@@ -73,7 +73,7 @@ function! linny_wiki#FindNonExistingLinks()
 
         let word = mstr[2:-3]
 
-        if linny_wiki#wikiWordHasPrefix(word, "DIR") || linny_wiki#wikiWordHasPrefix(word, "FILE") || linny_wiki#wikiWordHasTag(word)
+        if linny_wiki#wikiWordHasPrefix(word, "DIR") || linny_wiki#wikiWordHasPrefix(word, "FILE") || linny_wiki#wikiWordHasTag(word) !=''
         else
           let fileName = linny_wiki#WordFilename(word)
           if(linny_wiki#FileExist(linny_wiki#FilePath(fileName)) != 1)
@@ -380,6 +380,7 @@ function! linny_wiki#GotoLinkMain(withCTRL, openInNewTab)
   if !empty(word)
 
     let tag = linny_wiki#wikiWordHasTag(word)
+
     if(tag != '')
       call linny_wiki#wikiExecuteTagAction(word, tag, a:withCTRL)
 
