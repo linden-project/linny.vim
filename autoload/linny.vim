@@ -165,7 +165,7 @@ func! linny#browse_taxonomy_terms()
 
   let currentKey = linny_wiki#YamlKeyUnderCursor()
 
-  let relativePath = fnameescape(linny#l2_index_filepath(currentKey))
+  let relativePath = fnameescape(linny#l1_index_filepath(currentKey))
 
   if filereadable(relativePath)
     let termslistDict = linny#parse_json_file( relativePath, [] )
