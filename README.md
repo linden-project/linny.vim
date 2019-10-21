@@ -1,7 +1,9 @@
-linny-vim
+linny.vim
 =========
 
-Soon to be renamed.
+[![Build Status](https://travis-ci.org/mipmip/linny.vim.svg?branch=master)](https://travis-ci.org/mipmip/linny.vim)
+
+This vim-plugin is in preparation for public release.
 
 ## Installation
 
@@ -15,9 +17,9 @@ WIP
 
 WIP
 
-### Depends on
+## Maintainer Documentation
 
-- https://github.com/tpope/vim-markdown
+To release a new version run ````./release.rb [VERSION]````
 
 ## Acknowledgements
 
