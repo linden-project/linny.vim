@@ -1,6 +1,3 @@
-
-call linny_util#initVariable("g:linny_version", '0.5.0')
-
 " MAIN CONF SETTINGS
 call linny_util#initVariable("g:linny_path_dbroot", '~/Linny')
 call linny_util#initVariable("g:linny_path_dbindex", '~/.linny/index')
@@ -58,10 +55,9 @@ function! linny#fatal_check_dir(path)
   endif
 endfunction
 
-
-
 function! linny#PluginVersion()
-    return g:linny_version
+  let lines = readfile(expand("<sfile>:h:h")."/VERSION.txt")
+  return lines[0]
 endfunction
 
 function! s:initVariable(var, value)
