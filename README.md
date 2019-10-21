@@ -1,6 +1,7 @@
 linny.vim
 =========
 
+![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/mipmip/linny.vim)
 [![Build Status](https://travis-ci.org/mipmip/linny.vim.svg?branch=master)](https://travis-ci.org/mipmip/linny.vim)
 
 This vim-plugin is in preparation for public release.
