@@ -16,7 +16,7 @@ if new_version = ARGV[0]
   `git push`
   puts "git tag -a v#{new_version} -m \"#{name} v#{new_version}\""
   `git tag -a v#{new_version} -m "#{name} v#{new_version}"`
-  puts "git push origin v#{new_version}".colorize(:yellow)
+  puts "git push origin v#{new_version}"
   `git push origin v#{new_version}`
 else
   puts "Error: Version number required\n"
