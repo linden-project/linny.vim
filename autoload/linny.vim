@@ -55,10 +55,6 @@ function! linny#fatal_check_dir(path)
   endif
 endfunction
 
-function! linny#PluginVersion()
-  let lines = readfile(expand("<sfile>:h:h")."/VERSION.txt")
-  return lines[0]
-endfunction
 
 function! s:initVariable(var, value)
   if !exists(a:var)

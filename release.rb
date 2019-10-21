@@ -1,13 +1,12 @@
 #!/usr/bin/env ruby
 
 name = File.basename(Dir.getwd)
-
 if new_version = ARGV[0]
 
-  files = ["VERSION.txt"]
+  files = ["autoload/linny_version.vim"]
   files.each do |filename|
     puts "Updating version numbers in #{filename}"
-    `echo #{new_version} > #{filename}`
+    `sed -e "s/.*return.*/  return '#{new_version}'/" autoload/linny_version.vim > #{filename}`
   end
 
   message = "Bumped version number to v#{new_version}." unless message = ARGV[1]

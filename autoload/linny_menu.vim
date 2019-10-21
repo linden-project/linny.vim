@@ -715,7 +715,7 @@ function! s:partial_footer_items()
 "  call s:add_item_special_event("<hard refresh>", "hardrefresh", 'H')
   call s:add_item_special_event("<refresh>", "refresh", 'R')
   call s:add_item_empty_line()
-  call s:add_item_footer('Linny ' . linny#PluginVersion())
+  call s:add_item_footer('Linny ' . linny_version#PluginVersion())
 endfunction
 
 function! s:displayFileAskViewProps(view_props, file_dict)
