@@ -10,14 +10,6 @@ This vim-plugin is in preparation for public release.
 
 Install using your favorite package manager. 'mipmip/linny.vim'
 
-## Usage
-
-WIP
-
-## Change key mappings in your vim config file
-
-WIP
-
 ## Maintainer Documentation
 
 To release a new version run ````./release.rb [VERSION]````
