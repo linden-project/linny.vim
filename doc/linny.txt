@@ -1,15 +1,16 @@
 *linny.txt*   Personal Document Database
 
+    A text oriented personal database powered by front matter and markdown.
 
-          A document database utilizing front matter and makrdown
+    “Everything is connected.”                  - Dirk Gently by Douglas Adams
 
 ==============================================================================
-CONTENTS                                                       *linny-contents*
+CONTENTS                                                        *linny-contents*
 
+    1. Introduction .................... |LinnyIntroduction|
     1. Usage ........................... |LinnyUsage|
     2. Mappings ........................ |LinnyMappings|
     3. Configuration ................... |LinnyConfiguration|
-        3.1 g:linny_autoreturn ......... |LinnyConfiguration_autoreturn|
     4. License ......................... |LinnyLicense|
     5. Bugs ............................ |LinnyBugs|
     6. Contributing .................... |LinnyContributing|
@@ -18,7 +19,36 @@ CONTENTS                                                       *linny-contents*
 ==============================================================================
 1. Usage                                                           *LinnyUsage*
 
-
+...
 
 ==============================================================================
-2. Mappings                                                     *LinnyMappings*
+2. Mappings                                                      *LinnyMappings*
+
+...
+
+==============================================================================
+2. Options                                                      *LinnyOptions*
+
+...
+
+==============================================================================
+7. Bugs                                                              *LinnyBugs*
+
+
+Please submit bug reports in the issue tracker at 
+https://github.com/mipmip/linny.vim.
+
+==============================================================================
+7. License                                                        *LinnyLicense*
+
+MIT - Copyright (c) Pim Snel
+
+==============================================================================
+7. Contributing                                              *LinnyContributing*
+
+See https://github.com/mipmip/linny.vim/blob/master/CONTIBUTING.md
+
+==============================================================================
+7. Changelog                                                    *LinnyChangelog*
+
+See https://github.com/mipmip/linny.vim/blob/master/CHANGLOG.md

@@ -1,23 +1,37 @@
-linny.vim
-=========
+# Linny.vim
 
 ![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/mipmip/linny.vim)
 [![Build Status](https://travis-ci.org/mipmip/linny.vim.svg?branch=master)](https://travis-ci.org/mipmip/linny.vim)
 
-This vim-plugin is in preparation for public release.
+Personal text database powered by markdown and front matter.
 
-## Installation
+# Installation
 
-Install using your favorite package manager. 'mipmip/linny.vim'
+Use your favorite package manager.
 
-## Maintainer Documentation
+Using vim-plug:
 
-To release a new version run ````./release.rb [VERSION]````
+```
+Plug 'mipmip/linny.vim'
+```
 
-## Acknowledgements
+# Documentation
 
-[mmai/vim-markdown-wiki](https://github.com/mmai/vim-markdown-wiki).
+The official manual can be browsed directly in Vim:
 
-License
+```
+:help linny
+```
 
-Copyright 2019 (c) Pim Snel. Distributed under the same terms as Vim itself. See :help license.
+Alternatively, you can read [linny.txt](https://github.com/mipmip/linny.vim/blob/master/doc/linny.txt) in your browser.
+
+# Credits
+
+- [vimwiki](https://github.com/vimwiki/vimwiki) - The most popular Wiki plugin for Vim
+- [mmai/vim-markdown-wiki](https://github.com/mmai/vim-markdown-wiki) - A simple Wiki plugin for vim made with a few Markdown additions
+- [Kiwi](https://github.com/landakram/kiwi) - An iOS Wiki App using dropbox for synchronization and Markdown as wiki documents.
+- [skywind3000/quickmenu](https://github.com/skywind3000/quickmenu.vim) - Side panel menu plugin with customizable shortcuts.
+
+# License
+
+MIT - Copyright 2019 (c) Pim Snel.
