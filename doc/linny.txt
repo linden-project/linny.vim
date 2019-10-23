@@ -1,54 +1,61 @@
-*linny.txt*   Personal Document Database
+*Linny*  document database powered by front matter and markdown
+>
+  “Everything is connected.”
+                                                - Dirk Gently by Douglas Adams
+<
+===============================================================================
+Contents ~
 
-    A text oriented personal database powered by front matter and markdown.
+ 1. Introduction                                           |Linny-introduction|
+ 2. Usage                                                         |Linny-usage|
+ 3. Mappings                                                   |Linny-mappings|
+ 4. Options                                                     |Linny-options|
+ 5. Bugs                                                           |Linny-bugs|
+ 6. License                                                     |Linny-license|
+ 7. Contributing                                           |Linny-contributing|
+ 8. Changelog                                                 |Linny-changelog|
 
-    “Everything is connected.”                  - Dirk Gently by Douglas Adams
+===============================================================================
+                                                           *Linny-introduction*
+Introduction ~
 
-==============================================================================
-CONTENTS                                                        *linny-contents*
+Linny is a personal database powered by front matter and markdown.
 
-    1. Introduction .................... |LinnyIntroduction|
-    1. Usage ........................... |LinnyUsage|
-    2. Mappings ........................ |LinnyMappings|
-    3. Configuration ................... |LinnyConfiguration|
-    4. License ......................... |LinnyLicense|
-    5. Bugs ............................ |LinnyBugs|
-    6. Contributing .................... |LinnyContributing|
-    7. Changelog ....................... |LinnyChangelog|
+===============================================================================
+                                                                  *Linny-usage*
+Usage ~
 
-==============================================================================
-1. Usage                                                           *LinnyUsage*
+===============================================================================
+                                                               *Linny-mappings*
+Mappings ~
 
-...
+===============================================================================
+                                                                *Linny-options*
+Options ~
 
-==============================================================================
-2. Mappings                                                      *LinnyMappings*
+===============================================================================
+                                                                   *Linny-bugs*
+Bugs ~
 
-...
-
-==============================================================================
-2. Options                                                      *LinnyOptions*
-
-...
-
-==============================================================================
-7. Bugs                                                              *LinnyBugs*
-
-
-Please submit bug reports in the issue tracker at 
+Please submit bug reports in the issue tracker at
 https://github.com/mipmip/linny.vim.
 
-==============================================================================
-7. License                                                        *LinnyLicense*
+===============================================================================
+                                                                *Linny-license*
+License ~
 
 MIT - Copyright (c) Pim Snel
 
-==============================================================================
-7. Contributing                                              *LinnyContributing*
+===============================================================================
+                                                           *Linny-contributing*
+Contributing ~
 
 See https://github.com/mipmip/linny.vim/blob/master/CONTIBUTING.md
 
-==============================================================================
-7. Changelog                                                    *LinnyChangelog*
+===============================================================================
+                                                              *Linny-changelog*
+Changelog ~
 
 See https://github.com/mipmip/linny.vim/blob/master/CHANGLOG.md
+
+vim: ft=help
