@@ -1,3 +1,4 @@
 vader.vim
 autoload/linny_version.vimbak
 doc/tags
+*.bak
