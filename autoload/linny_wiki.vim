@@ -16,7 +16,7 @@ call s:initVariable("s:lastPosLine", 0)
 call s:initVariable("s:lastPosCol", 0)
 
 function! linny_wiki#wikiWordHasTag(word)
-  for tagKey in keys(g:linny_tags_register)
+  for tagKey in keys(g:linny_wikitags_register)
     if a:word =~ "^".tagKey." *"
       return tagKey
     endif
@@ -25,7 +25,7 @@ function! linny_wiki#wikiWordHasTag(word)
   return ''
 endfunction
 
-function! linny_wiki#wikiExecuteTagAction(word, tagKey, withCTRL)
+function! linny_wiki#executeWikitagAction(word, tagKey, withCTRL)
   let inner = trim(a:word[len(a:tagKey):-1])
 
   if a:withCTRL
@@ -34,7 +34,7 @@ function! linny_wiki#wikiExecuteTagAction(word, tagKey, withCTRL)
     let action = "secondaryAction"
   endif
 
-  execute "call ".g:linny_tags_register[a:tagKey][action]."(\"".inner."\")"
+  execute "call ".g:linny_wikitags_register[a:tagKey][action]."(\"".inner."\")"
 endfunction
 
 
@@ -382,7 +382,7 @@ function! linny_wiki#GotoLinkMain(withCTRL, openInNewTab)
     let tag = linny_wiki#wikiWordHasTag(word)
 
     if(tag != '')
-      call linny_wiki#wikiExecuteTagAction(word, tag, a:withCTRL)
+      call linny_wiki#executeWikitagAction(word, tag, a:withCTRL)
 
     elseif(linny_wiki#wikiWordHasPrefix(word , "DIR"))
 
