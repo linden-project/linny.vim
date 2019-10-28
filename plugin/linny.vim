@@ -16,4 +16,5 @@ augroup MarkdownTasks
   autocmd BufEnter,WinEnter,BufWinEnter *.md call linny_wiki#FindNonExistingLinks()
 augroup END
 
-call linny#AddLinnyWikiTagToRegister('SHELL', 'linny_wiki_tags#shell', 'linny_wiki_tags#shell')
+call linny#RegisterLinnyWikitag('SHELL', 'linny_wikitags#shell', 'linny_wikitags#shell')
+call linny#RegisterLinnyWikitag('LINNY', 'linny_wikitags#linny', 'linny_wikitags#linny')

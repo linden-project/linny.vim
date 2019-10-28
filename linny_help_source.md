@@ -1,4 +1,4 @@
-# document database powered by front matter and markdown
+# A document database powered by front matter and markdown
 
        “Everything is connected.”
                                                      - Dirk Gently by Douglas Adams
