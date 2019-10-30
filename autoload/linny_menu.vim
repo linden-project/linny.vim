@@ -321,7 +321,7 @@ function! s:menu_level1(term)
   let l1_state = linny_menu#termLeafState(a:term)
   let active_view = linny_menu#menu_get_active_view(l1_state)
 
-  if len(views) != 1 || !has_key(views,'NONE')
+  if len(views) > 1 "&& !has_key(views,'NONE')
     for view in views_list
       let views_string = views_string . "[" .view . "]"
     endfor
@@ -509,7 +509,6 @@ endfunction
 function! linny_menu#get_views(config)
 
   let views_all = {}
-  let views_all.NONE = {'sort': 'az'}
 
   if has_key(a:config, 'views')
     let views = get(a:config,'views')
@@ -520,6 +519,8 @@ function! linny_menu#get_views(config)
       endfor
 
     endif
+  else
+    let views_all.NONE = {'sort': 'az'}
   endif
 
   return views_all
@@ -613,7 +614,8 @@ function! s:menu_level2(term, value)
   let l2_state = linny_menu#termValueLeafState(a:term, a:value)
   let active_view = linny_menu#menu_get_active_view(l2_state)
 
-  if len(views) != 1 || !has_key(views,'NONE')
+  echom views
+  if len(views) > 1 "&& !has_key(views,'NONE')
     for view in views_list
       let views_string = views_string . "[" .view . "]"
     endfor
