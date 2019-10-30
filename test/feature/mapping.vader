@@ -27,7 +27,7 @@ Expect linny_menu (text menu):
   [C]  Create customer Config
   [R]  <refresh>
 
-  Linny 0.5.1.1
+  Linny 0.5.1.2
 
 Do:
   v
@@ -54,4 +54,4 @@ Expect linny_menu (sort date):
   [C]  Create customer Config
   [R]  <refresh>
 
-  Linny 0.5.1.1
+  Linny 0.5.1.2

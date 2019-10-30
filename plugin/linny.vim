@@ -18,3 +18,4 @@ augroup END
 
 call linny#RegisterLinnyWikitag('SHELL', 'linny_wikitags#shell', 'linny_wikitags#shell')
 call linny#RegisterLinnyWikitag('LINNY', 'linny_wikitags#linny', 'linny_wikitags#linny')
+call linny#RegisterLinnyWikitag('VIM', 'linny_wikitags#vim', 'linny_wikitags#vim')

@@ -1,3 +1,8 @@
+if exists("g:loaded_linny_autoload")
+"    finish
+endif
+let g:loaded_linny_autoload = 1
+
 " MAIN CONF SETTINGS
 call linny_util#initVariable("g:linny_path_dbroot", '~/Linny')
 call linny_util#initVariable("g:linny_path_dbindex", '~/.linny/index')
@@ -10,7 +15,7 @@ function! linny#Init()
   let g:linny_state_path = expand(g:linny_path_uistate)
   let g:linny_index_path = expand(g:linny_path_dbindex)
 
-  let g:linny_wikitags_register = {}
+  let g:linny_wikitags_register = get(g:, 'linny_wikitags_register', {})
 
   call linny#setup_paths()
 

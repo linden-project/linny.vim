@@ -1489,7 +1489,12 @@ function! linny_menu#new_document_in_leaf(...)
           for fm_key in keys(fm_template)
             let entry = {}
             let entry['term'] = fm_key
-            let entry['value'] = get(fm_template,fm_key)
+            if get(fm_template,fm_key) == 'v:null'
+              let entry['value'] = ''
+            else
+              let entry['value'] = get(fm_template,fm_key)
+            endif
+
             call add(taxoEntries, entry)
           endfor
         endif

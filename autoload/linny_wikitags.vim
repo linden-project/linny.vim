@@ -6,8 +6,6 @@ endfunction
 
 " LINNY PRIMARY
 function! linny_wikitags#linny(innertag)
-  echo "!". a:innertag
-
   if stridx(a:innertag, ":") >= 0
     let parts = split(a:innertag, ":")
     if len(parts) == 2
@@ -18,6 +16,14 @@ function! linny_wikitags#linny(innertag)
   else
       call linny_menu#openterm(trim(a:innertag),'')
   endif
+
+endfunction
+
+" VIM PRIMARY
+function! linny_wikitags#vim(innertag)
+  "echo "!". a:innertag
+
+  execute a:innertag
 
 endfunction
 

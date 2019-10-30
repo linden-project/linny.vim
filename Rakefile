@@ -1,9 +1,19 @@
 task :default => [:test]
 
+desc "bump"
+task :bump, [:new_version] do |task, args|
+  if args[:new_version]
+    version_bump(args[:new_version])
+  else
+    puts "Error: Version number required\n"
+    puts
+    puts "Usage: to bump a new version run: rake bump[0.0.0]"
+  end
+end
+
 desc "release"
 task :release, [:new_version] do |task, args|
   if args[:new_version]
-    version_bump(args[:new_version])
     git_release(args[:new_version])
   else
     puts "Error: Version number required\n"

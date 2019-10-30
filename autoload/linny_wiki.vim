@@ -411,7 +411,15 @@ function! linny_wiki#GotoLinkMain(withCTRL, openInNewTab)
 
           let frontmatterEnd = search('---', '', line("w$"))
           if (frontmatterEnd > 0)
-            let fileLines = getbufline(bufnr('%'), 1, frontmatterEnd)
+            let fileLinesTemp = getbufline(bufnr('%'), 1, frontmatterEnd)
+            for lineTemp in fileLinesTemp
+              if lineTemp =~ "^title:.*"
+                call add(fileLines, "title: " . word)
+              else
+                call add(fileLines, lineTemp)
+              endif
+            endfor
+
             call add(fileLines, "")
           endif
         end
