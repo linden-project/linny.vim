@@ -267,7 +267,7 @@ function! s:menu_level0()
   endfor
 
   for sk in sort(keys(starred_list))
-    call s:add_item_document_taxo_key_val(starred_list[sk]['taxonomy'], starred_list[sk]['term'])
+    call s:add_item_document_taxo_key_val(starred_list[sk]['taxonomy'], starred_list[sk]['term'], 1)
   endfor
 
   call s:add_item_section("# Taxonomies")
@@ -318,21 +318,24 @@ function! s:menu_level1(term)
   let views_list = linny_menu#get_views_list(l1_config)
   let views = linny_menu#get_views(l1_config)
 
-  for view in views_list
-    let views_string = views_string . "[" .view . "]"
-  endfor
-
   let l1_state = linny_menu#termLeafState(a:term)
   let active_view = linny_menu#menu_get_active_view(l1_state)
 
-  let active_arrow_string = linny_menu#calcActiveViewArrow(views_list, active_view, 10)
+  if len(views) != 1 || !has_key(views,'NONE')
+    for view in views_list
+      let views_string = views_string . "[" .view . "]"
+    endfor
 
-  call s:add_item_empty_line()
-  call s:add_item_special_event("VIEW  ". views_string  , "cycle_l1_view", 'v')
-  call s:add_item_text(active_arrow_string)
-  if active_view < 2
-    call s:add_item_empty_line()
-  end
+    let active_arrow_string = linny_menu#calcActiveViewArrow(views_list, active_view, 4)
+
+    call s:add_item_section("### VIEW")
+    call s:add_item_special_event("". views_string  , "cycle_l1_view", 'v')
+    call s:add_item_text(active_arrow_string)
+"    if active_view < 2
+"      call s:add_item_empty_line()
+"    end
+    call s:add_item_divider()
+  endif
 
   let view_props = linny_menu#menu_current_view_props(active_view, views_list, views)
 
@@ -351,8 +354,6 @@ function! s:menu_level1(term)
       let group_by = get(views[views_list[0]], 'group_by')
     end
   end
-
-
 
   let termslistDict = linny#parse_json_file( linny#l1_index_filepath(a:term), [] )
   let termslist = keys(termslistDict)
@@ -383,10 +384,10 @@ function! s:menu_level1(term)
         end
       else
 
-        if !has_key(term_menu,'Ungrouped')
-          let term_menu['Ungrouped'] = []
+        if !has_key(term_menu,'Documents')
+          let term_menu['Documents'] = []
         end
-        call add(term_menu['Ungrouped'], val)
+        call add(term_menu['Documents'], val)
 
       endif
     endif
@@ -397,7 +398,7 @@ function! s:menu_level1(term)
     call s:add_item_section("### " . linny_menu#string_capitalize(group) )
 
     for val in term_menu[group]
-      call s:add_item_document_taxo_key_val(a:term, val )
+      call s:add_item_document_taxo_key_val(a:term, val, 0)
     endfor
 
   endfor
@@ -448,46 +449,48 @@ function! linny_menu#writeTermValueLeafState(term, value, l2_state)
   call linny#write_json_file(linny#l2_state_filepath(a:term, a:value), a:l2_state)
 endfunction
 
-function! linny_menu#cycle_l1_view()
+function! linny_menu#cycle_l1_view(direction)
 
   let state = linny_menu#termLeafState(t:linny_menu_taxo_term)
   let active_view = linny_menu#menu_get_active_view(state)
   let config = linny#taxConfig(t:linny_menu_taxo_term)
   let views = linny_menu#get_views_list(config)
 
-  if (active_view+1) >= len(views)
-    let new_active_view = 0
-    let state.active_view = 0
-  else
-    let state.active_view = active_view + 1
-  end
-
-  call linny_menu#writeTermLeafState(t:linny_menu_taxo_term, state)
+  let newstate = linny_menu#new_active_view(state, views, a:direction, active_view)
+  call linny_menu#writeTermLeafState(t:linny_menu_taxo_term, newstate)
 
 endfunction
 
-
-function! linny_menu#cycle_l2_view()
+function! linny_menu#cycle_l2_view(direction)
 
   let state = linny_menu#termValueLeafState(t:linny_menu_taxo_term, t:linny_menu_taxo_val)
   let active_view = linny_menu#menu_get_active_view(state)
   let config = linny#termConfig(t:linny_menu_taxo_term, t:linny_menu_taxo_val)
   let views = linny_menu#get_views_list(config)
 
-  if (active_view+1) >= len(views)
-    let new_active_view = 0
+  let newstate = linny_menu#new_active_view(state, views, a:direction, active_view)
+
+  call linny_menu#writeTermValueLeafState(t:linny_menu_taxo_term, t:linny_menu_taxo_val, newstate)
+
+endfunction
+
+function! linny_menu#new_active_view(state, views, direction, active_view)
+  let state = a:state
+  if (a:active_view+a:direction) >= len(a:views)
     let state.active_view = 0
+  elseif (a:active_view + a:direction) < 0
+    let state.active_view = len(a:views)-1
   else
-    let state.active_view = active_view + 1
+    let state.active_view = a:active_view + a:direction
   end
 
-  call linny_menu#writeTermValueLeafState(t:linny_menu_taxo_term, t:linny_menu_taxo_val, state)
+  return state
 
 endfunction
 
 function! linny_menu#get_views_list(config)
 
-  let views_list = ["az", 'date']
+  let views_list = []
 
   if has_key(a:config, 'views')
     let views = get(a:config,'views')
@@ -495,6 +498,8 @@ function! linny_menu#get_views_list(config)
     if(type(views)==4)
       let views_list = views_list + keys(views)
     endif
+  else
+    let views_list = ['NONE']
   endif
 
   return views_list
@@ -503,10 +508,8 @@ endfunction
 
 function! linny_menu#get_views(config)
 
-
   let views_all = {}
-  let views_all.az = {'sort': 'az'}
-  let views_all.date = {'sort': 'date'}
+  let views_all.NONE = {'sort': 'az'}
 
   if has_key(a:config, 'views')
     let views = get(a:config,'views')
@@ -607,22 +610,22 @@ function! s:menu_level2(term, value)
   let views_string = ""
   let views_list = linny_menu#get_views_list(l2_config)
   let views = linny_menu#get_views(l2_config)
-
-  for view in views_list
-    let views_string = views_string . "[" .view . "]"
-  endfor
-
   let l2_state = linny_menu#termValueLeafState(a:term, a:value)
   let active_view = linny_menu#menu_get_active_view(l2_state)
 
-  let active_arrow_string = linny_menu#calcActiveViewArrow(views_list, active_view, 10)
+  if len(views) != 1 || !has_key(views,'NONE')
+    for view in views_list
+      let views_string = views_string . "[" .view . "]"
+    endfor
 
-  call s:add_item_empty_line()
-  call s:add_item_special_event("VIEW  ". views_string  , "cycle_l2_view", 'v')
-  call s:add_item_text(active_arrow_string)
-  if active_view < 2
-    call s:add_item_empty_line()
-  end
+    let active_arrow_string = linny_menu#calcActiveViewArrow(views_list, active_view, 4)
+
+    call s:add_item_section("### VIEW")
+    call s:add_item_special_event("". views_string  , "cycle_l2_view", 'v')
+
+    call s:add_item_text(active_arrow_string)
+    call s:add_item_divider()
+  endif
 
   let files_in_menu = linny#parse_json_file(linny#l2_index_filepath( a:term, a:value), [])
 
@@ -667,11 +670,11 @@ function! s:menu_level2(term, value)
         endif
 
       else
-        if !has_key(files_menu,'Ungrouped')
-          let files_menu['Ungrouped'] = []
+        if !has_key(files_menu,'Documents')
+          let files_menu['Documents'] = []
         end
 
-        call add(files_menu['Ungrouped'], file_in_menu_dict)
+        call add(files_menu['Documents'], file_in_menu_dict)
       end
 
     end
@@ -882,12 +885,18 @@ function! s:add_item_document_taxo_key(taxo_key)
 
 endfunction
 
-function! s:add_item_document_taxo_key_val(taxo_key, taxo_val)
+function! s:add_item_document_taxo_key_val(taxo_key, taxo_val, display_taxonomy_in_menu)
   let item = s:item_default()
   let item.option_type = 'taxo_key_val'
   let item.option_data.taxo_key = a:taxo_key
   let item.option_data.taxo_val = a:taxo_val
   let item.mode = 0
+
+  if a:display_taxonomy_in_menu
+    let tax_text = linny_menu#string_capitalize(a:taxo_key) . ': '
+  else
+    let tax_text = ''
+  end
 
   if g:linny_menu_display_docs_count
     let files_in_menu = linny#parse_json_file( linny#l2_index_filepath(a:taxo_key,a:taxo_val) ,[])
@@ -897,7 +906,7 @@ function! s:add_item_document_taxo_key_val(taxo_key, taxo_val)
   endif
 
 "  let item.text = linny#taxTermTitle(a:taxo_key, a:taxo_val) . docs_count
-  let item.text = a:taxo_val . docs_count
+  let item.text = tax_text . a:taxo_val . docs_count
   let item.event = ":call linny_menu#openterm('". a:taxo_key ."','" .a:taxo_val."')"
   call s:append_to_items(item)
 endfunction
@@ -1164,8 +1173,10 @@ function! Setup_keymaps(items)
     noremap <silent> <buffer> t :call linny_menu#open_document_in_new_tab()<cr>
   elseif t:linny_menu_current_menu_type == "menu_level1"
     noremap <silent> <buffer> s :call linny_menu#open_or_create_taxo_key_val()<cr>
+    noremap <silent> <buffer> V :call <SID>linny_menu_execute_by_string('cycle_l1_view_reverse')<cr>
   elseif t:linny_menu_current_menu_type == "menu_level2"
     noremap <silent> <buffer> t :call linny_menu#open_document_in_new_tab()<cr>
+    noremap <silent> <buffer> V :call <SID>linny_menu_execute_by_string('cycle_l2_view_reverse')<cr>
   endif
 
 
@@ -1296,6 +1307,19 @@ endfunc
 "----------------------------------------------------------------------
 " execute item
 "----------------------------------------------------------------------
+function! <SID>linny_menu_execute_by_string(cmd) abort
+  redraw | echo "" | redraw
+
+  if(a:cmd == 'cycle_l1_view_reverse')
+    call linny_menu#cycle_l1_view(-1)
+    call linny_menu#openandshow()
+  elseif(a:cmd == 'cycle_l2_view_reverse')
+    call linny_menu#cycle_l2_view(-1)
+    call linny_menu#openandshow()
+  endif
+
+endfunction
+
 function! <SID>linny_menu_execute(index) abort
 
   let item = s:get_item_by_index(a:index)
@@ -1316,11 +1340,11 @@ function! <SID>linny_menu_execute(index) abort
         close!
 
       elseif(item.event == 'cycle_l1_view')
-        call linny_menu#cycle_l1_view()
+        call linny_menu#cycle_l1_view(1)
         call linny_menu#openandshow()
 
       elseif(item.event == 'cycle_l2_view')
-        call linny_menu#cycle_l2_view()
+        call linny_menu#cycle_l2_view(1)
         call linny_menu#openandshow()
 
       elseif(item.event == 'refresh')
@@ -1440,6 +1464,10 @@ function! s:createl2config(taxo_term, taxo_val)
     call add(fileLines, 'title: '.linny_menu#string_capitalize(a:taxo_val))
     call add(fileLines, 'infotext: About '. a:taxo_val)
     call add(fileLines, 'views:')
+    call add(fileLines, '  az:')
+    call add(fileLines, '    sort: az')
+    call add(fileLines, '  date:')
+    call add(fileLines, '    sort: date')
     call add(fileLines, '  type:')
     call add(fileLines, '    group_by: type')
     call add(fileLines, 'locations:')
