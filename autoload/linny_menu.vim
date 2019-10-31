@@ -200,10 +200,6 @@ function! s:partial_files_listing(files_list, view_props, bool_extra_file_info)
 
       endfor
 
-
-
-
-
     else
       let simple_list = []
       for filel in a:files_list
@@ -1145,6 +1141,51 @@ function! Window_render(items) abort
   endif
 endfunc
 
+function! linny_menu#RemapGlobalKeys()
+
+  let starred = linny_menu#starred_docs()
+  let titles = linny#titlesForDocs(starred)
+  let t_sortable = {}
+
+  for k in keys(titles)
+    let t_sortable[tolower(k)] = g:linny_root_path . "/wiki/" . titles[k]
+  endfor
+
+  let title_keys = sort(keys(t_sortable))
+
+  let i = 1
+  for tk in title_keys
+    execute "noremap " . g:linny_leader .'s'.i. " :call linny_menu#openFile('" . t_sortable[tk] ."')<CR>"
+    let i += 1
+  endfor
+
+endfunction
+
+function! linny_menu#openFile(filepath)
+
+  if &buftype == 'nofile' && &ft == 'linny_menu'
+
+    let currentwidth = t:linny_menu_lastmaxsize
+    let currentWindow=winnr()
+
+    exec ':only'
+    exec ':botright vs '. a:filepath
+
+    let newWindow=winnr()
+
+    exec currentWindow."wincmd w"
+    exec currentWindow."call linny_menu#openandshow()"
+
+    setlocal foldcolumn=0
+
+    exec "vertical resize " . currentwidth
+    exec newWindow."wincmd w"
+
+  else
+    execute ':e '. a:filepath
+  endif
+
+endfunction
 
 "----------------------------------------------------------------------
 " all keys
@@ -1169,7 +1210,6 @@ function! Setup_keymaps(items)
 
   " noremap <silent> <buffer> 0 :call <SID>linny_menu_close()<cr>
   " noremap <silent> <buffer> q :call <SID>linny_menu_close()<cr>
-  "
 
   if t:linny_menu_current_menu_type == "menu_level0"
     noremap <silent> <buffer> t :call linny_menu#open_document_in_new_tab()<cr>
@@ -1579,7 +1619,7 @@ function! Select_items() abort
   for item in t:linny_menu_items
     if item.mode == 0
       if item.key == ''
-        let item.key = PrePad(index, 2,0)
+        let item.key = PrePad(index, 1,0)
         let index += 1
       endif
     endif

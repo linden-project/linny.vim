@@ -16,12 +16,15 @@ function! linny#Init()
   let g:linny_index_path = expand(g:linny_path_dbindex)
 
   let g:linny_wikitags_register = get(g:, 'linny_wikitags_register', {})
+  let g:linny_leader = get(g:, 'linny_leader', ';')
 
   call linny#setup_paths()
 
   let g:linny_index_config = linny#parse_yaml_to_dict( expand( g:linny_root_path .'/config/L0-CONF-ROOT.yml'))
 
   call linny#cache_index()
+
+  call linny_menu#RemapGlobalKeys()
 
 endfunction
 
