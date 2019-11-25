@@ -24,8 +24,8 @@ let t:linny_menu_items = []
 let t:linny_menu_cursor = 0
 let t:linny_menu_line = 0
 let t:linny_menu_lastmaxsize = 0
-let t:linny_menu_taxo_term = ""
-let t:linny_menu_taxo_val = ""
+let t:linny_menu_taxonomy = ""
+let t:linny_menu_term = ""
 let t:linny_menu_current_menu_type = "not_set"
 
 "----------------------------------------------------------------------
@@ -38,8 +38,8 @@ function! linny_menu#tabInitState()
     let t:linny_menu_name = '[linny_menu]'.string(NewLinnyTabNr())
     let t:linny_menu_line = 0
     let t:linny_menu_lastmaxsize = 0
-    let t:linny_menu_taxo_term = ""
-    let t:linny_menu_taxo_val = ""
+    let t:linny_menu_taxonomy = ""
+    let t:linny_menu_term = ""
   endif
 endfunction
 
@@ -418,8 +418,8 @@ function! s:partial_debug_info()
   call s:add_item_section("### " . linny_menu#string_capitalize('debug'))
   call s:add_item_text("t:linny_menu_lastmaxsize = ".t:linny_menu_lastmaxsize)
   call s:add_item_text("t:linny_menu_name = ".t:linny_menu_name)
-  call s:add_item_text("t:linny_menu_taxo_term = ".t:linny_menu_taxo_term)
-  call s:add_item_text("t:linny_menu_taxo_val = ".t:linny_menu_taxo_val)
+  call s:add_item_text("t:linny_menu_taxonomy = ".t:linny_menu_taxonomy)
+  call s:add_item_text("t:linny_menu_term = ".t:linny_menu_term)
   call s:add_item_text("Loading time = ".t:linny_load_time)
 endfunction
 
@@ -447,26 +447,26 @@ endfunction
 
 function! linny_menu#cycle_l1_view(direction)
 
-  let state = linny_menu#termLeafState(t:linny_menu_taxo_term)
+  let state = linny_menu#termLeafState(t:linny_menu_taxonomy)
   let active_view = linny_menu#menu_get_active_view(state)
-  let config = linny#taxConfig(t:linny_menu_taxo_term)
+  let config = linny#taxConfig(t:linny_menu_taxonomy)
   let views = linny_menu#get_views_list(config)
 
   let newstate = linny_menu#new_active_view(state, views, a:direction, active_view)
-  call linny_menu#writeTermLeafState(t:linny_menu_taxo_term, newstate)
+  call linny_menu#writeTermLeafState(t:linny_menu_taxonomy, newstate)
 
 endfunction
 
 function! linny_menu#cycle_l2_view(direction)
 
-  let state = linny_menu#termValueLeafState(t:linny_menu_taxo_term, t:linny_menu_taxo_val)
+  let state = linny_menu#termValueLeafState(t:linny_menu_taxonomy, t:linny_menu_term)
   let active_view = linny_menu#menu_get_active_view(state)
-  let config = linny#termConfig(t:linny_menu_taxo_term, t:linny_menu_taxo_val)
+  let config = linny#termConfig(t:linny_menu_taxonomy, t:linny_menu_term)
   let views = linny_menu#get_views_list(config)
 
   let newstate = linny_menu#new_active_view(state, views, a:direction, active_view)
 
-  call linny_menu#writeTermValueLeafState(t:linny_menu_taxo_term, t:linny_menu_taxo_val, newstate)
+  call linny_menu#writeTermValueLeafState(t:linny_menu_taxonomy, t:linny_menu_term, newstate)
 
 endfunction
 
@@ -883,11 +883,11 @@ function! s:add_item_document_taxo_key(taxo_key)
 
 endfunction
 
-function! s:add_item_document_taxo_key_val(taxo_key, taxo_val, display_taxonomy_in_menu)
+function! s:add_item_document_taxo_key_val(taxo_key, taxo_term, display_taxonomy_in_menu)
   let item = s:item_default()
   let item.option_type = 'taxo_key_val'
   let item.option_data.taxo_key = a:taxo_key
-  let item.option_data.taxo_val = a:taxo_val
+  let item.option_data.taxo_term = a:taxo_term
   let item.mode = 0
 
   if a:display_taxonomy_in_menu
@@ -897,15 +897,15 @@ function! s:add_item_document_taxo_key_val(taxo_key, taxo_val, display_taxonomy_
   end
 
   if g:linny_menu_display_docs_count
-    let files_in_menu = linny#parse_json_file( linny#l2_index_filepath(a:taxo_key,a:taxo_val) ,[])
+    let files_in_menu = linny#parse_json_file( linny#l2_index_filepath(a:taxo_key,a:taxo_term) ,[])
     let docs_count = " (".len(files_in_menu).")"
   else
     let docs_count = ""
   endif
 
-"  let item.text = linny#taxTermTitle(a:taxo_key, a:taxo_val) . docs_count
-  let item.text = tax_text . a:taxo_val . docs_count
-  let item.event = ":call linny_menu#openterm('". a:taxo_key ."','" .a:taxo_val."')"
+"  let item.text = linny#taxTermTitle(a:taxo_key, a:taxo_term) . docs_count
+  let item.text = tax_text . a:taxo_term . docs_count
+  let item.event = ":call linny_menu#openterm('". a:taxo_key ."','" .a:taxo_term."')"
   call s:append_to_items(item)
 endfunction
 
@@ -983,9 +983,9 @@ endfunction
 " linny_menu interface
 "----------------------------------------------------------------------
 
-function! linny_menu#openterm(taxo_term, taxo_value) abort
-  let t:linny_menu_taxo_term = a:taxo_term
-  let t:linny_menu_taxo_val = a:taxo_value
+function! linny_menu#openterm(taxonomy, taxo_term) abort
+  let t:linny_menu_taxonomy = a:taxonomy
+  let t:linny_menu_term = a:taxo_term
   call linny_menu#openandshow()
 endfunction
 
@@ -993,13 +993,13 @@ function! linny_menu#openandshow() abort
 
   let t:linny_start_load_time = localtime()
 
-  if t:linny_menu_taxo_term!="" && t:linny_menu_taxo_val!=""
-    call s:menu_level2(t:linny_menu_taxo_term, t:linny_menu_taxo_val)
+  if t:linny_menu_taxonomy!="" && t:linny_menu_term!=""
+    call s:menu_level2(t:linny_menu_taxonomy, t:linny_menu_term)
 
-  elseif t:linny_menu_taxo_term!="" && t:linny_menu_taxo_val==""
-    call s:menu_level1(t:linny_menu_taxo_term)
+  elseif t:linny_menu_taxonomy!="" && t:linny_menu_term==""
+    call s:menu_level1(t:linny_menu_taxonomy)
 
-  elseif t:linny_menu_taxo_term=="" && t:linny_menu_taxo_val==""
+  elseif t:linny_menu_taxonomy=="" && t:linny_menu_term==""
     call s:menu_level0()
   endif
 
@@ -1143,6 +1143,15 @@ endfunc
 
 function! linny_menu#RemapGlobalKeys()
 
+  execute "noremap " . g:linny_leader .'0'. " :call linny_menu#openHome()<CR>"
+  execute "noremap " . g:linny_leader .'R'. " :call linny_menu#refreshMenu()<CR>"
+
+  call linny_menu#RemapGlobalStarredDocs()
+  call linny_menu#RemapGlobalStarredTerms()
+
+endfunction
+
+function! linny_menu#RemapGlobalStarredDocs()
   let starred = linny_menu#starred_docs()
   let titles = linny#titlesForDocs(starred)
   let t_sortable = {}
@@ -1158,7 +1167,31 @@ function! linny_menu#RemapGlobalKeys()
     execute "noremap " . g:linny_leader .'s'.i. " :call linny_menu#openFile('" . t_sortable[tk] ."')<CR>"
     let i += 1
   endfor
+endfunction
 
+function! linny_menu#RemapGlobalStarredTerms()
+  let starred = linny_menu#starred_terms()
+  let starred_list = {}
+
+  for i in starred
+    let starred_list[i['taxonomy'].','.i['term']] = i
+  endfor
+
+  let i = 1
+  for sk in sort(keys(starred_list))
+    execute "noremap " . g:linny_leader .'S'.i. " :call linny_menu#openterm('" .starred_list[sk]['taxonomy']."','".starred_list[sk]['term']."')<CR>"
+    let i += 1
+  endfor
+endfunction
+
+function! linny_menu#refreshMenu()
+  call linny#Init()
+  call linny#make_index()
+  call linny_menu#openandshow()
+endfunction
+
+function! linny_menu#openHome()
+  call linny_menu#openterm('','')
 endfunction
 
 function! linny_menu#openFile(filepath)
@@ -1320,7 +1353,7 @@ function! linny_menu#open_or_create_taxo_key_val()
 
   if has_key(item,'option_type')
     if get(item,'option_type') == 'taxo_key_val'
-      call s:createl2config(item.option_data.taxo_key, item.option_data.taxo_val)
+      call s:createl2config(item.option_data.taxo_key, item.option_data.taxo_term)
     endif
   end
 endfunction
@@ -1390,21 +1423,19 @@ function! <SID>linny_menu_execute(index) abort
         call linny_menu#openandshow()
 
       elseif(item.event == 'refresh')
-        call linny#Init()
-        call linny#make_index()
-        call linny_menu#openandshow()
+        call linny_menu#refreshMenu()
 
       elseif(item.event == 'home')
         call linny_menu#openterm('','')
 
       elseif(item.event == 'createl1config')
 
-        let confFileName = linny#l1_config_filepath(t:linny_menu_taxo_term)
+        let confFileName = linny#l1_config_filepath(t:linny_menu_taxonomy)
 
         let fileLines = []
         call add(fileLines, '---')
-        call add(fileLines, 'title: '.linny_menu#string_capitalize(t:linny_menu_taxo_term))
-        call add(fileLines, 'infotext: About '. t:linny_menu_taxo_term)
+        call add(fileLines, 'title: '.linny_menu#string_capitalize(t:linny_menu_taxonomy))
+        call add(fileLines, 'infotext: About '. t:linny_menu_taxonomy)
         call add(fileLines, 'views:')
         call add(fileLines, '  type:')
         call add(fileLines, '    group_by: type')
@@ -1427,7 +1458,7 @@ function! <SID>linny_menu_execute(index) abort
         endif
 
       elseif(item.event == 'createl2config')
-        call s:createl2config(t:linny_menu_taxo_term, t:linny_menu_taxo_val)
+        call s:createl2config(t:linny_menu_taxonomy, t:linny_menu_term)
 
       elseif(item.event == 'newdocingroup')
 
@@ -1483,8 +1514,8 @@ function! <SID>linny_menu_execute(index) abort
 
 endfunc
 
-function! s:createl2config(taxo_term, taxo_val)
-  let confFileName = linny#l2_config_filepath(a:taxo_term, a:taxo_val)
+function! s:createl2config(taxonomy, taxo_term)
+  let confFileName = linny#l2_config_filepath(a:taxonomy, a:taxo_term)
 
   if filereadable(confFileName)
 
@@ -1503,8 +1534,8 @@ function! s:createl2config(taxo_term, taxo_val)
   else
     let fileLines = []
     call add(fileLines, '---')
-    call add(fileLines, 'title: '.linny_menu#string_capitalize(a:taxo_val))
-    call add(fileLines, 'infotext: About '. a:taxo_val)
+    call add(fileLines, 'title: '.linny_menu#string_capitalize(a:taxo_term))
+    call add(fileLines, 'infotext: About '. a:taxo_term)
     call add(fileLines, 'views:')
     call add(fileLines, '  az:')
     call add(fileLines, '    sort: az')
@@ -1513,7 +1544,7 @@ function! s:createl2config(taxo_term, taxo_val)
     call add(fileLines, '  type:')
     call add(fileLines, '    group_by: type')
     call add(fileLines, 'locations:')
-    call add(fileLines, '  #website: https://www.'.a:taxo_val.'.vim')
+    call add(fileLines, '  #website: https://www.'.a:taxo_term.'.vim')
     "call add(fileLines, '  #dir1: file:///Applications/')
     "call add(fileLines, '  #file1: file:///Projects/file1.someformat')
 
@@ -1542,17 +1573,17 @@ function! linny_menu#new_document_in_leaf(...)
   let relativePath = fnameescape(g:linny_root_path . '/wiki/' . fileName)
 
   if !filereadable(relativePath)
+    let taxonomy = ''
     let taxo_term = ''
-    let taxo_val = ''
 
     let taxoEntries = []
-    if t:linny_menu_taxo_term != "" && t:linny_menu_taxo_val != ""
+    if t:linny_menu_taxonomy != "" && t:linny_menu_term != ""
       let entry = {}
-      let entry['term'] = t:linny_menu_taxo_term
-      let entry['value'] = t:linny_menu_taxo_val
+      let entry['term'] = t:linny_menu_taxonomy
+      let entry['value'] = t:linny_menu_term
       call add(taxoEntries, entry)
 
-      let config = linny#termConfig(t:linny_menu_taxo_term, t:linny_menu_taxo_val)
+      let config = linny#termConfig(t:linny_menu_taxonomy, t:linny_menu_term)
       if has_key(config, 'frontmatter_template')
         let fm_template = get(config,'frontmatter_template')
         if(type(fm_template)==4)
@@ -1613,7 +1644,7 @@ endfunction
 function! Select_items() abort
 
   let items = []
-  let index = 0
+  let index = 1
 
   let lastmode = 2
   for item in t:linny_menu_items
