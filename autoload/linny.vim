@@ -94,7 +94,6 @@ function! linny#FilenameToWordToUnamedRegister()
   let @@ = linny#FilenameToWikiLink( expand('%:t:r') )
 endfunction
 
-
 function! linny#new_dir(...)
 
   let dir_name = join(a:000)
@@ -140,9 +139,6 @@ endfunction
 
 func! linny#browse_taxonomies()
 
-  "let currentKey = linny_wiki#YamlKeyUnderCursor()
-  "exec ":startinsert"
-
   let relativePath = fnameescape(g:linny_index_path . '/_index_taxonomies.json')
 
   if filereadable(relativePath)
@@ -153,9 +149,17 @@ func! linny#browse_taxonomies()
       call add(taxList, taxonomy . ": ")
     endfor
 
+    if mode() =='i'
+      let startword = getline('.')[0:col('.')-1]
+    else
+      let startword = expand("<cword>")
+    endif
+
+    let taxListFiltered = filter(copy(taxList), 'v:val =~ "^'. startword .'"')
+
     call setline('.', "")
     call cursor(line('.'), 1)
-    call complete(1, sort(taxList))
+    call complete(1, sort(taxListFiltered))
   endif
 
   return ''
@@ -179,9 +183,18 @@ func! linny#browse_taxonomy_terms()
       end
     endfor
 
+    if mode() =='i'
+      let startword = getline('.')[strlen(currentKey)+2:col('.')-1]
+    else
+      let startword = expand("<cword>")
+    endif
+    echom startword
+
+    let tvListFiltered = filter(copy(tvList), 'v:val =~ "'. startword .'"')
+
     call setline('.', currentKey .": ")
     call cursor(line('.'), strlen(currentKey)+3)
-    call complete(strlen(currentKey)+3, sort(tvList))
+    call complete(strlen(currentKey)+3, sort(tvListFiltered))
   endif
 
   return ''
