@@ -610,7 +610,6 @@ function! s:menu_level2(term, value)
   let l2_state = linny_menu#termValueLeafState(a:term, a:value)
   let active_view = linny_menu#menu_get_active_view(l2_state)
 
-  echom views
   if len(views) > 1 "&& !has_key(views,'NONE')
     for view in views_list
       let views_string = views_string . "[" .view . "]"
@@ -730,9 +729,13 @@ function! s:displayFileAskViewProps(view_props, file_dict)
   endif
 
   if has_key(a:view_props, 'only')
+    let onlystatus = 0
     for only_dict in a:view_props.only
-      return s:testFileWithDisplayExpression(a:file_dict, only_dict)
+      if s:testFileWithDisplayExpression(a:file_dict, only_dict)
+        let onlystatus = 1
+      end
     endfor
+    return onlystatus
   endif
 
   return 1
