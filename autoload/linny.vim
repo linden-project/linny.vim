@@ -239,6 +239,8 @@ endfunction
 
 function! linny#parse_yaml_to_dict(filePath)
   if filereadable(a:filePath)
+
+    let tmp = json_decode(system('ruby -rjson -ryaml -e "puts JSON.pretty_generate(YAML.load_file('."'". a:filePath. "'".'))"'))
     return json_decode(system('ruby -rjson -ryaml -e "puts JSON.pretty_generate(YAML.load_file('."'". a:filePath. "'".'))"'))
   endif
   return {}

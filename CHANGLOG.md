@@ -1,6 +1,38 @@
 
 # Changelog Linny.vim
 
+## Linny.vim 0.5.2.1 - solve annoyances
+- klant: v:null oplossing
+- linny: ctrl follow link: kopieer nooit de title
+- no [az] en [date] by default
+- in default config [az] en [date] by default
+- <SHIFT-V> terug in views
+- starred terms: toon term in lijst
+- no view menu when only one view
+- toggle markdown list [list, todo, done]
+- global shortcuts for starred docs (;s1)
+- refactor: more internal variable renaming
+- global shortcuts for starred terms (;S1)
+- global shortcut for refresh menu
+- global shortcut for home menu
+
+
+## Linny.vim 0.5.2
+- Pluginsysteem v1 [[Linny wiki tags]]?
+- version version in vader.vim
+- overview needed commands
+
+## Linny.vim 0.5.1.1
+- Changelog macro
+- version in sep file
+- release script
+- documentation howto release
+- Testdata
+- Testcase bedenken
+- Vader testen
+- .travis
+- testbadge in readme
+
 ## Linny.vim 0.5.0 - ma 20 okt 2019
 - terminologie wijzingen doorvoeren, zie Lindex
   - alle confs

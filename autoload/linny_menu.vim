@@ -317,7 +317,7 @@ function! s:menu_level1(term)
   let l1_state = linny_menu#termLeafState(a:term)
   let active_view = linny_menu#menu_get_active_view(l1_state)
 
-  if len(views) > 1 "&& !has_key(views,'NONE')
+  if len(views) < 3 && !has_key(views,'NONE')
     for view in views_list
       let views_string = views_string . "[" .view . "]"
     endfor
@@ -327,11 +327,18 @@ function! s:menu_level1(term)
     call s:add_item_section("### VIEW")
     call s:add_item_special_event("". views_string  , "cycle_l1_view", 'v')
     call s:add_item_text(active_arrow_string)
-"    if active_view < 2
-"      call s:add_item_empty_line()
-"    end
     call s:add_item_divider()
+
+  elseif len(views) > 1
+
+    let views_string = views_string . "[" .views_list[active_view] . " ▼]"
+
+    call s:add_item_section("### VIEW")
+    call s:add_item_special_event("". views_string  , "dropdown_l1_view", 'v')
+    call s:add_item_divider()
+
   endif
+
 
   let view_props = linny_menu#menu_current_view_props(active_view, views_list, views)
 
@@ -445,6 +452,8 @@ function! linny_menu#writeTermValueLeafState(term, value, l2_state)
   call linny#write_json_file(linny#l2_state_filepath(a:term, a:value), a:l2_state)
 endfunction
 
+
+
 function! linny_menu#cycle_l1_view(direction)
 
   let state = linny_menu#termLeafState(t:linny_menu_taxonomy)
@@ -457,15 +466,85 @@ function! linny_menu#cycle_l1_view(direction)
 
 endfunction
 
-function! linny_menu#cycle_l2_view(direction)
+function! linny_menu#dropdown_l1_view_callback(id, result)
+  if a:result != -1
+    let state = linny_menu#termLeafState(t:linny_menu_taxonomy)
+    let state.active_view = a:result-1
+
+    call linny_menu#writeTermLeafState(t:linny_menu_taxonomy, state)
+    call linny_menu#openandshow()
+  endif
+
+endfunction
+
+function! linny_menu#dropdown_l1_view()
+
+  let state = linny_menu#termLeafState(t:linny_menu_taxonomy)
+  let active_view = linny_menu#menu_get_active_view(state)
+  let config = linny#taxConfig(t:linny_menu_taxonomy)
+  let views = linny_menu#get_views_list(config)
+
+  call popup_create(views, #{
+        \ zindex: 200,
+        \ drag: 0,
+        \ line: 10,
+        \ title: views[active_view],
+        \ col: 9,
+        \ wrap: 0,
+        \ border: [],
+        \ cursorline: 1,
+        \ padding: [0,1,0,1],
+        \ filter: 'popup_filter_menu',
+        \ mapping: 0,
+        \ callback: 'linny_menu#dropdown_l1_view_callback',
+        \ })
+
+endfunction
+
+
+function! linny_menu#dropdown_l2_view_callback(id, result)
+  if a:result != -1
+    let state = linny_menu#termValueLeafState(t:linny_menu_taxonomy, t:linny_menu_term)
+    let state.active_view = a:result-1
+    call linny_menu#writeTermValueLeafState(t:linny_menu_taxonomy, t:linny_menu_term, state)
+    call linny_menu#openandshow()
+  endif
+
+endfunction
+
+function! linny_menu#dropdown_l2_view()
 
   let state = linny_menu#termValueLeafState(t:linny_menu_taxonomy, t:linny_menu_term)
   let active_view = linny_menu#menu_get_active_view(state)
   let config = linny#termConfig(t:linny_menu_taxonomy, t:linny_menu_term)
   let views = linny_menu#get_views_list(config)
 
-  let newstate = linny_menu#new_active_view(state, views, a:direction, active_view)
+  call popup_create(views, #{
+        \ zindex: 200,
+        \ drag: 0,
+        \ line: 10,
+        \ title: views[active_view],
+        \ col: 9,
+        \ wrap: 0,
+        \ border: [],
+        \ cursorline: 1,
+        \ padding: [0,1,0,1],
+        \ filter: 'popup_filter_menu',
+        \ mapping: 0,
+        \ callback: 'linny_menu#dropdown_l2_view_callback',
+        \ })
 
+endfunction
+
+function! linny_menu#cycle_l2_view(direction)
+
+  let state = linny_menu#termValueLeafState(t:linny_menu_taxonomy, t:linny_menu_term)
+
+  let active_view = linny_menu#menu_get_active_view(state)
+  let config = linny#termConfig(t:linny_menu_taxonomy, t:linny_menu_term)
+  let views = linny_menu#get_views_list(config)
+
+  let newstate = linny_menu#new_active_view(state, views, a:direction, active_view)
   call linny_menu#writeTermValueLeafState(t:linny_menu_taxonomy, t:linny_menu_term, newstate)
 
 endfunction
@@ -574,7 +653,6 @@ function! linny_menu#calcActiveViewArrow(views_list, active_view, padding_left)
 
 endfunction
 
-
 function! s:menu_level2(term, value)
 
   let t:linny_menu_current_menu_type = "menu_level2"
@@ -603,14 +681,13 @@ function! s:menu_level2(term, value)
     call s:add_item_text(infotext)
   endif
 
-
   let views_string = ""
   let views_list = linny_menu#get_views_list(l2_config)
   let views = linny_menu#get_views(l2_config)
   let l2_state = linny_menu#termValueLeafState(a:term, a:value)
   let active_view = linny_menu#menu_get_active_view(l2_state)
 
-  if len(views) > 1 "&& !has_key(views,'NONE')
+  if len(views) <=3 && !has_key(views,'NONE')
     for view in views_list
       let views_string = views_string . "[" .view . "]"
     endfor
@@ -622,17 +699,20 @@ function! s:menu_level2(term, value)
 
     call s:add_item_text(active_arrow_string)
     call s:add_item_divider()
+
+  elseif len(views) > 1
+
+    let views_string = views_string . "[" .views_list[active_view] . " ▼]"
+
+    call s:add_item_section("### VIEW")
+    call s:add_item_special_event("". views_string  , "dropdown_l2_view", 'v')
+    call s:add_item_divider()
+
   endif
 
   let files_in_menu = linny#parse_json_file(linny#l2_index_filepath( a:term, a:value), [])
-
   let view_props = linny_menu#menu_current_view_props(active_view, views_list, views)
-
-
   let files_index = linny#parse_json_file(g:linny_index_path . '/_index_docs_with_props.json',[])
-
-  "  if has_key(view_props, 'group_by')
-  "  let group_by =  get(view_props,'group_by')
 
   let files_menu = {}
 
@@ -1420,6 +1500,12 @@ function! <SID>linny_menu_execute(index) abort
       elseif(item.event == 'cycle_l1_view')
         call linny_menu#cycle_l1_view(1)
         call linny_menu#openandshow()
+
+      elseif(item.event == 'dropdown_l1_view')
+        call linny_menu#dropdown_l1_view()
+
+      elseif(item.event == 'dropdown_l2_view')
+        call linny_menu#dropdown_l2_view()
 
       elseif(item.event == 'cycle_l2_view')
         call linny_menu#cycle_l2_view(1)
