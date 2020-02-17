@@ -29,12 +29,13 @@ function! linny_wiki#executeWikitagAction(word, tagKey, withCTRL)
   let inner = trim(a:word[len(a:tagKey):-1])
 
   if a:withCTRL
-    let action = "primaryAction"
-  else
     let action = "secondaryAction"
+  else
+    let action = "primaryAction"
   endif
 
   execute "call ".g:linny_wikitags_register[a:tagKey][action]."(\"".inner."\")"
+  execute "redraw!"
 endfunction
 
 
@@ -73,6 +74,7 @@ function! linny_wiki#FindNonExistingLinks()
 
         let word = mstr[2:-3]
 
+        "TODO move to register wikitag
         if linny_wiki#wikiWordHasPrefix(word, "DIR") || linny_wiki#wikiWordHasPrefix(word, "FILE") || linny_wiki#wikiWordHasTag(word) !=''
         else
           let fileName = linny_wiki#WordFilename(word)
@@ -100,7 +102,7 @@ endfunction
 
 function! linny_wiki#FileExist(relativePath)
 
-  if filereadable(a:relativePath)
+  if filereadable(expand(a:relativePath))
     return 1
   endif
 
@@ -384,21 +386,19 @@ function! linny_wiki#GotoLinkMain(withCTRL, openInNewTab)
     if(tag != '')
       call linny_wiki#executeWikitagAction(word, tag, a:withCTRL)
 
-    elseif(linny_wiki#wikiWordHasPrefix(word , "DIR"))
+"    elseif(linny_wiki#wikiWordHasPrefix(word , "DIR"))
+"
+"      if(linny_wiki#FileExist(linny_wiki#FilePath(linny_wiki#wikiWordWithPrefix(word, "DIR"))) != 1)
+"        silent execute "!mkdir " . fnameescape(linny_wiki#wikiWordWithPrefix(word, "DIR"))
+"      endif
+"
+"      " If clicked with CTRL open in NerdTee
+"      if(a:withCTRL)
+"        execute 'NERDTree ' . fnameescape(linny_wiki#wikiWordWithPrefix(word, "DIR"))
+"      else
+"        silent execute "!open " . fnameescape(linny_wiki#wikiWordWithPrefix(word, "DIR"))
+"      endif
 
-      if(linny_wiki#FileExist(linny_wiki#FilePath(linny_wiki#wikiWordWithPrefix(word, "DIR"))) != 1)
-        silent execute "!mkdir " . fnameescape(linny_wiki#wikiWordWithPrefix(word, "DIR"))
-      endif
-
-      " If clicked with CTRL open in NerdTee
-      if(a:withCTRL)
-        execute 'NERDTree ' . fnameescape(linny_wiki#wikiWordWithPrefix(word, "DIR"))
-      else
-        silent execute "!open " . fnameescape(linny_wiki#wikiWordWithPrefix(word, "DIR"))
-      endif
-
-    elseif(linny_wiki#wikiWordHasPrefix(word , "FILE"))
-      silent execute "!open " . fnameescape(linny_wiki#wikiWordWithPrefix(word, "FILE"))
     else
 
       let strCmd = ""
