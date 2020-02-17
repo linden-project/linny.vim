@@ -385,21 +385,9 @@ function! linny_wiki#GotoLinkMain(withCTRL, openInNewTab)
 
     if(tag != '')
       call linny_wiki#executeWikitagAction(word, tag, a:withCTRL)
-
-"    elseif(linny_wiki#wikiWordHasPrefix(word , "DIR"))
-"
-"      if(linny_wiki#FileExist(linny_wiki#FilePath(linny_wiki#wikiWordWithPrefix(word, "DIR"))) != 1)
-"        silent execute "!mkdir " . fnameescape(linny_wiki#wikiWordWithPrefix(word, "DIR"))
-"      endif
-"
-"      " If clicked with CTRL open in NerdTee
-"      if(a:withCTRL)
-"        execute 'NERDTree ' . fnameescape(linny_wiki#wikiWordWithPrefix(word, "DIR"))
-"      else
-"        silent execute "!open " . fnameescape(linny_wiki#wikiWordWithPrefix(word, "DIR"))
-"      endif
-
     else
+
+
 
       let strCmd = ""
       let fileLines = []
