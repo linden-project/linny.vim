@@ -1777,10 +1777,15 @@ function! Menu_expand(item) abort
     let item.option_type = a:item.option_type
     let item.option_data = a:item.option_data
     let item.key = ''
+    let extra_indent = ''
 
     if item.mode == 0
       if index == 0
-        let item.text = '[' . a:item.key.']  '.curline
+        if strlen(a:item.key)== 1
+          let extra_indent = ' '
+        end
+
+        let item.text = extra_indent . '[' . a:item.key.']  '. curline
         let index += 1
         let item.key = a:item.key
         let item.event = a:item.event
