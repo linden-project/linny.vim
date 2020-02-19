@@ -1,4 +1,4 @@
 function! linny_version#PluginVersion()
-  return '0.5.1.5'
+  return '0.5.2.0'
 endfunction
 
