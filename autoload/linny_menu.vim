@@ -256,9 +256,11 @@ function! s:partial_files_listing(files_list, view_props, bool_extra_file_info)
         let closed = t:linny_tasks_count[filename]['closed']
         let total = t:linny_tasks_count[filename]['total']
 
-        let tasks_stats_str = '[' . closed .'/'. total .']'
-        let space = repeat(' ',longest_title_length - strchars(t_sortable[tk]['orgTitle'])-strchars(tasks_stats_str) + margin_count_string)
-        let tasks_stats_str = ' ' . space . tasks_stats_str
+        if(open>0)
+          let tasks_stats_str = '[' . closed .'/'. total .']'
+          let space = repeat(' ',longest_title_length - strchars(t_sortable[tk]['orgTitle'])-strchars(tasks_stats_str) + margin_count_string)
+          let tasks_stats_str = ' ' . space . tasks_stats_str
+        end
       end
     end
 
