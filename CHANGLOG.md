@@ -1,6 +1,26 @@
 
 # Changelog Linny.vim
 
+# 0.5.1.5 - 19 feb 2020
+- toon open doenitems in linny menu
+
+# 0.5.1.5 - 17 feb 2020
+- uitlijning Linny items
+- maak WIKITAG DIR
+- maak WIKITAG FILE
+- fix frontmatter browsers
+
+## Linny.vim 0.5.1.4 - more solving of annoyances
+- klein testje met autocomplete views in l2menu
+- popup views in l1menu
+
+## Linny.vim 0.5.1.3 - more solving of annoyances
+
+- wikitag LIN ipv LINNY
+- shortcut voor LinnyGrep
+- allow more only's in l2-config
+- Autocomplete bij typen filteren
+
 ## Linny.vim 0.5.2.1 - solve annoyances
 - klant: v:null oplossing
 - linny: ctrl follow link: kopieer nooit de title
@@ -15,7 +35,6 @@
 - global shortcuts for starred terms (;S1)
 - global shortcut for refresh menu
 - global shortcut for home menu
-
 
 ## Linny.vim 0.5.2
 - Pluginsysteem v1 [[Linny wiki tags]]?

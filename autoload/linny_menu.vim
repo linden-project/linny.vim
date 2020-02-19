@@ -21,6 +21,7 @@ call linny_util#initVariable("g:linnytabnr", 1)
 call linny_util#initVariable("g:linny_debug", 1)
 
 let t:linny_menu_items = []
+let t:linny_tasks_count = {}
 let t:linny_menu_cursor = 0
 let t:linny_menu_line = 0
 let t:linny_menu_lastmaxsize = 0
@@ -34,6 +35,7 @@ let t:linny_menu_current_menu_type = "not_set"
 function! linny_menu#tabInitState()
   if !exists('t:linny_menu_name')
     let t:linny_menu_items = []
+    let t:linny_tasks_count = {}
     let t:linny_menu_cursor = 0
     let t:linny_menu_name = '[linny_menu]'.string(NewLinnyTabNr())
     let t:linny_menu_line = 0
@@ -214,15 +216,20 @@ function! s:partial_files_listing(files_list, view_props, bool_extra_file_info)
     let titles = linny#titlesForDocs(a:files_list)
   end
 
-
   let t_sortable = {}
   let i = 0
-
+  let longest_title_length = 0
+  let margin_count_string = 11
   for k in keys(titles)
+
+    if strchars(k) > longest_title_length
+      let longest_title_length = strchars(k)
+    endif
 
     let entry = {}
     let entry.orgTitle = k
     let entry.orgFile = g:linny_root_path . "/wiki/" . titles[k]
+    let entry.orgBaseFile = titles[k]
 
     if vsort == 'az'
       let t_sortable[tolower(k)] = entry
@@ -237,8 +244,25 @@ function! s:partial_files_listing(files_list, view_props, bool_extra_file_info)
   endfor
 
   let title_keys = sort(keys(t_sortable))
+
   for tk in title_keys
-    call s:add_item_document(t_sortable[tk]['orgTitle'], t_sortable[tk]['orgFile'], '')
+
+    let tasks_stats_str = ''
+    if (a:bool_extra_file_info)
+      let filename = t_sortable[tk]['orgBaseFile']
+      if has_key(t:linny_tasks_count, filename)
+
+        let open = t:linny_tasks_count[filename]['open']
+        let closed = t:linny_tasks_count[filename]['closed']
+        let total = t:linny_tasks_count[filename]['total']
+
+        let tasks_stats_str = '[' . closed .'/'. total .']'
+        let space = repeat(' ',longest_title_length - strchars(t_sortable[tk]['orgTitle'])-strchars(tasks_stats_str) + margin_count_string)
+        let tasks_stats_str = ' ' . space . tasks_stats_str
+      end
+    end
+
+    call s:add_item_document(t_sortable[tk]['orgTitle'] . tasks_stats_str, t_sortable[tk]['orgFile'], '')
   endfor
 
 endfunction
@@ -713,6 +737,8 @@ function! s:menu_level2(term, value)
   let files_in_menu = linny#parse_json_file(linny#l2_index_filepath( a:term, a:value), [])
   let view_props = linny_menu#menu_current_view_props(active_view, views_list, views)
   let files_index = linny#parse_json_file(g:linny_index_path . '/_index_docs_with_props.json',[])
+
+  let t:linny_tasks_count = linny#parse_json_file(g:linny_index_path . '/_index_docs_tasks_count.json',{})
 
   let files_menu = {}
 
@@ -1781,7 +1807,7 @@ function! Menu_expand(item) abort
 
     if item.mode == 0
       if index == 0
-        if strlen(a:item.key)== 1
+        if strchars(a:item.key)== 1
           let extra_indent = ' '
         end
 
@@ -1851,7 +1877,7 @@ function! Slimit(text, limit, col)
   if size < a:limit
     return a:text
   endif
-  if strlen(a:text) == size || has('patch-7.4.2000') == 0
+  if strchars(a:text) == size || has('patch-7.4.2000') == 0
     return strpart(a:text, 0, a:limit - 1)
   endif
   let text = strcharpart(a:text, 0, a:limit)
