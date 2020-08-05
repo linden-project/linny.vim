@@ -7,18 +7,6 @@
 "
 "======================================================================
 
-"----------------------------------------------------------------------
-" Global Options
-"----------------------------------------------------------------------
-
-call linny_util#initVariable("g:linny_menu_max_width", 50)
-call linny_util#initVariable("g:linny_menu_padding_left", 3)
-call linny_util#initVariable("g:linny_menu_padding_right", 3)
-call linny_util#initVariable("g:linny_menu_options", 'T')
-call linny_util#initVariable("g:linny_menu_display_docs_count", 1)
-call linny_util#initVariable("g:linny_menu_display_taxo_count", 1)
-call linny_util#initVariable("g:linnytabnr", 1)
-call linny_util#initVariable("g:linny_debug", 1)
 
 let t:linny_menu_items = []
 let t:linny_tasks_count = {}
@@ -1044,7 +1032,7 @@ function! s:add_item_external_location(title, location)
   let item = s:item_default()
   let item.text = a:title
   let item.mode = 0
-  let item.event = ":!open '". a:location."'"
+  let item.event = "openexternal ". a:location
 
   call s:append_to_items(item)
 
@@ -1591,18 +1579,16 @@ function! <SID>linny_menu_execute(index) abort
         endif
 
       elseif item.event[0] != '='
+
         if item.event =~ "linny_menu#openterm"
           exec item.event
-        elseif item.event =~ "!open"
+
+        elseif item.event =~ "openexternal"
           if item.event =~ "file:///"
             let dirstring = split(item.event, "file://")
-
-            if !filereadable(dirstring[1])
-              silent exe "!mkdir -p '".dirstring[1]
-            endif
+            call linny_fs#dir_create_if_path_not_exist(dirstring[1])
+            call linny_fs#os_open_dir_in_filemanager(dirstring[1])
           endif
-
-          silent exec item.event
         else
 
           let currentwidth = t:linny_menu_lastmaxsize

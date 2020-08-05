@@ -1,19 +1,15 @@
-function! s:initVariable(var, value)
-  if !exists(a:var)
-    exec 'let ' . a:var . ' = ' . "'" . a:value . "'"
-    return 1
-  endif
-  return 0
-endfunction
-
-call s:initVariable("s:startWord", '[[')
-call s:initVariable("s:endWord", ']]')
-call s:initVariable("s:startLink", '(')
-call s:initVariable("s:endLink", ')')
-call s:initVariable("s:spaceReplaceChar", '_')
-
-call s:initVariable("s:lastPosLine", 0)
-call s:initVariable("s:lastPosCol", 0)
+"function! s:initVariable(var, value)
+"  if !exists(a:var)
+"    exec 'let ' . a:var . ' = ' . "'" . a:value . "'"
+"    return 1
+"  endif
+"  return 0
+"endfunction
+"
+"call s:initVariable("s:lastPosLine", 0)
+"call s:initVariable("s:lastPosCol", 0)
+let s:lastPosLine = 0
+let s:lastPosCol = 0
 
 function! linny_wiki#wikiWordHasTag(word)
   for tagKey in keys(g:linny_wikitags_register)
@@ -117,11 +113,11 @@ function! linny_wiki#WordFilename(word)
     " strip leading and trailing spaces
     let word = substitute(a:word, '^\s*\(.\{-}\)\s*$', '\1', '')
     "substitute spaces by spaceReplaceChar
-    let word = substitute(word, '\s', s:spaceReplaceChar, 'g')
+    let word = substitute(word, '\s', g:spaceReplaceChar, 'g')
 
     "substitute other illegal chars
-    let word = substitute(word, '\/', s:spaceReplaceChar, 'g')
-    let word = substitute(word, ':', s:spaceReplaceChar, 'g')
+    let word = substitute(word, '\/', g:spaceReplaceChar, 'g')
+    let word = substitute(word, ':', g:spaceReplaceChar, 'g')
 
     let cur_file_name = bufname("%")
     let extension = 'md'
@@ -274,8 +270,8 @@ endfunction
 function! linny_wiki#FindWordPos()
   let origPos = getpos('.')
   let newPos = origPos
-  let endPos = searchpos(s:endWord, 'W', line('.'))
-  let startPos = searchpos(s:startWord, 'bW', line('.'))
+  let endPos = searchpos(g:endWord, 'W', line('.'))
+  let startPos = searchpos(g:startWord, 'bW', line('.'))
 
   if (startPos[0] != 0 )
     let newcolpos = col('.') + 1
@@ -294,7 +290,7 @@ function! linny_wiki#GetWord()
   let wordPos = linny_wiki#FindWordPos()
   if (wordPos != getpos('.'))
     let ok = cursor(wordPos[1], wordPos[2])
-    let word = linny_wiki#StrBetween(s:startWord, s:endWord)
+    let word = linny_wiki#StrBetween(g:startWord, g:endWord)
   endif
   return word
 endfunction
@@ -305,12 +301,12 @@ endfunction
 function! linny_wiki#FindLinkPos()
   let origPos = getpos('.')
   let newPos = origPos
-  let startPos = searchpos(s:startWord, 'bW', line('.'))
-  let endPos = searchpos(s:endWord, 'W', line('.'))
+  let startPos = searchpos(g:startWord, 'bW', line('.'))
+  let endPos = searchpos(g:endWord, 'W', line('.'))
 
   if (startPos[0] != 0)
     let nextchar = matchstr(getline('.'), '\%' . (col('.')+1) . 'c.')
-    if (nextchar == s:startLink)
+    if (nextchar == g:startLink)
       let newcolpos = col('.') + 2
       if (newcolpos == origPos[2])
         let newcolpos = newcolpos + 1
@@ -329,7 +325,7 @@ function! linny_wiki#GetLink()
   let linkPos = linny_wiki#FindLinkPos()
   if (linkPos != getpos('.'))
     let ok = cursor(linkPos[1], linkPos[2])
-    let link = linny_wiki#StrBetween(s:startLink, s:endLink)
+    let link = linny_wiki#StrBetween(g:startLink, g:endLink)
   endif
   return link
 endfunction

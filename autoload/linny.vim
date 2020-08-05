@@ -9,6 +9,29 @@ call linny_util#initVariable("g:linny_path_dbindex", '~/.linny/index')
 call linny_util#initVariable("g:linny_path_uistate", '~/.linny/state')
 call linny_util#initVariable("g:linny_index_cli_command", 'cd $HOME/.vim/linny-script/ && rvm 2.5.1 do ruby ./make_wiki_index.rb')
 
+"----------------------------------------------------------------------
+" Wik Options
+"----------------------------------------------------------------------
+
+call linny_util#initVariable("g:startWord", '[[')
+call linny_util#initVariable("g:endWord", ']]')
+call linny_util#initVariable("g:startLink", '(')
+call linny_util#initVariable("g:endLink", ')')
+call linny_util#initVariable("g:spaceReplaceChar", '_')
+
+"----------------------------------------------------------------------
+" Global Options
+"----------------------------------------------------------------------
+
+call linny_util#initVariable("g:linny_menu_max_width", 50)
+call linny_util#initVariable("g:linny_menu_padding_left", 3)
+call linny_util#initVariable("g:linny_menu_padding_right", 3)
+call linny_util#initVariable("g:linny_menu_options", 'T')
+call linny_util#initVariable("g:linny_menu_display_docs_count", 1)
+call linny_util#initVariable("g:linny_menu_display_taxo_count", 1)
+call linny_util#initVariable("g:linnytabnr", 1)
+call linny_util#initVariable("g:linny_debug", 1)
+
 function! linny#Init()
 
   let g:linny_root_path = expand(g:linny_path_dbroot)
@@ -63,18 +86,6 @@ function! linny#fatal_check_dir(path)
   endif
 endfunction
 
-
-function! s:initVariable(var, value)
-  if !exists(a:var)
-    exec 'let ' . a:var . ' = ' . "'" . a:value . "'"
-    return 1
-  endif
-  return 0
-endfunction
-
-call s:initVariable("s:spaceReplaceChar", '_')
-
-"utility
 function! linny#FilenameToWikiLink(filename)
 
   let filename = linny#FilenameToWord(a:filename)
