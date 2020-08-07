@@ -961,7 +961,7 @@ function! s:add_item_document(title, abs_path, keyboard_key)
   let item.option_type = 'document'
   let item.option_data.abs_path = a:abs_path
   let item.text = a:title
-  let item.event = ":botright vs ". a:abs_path
+  let item.event = ":keepalt botright vs ". a:abs_path
   call s:append_to_items(item)
 endfunction
 
