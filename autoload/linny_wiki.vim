@@ -1,13 +1,3 @@
-"function! s:initVariable(var, value)
-"  if !exists(a:var)
-"    exec 'let ' . a:var . ' = ' . "'" . a:value . "'"
-"    return 1
-"  endif
-"  return 0
-"endfunction
-"
-"call s:initVariable("s:lastPosLine", 0)
-"call s:initVariable("s:lastPosCol", 0)
 let s:lastPosLine = 0
 let s:lastPosCol = 0
 
@@ -355,6 +345,8 @@ function! linny_wiki#GenerateFirstContent(wikiTitle,fileLinesIn)
     let fileLines = []
     call add(fileLines, '---')
     call add(fileLines, 'title: "'.a:wikiTitle.'"')
+    call add(fileLines, 'crdate: "'.strftime("%Y-%m-%d").'"')
+
     call add(fileLines, '---')
     call add(fileLines, '')
   endif
@@ -382,8 +374,6 @@ function! linny_wiki#GotoLinkMain(withCTRL, openInNewTab)
     if(tag != '')
       call linny_wiki#executeWikitagAction(word, tag, a:withCTRL)
     else
-
-
 
       let strCmd = ""
       let fileLines = []

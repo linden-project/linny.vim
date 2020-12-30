@@ -1,10 +1,16 @@
-
 # Changelog Linny.vim
 
-# 0.5.1.5 - 19 feb 2020
+## 0.5.5 30 december 2020
+- force extra space for wikitags
+
+## 0.5.4
+- keepalt file fix
+- open dir working in Linux
+
+## 0.5.1.5 - 19 feb 2020
 - toon open doenitems in linny menu
 
-# 0.5.1.5 - 17 feb 2020
+## 0.5.1.5 - 17 feb 2020
 - uitlijning Linny items
 - maak WIKITAG DIR
 - maak WIKITAG FILE
