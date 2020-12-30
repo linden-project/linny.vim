@@ -59,7 +59,7 @@ function! linny#RegisterLinnyWikitag(tagKey, primaryAction, secondaryAction)
   if has_key(g:linny_wikitags_register, a:tagKey)
     return
   else
-    let g:linny_wikitags_register[toupper(a:tagKey)] = {'primaryAction': a:primaryAction, 'secondaryAction': a:secondaryAction}
+    let g:linny_wikitags_register[toupper(a:tagKey).' '] = {'primaryAction': a:primaryAction, 'secondaryAction': a:secondaryAction}
   endif
 endfunction
 
