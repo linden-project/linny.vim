@@ -5,12 +5,13 @@ let g:loaded_linny_autoload = 1
 
 " MAIN CONF SETTINGS
 call linny_util#initVariable("g:linny_path_dbroot", '~/Linny')
+call linny_util#initVariable("g:linny_index_version", 'linden01')
 call linny_util#initVariable("g:linny_path_dbindex", '~/.linny/index')
 call linny_util#initVariable("g:linny_path_uistate", '~/.linny/state')
 call linny_util#initVariable("g:linny_index_cli_command", 'cd $HOME/.vim/linny-script/ && rvm 2.5.1 do ruby ./make_wiki_index.rb')
 
 "----------------------------------------------------------------------
-" Wik Options
+" Wiki Options
 "----------------------------------------------------------------------
 
 call linny_util#initVariable("g:startWord", '[[')
@@ -290,11 +291,19 @@ endfunction
 
 
 function! linny#l1_index_filepath(tax)
-  return g:linny_index_path . '/L1-INDEX-TAX-'.tolower(a:tax).'.json'
+  if g:linny_index_version == "linden02"
+    return g:linny_index_path . '/'.tolower(a:tax).'/index.json'
+  else
+    return g:linny_index_path . '/L1-INDEX-TAX-'.tolower(a:tax).'.json'
+  endif
 endfunction
 
 function! linny#l2_index_filepath(tax, term)
-  return g:linny_index_path . '/L2-INDEX-TAX-'.tolower(a:tax).'-TRM-'.tolower(a:term).'.json'
+  if g:linny_index_version == "linden02"
+    return g:linny_index_path . '/'.tolower(a:tax).'/'.substitute(tolower(a:term),' ','-','g').'/index.json'
+  else
+    return g:linny_index_path . '/L2-INDEX-TAX-'.tolower(a:tax).'-TRM-'.tolower(a:term).'.json'
+  endif
 endfunction
 
 function! linny#l1_config_filepath(tax)
