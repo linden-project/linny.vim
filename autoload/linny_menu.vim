@@ -401,10 +401,10 @@ function! s:menu_level1(term)
         end
       else
 
-        if !has_key(term_menu,'Documents')
-          let term_menu['Documents'] = []
+        if !has_key(term_menu,'Terms')
+          let term_menu['Terms'] = []
         end
-        call add(term_menu['Documents'], val)
+        call add(term_menu['Terms'], val)
 
       endif
     endif
@@ -441,6 +441,8 @@ function! s:partial_debug_info()
   call s:add_item_text("t:linny_menu_name = ".t:linny_menu_name)
   call s:add_item_text("t:linny_menu_taxonomy = ".t:linny_menu_taxonomy)
   call s:add_item_text("t:linny_menu_term = ".t:linny_menu_term)
+  call s:add_item_text("g:linny_index_version = ".g:linny_index_version)
+  call s:add_item_text("g:linny_index_path = ".g:linny_index_path)
   call s:add_item_text("Loading time = ".t:linny_load_time)
 endfunction
 
