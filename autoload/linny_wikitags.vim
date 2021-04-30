@@ -41,7 +41,6 @@ function! linny_wikitags#linny(innertag)
   else
       call linny_menu#openterm(trim(a:innertag),'')
   endif
-
 endfunction
 
 " VIM PRIMARY

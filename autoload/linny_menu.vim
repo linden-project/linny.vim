@@ -13,6 +13,7 @@ let t:linny_tasks_count = {}
 let t:linny_menu_cursor = 0
 let t:linny_menu_line = 0
 let t:linny_menu_lastmaxsize = 0
+let t:linny_menu_view = ""
 let t:linny_menu_taxonomy = ""
 let t:linny_menu_term = ""
 let t:linny_menu_current_menu_type = "not_set"
@@ -28,6 +29,7 @@ function! linny_menu#tabInitState()
     let t:linny_menu_name = '[linny_menu]'.string(NewLinnyTabNr())
     let t:linny_menu_line = 0
     let t:linny_menu_lastmaxsize = 0
+    let t:linny_menu_view = ""
     let t:linny_menu_taxonomy = ""
     let t:linny_menu_term = ""
   endif
@@ -125,9 +127,9 @@ function! Window_open(size)
 endfunc
 
 
-function! linny_menu#recent_files()
+function! linny_menu#recent_files(number)
   let files = []
-  let files = systemlist('ls -1t '.g:linny_path_wiki_content.' | grep -ve "^index.*" | head -5')
+  let files = systemlist('ls -1t '.g:linny_path_wiki_content.' | grep -ve "^index.*" | head -' . a:number)
   return files
 endfunction
 
@@ -278,11 +280,13 @@ function! linny_menu#widget_starred_terms(widgetconf)
 endfunction
 
 function! linny_menu#widget_starred_taxonomies(widgetconf)
+
   let index_keys_list = linny#parse_json_file(g:linny_index_path . '/_index_taxonomies.json', [])
+
   for k in sort(index_keys_list)
-    let tax_config = linny#index_tax_config(k)
-    if has_key(tax_config, 'top_level')
-      let top_level = get(tax_config, 'top_level')
+    let tax_config = linny#tax_config(k)
+    if has_key(tax_config, 'starred')
+      let top_level = get(tax_config, 'starred')
       if top_level
         call s:add_item_document_taxo_key(k)
       endif
@@ -298,22 +302,41 @@ function! linny_menu#widget_all_taxonomies(widgetconf)
 endfunction
 
 function! linny_menu#widget_recently_modified_documents(widgetconf)
-  let recent = linny_menu#recent_files()
+
+  let number = 5
+  if has_key(a:widgetconf, 'number')
+    let number = a:widgetconf['number']
+  end
+
+  let recent = linny_menu#recent_files(number)
   call s:partial_files_listing( recent , {'sort':'date'}, 0)
+endfunction
+
+function! linny_menu#widget_menu(widgetconf)
+  for item in a:widgetconf['items']
+    if has_key(item, 'execute')
+      call s:add_item_ex_event(item['title'], item['execute'], '')
+    endif
+  endfor
 endfunction
 
 " END VIEW WIDGETS
 
 function! linny_menu#render_view(view_name)
-  let root_view_config = linny#view_config(a:view_name)
-  if has_key(root_view_config, 'widgets')
-    let widgets = get(root_view_config,'widgets')
+  let view_config = linny#view_config(a:view_name)
+  if has_key(view_config, 'widgets')
+    let widgets = get(view_config,'widgets')
     for widget in widgets
 
-      call s:add_item_section("# ". widget['title'])
+      if has_key(widget, 'hidden') && widget['hidden']
+        continue
+      endif
 
+      call s:add_item_section("# ". widget['title'])
       if widget['type'] == "starred_documents"
         call linny_menu#widget_starred_documents(widget)
+      elseif widget['type'] == "menu"
+        call linny_menu#widget_menu(widget)
       elseif widget['type'] == "starred_terms"
         call linny_menu#widget_starred_terms(widget)
       elseif widget['type'] == "starred_taxonomies"
@@ -328,77 +351,40 @@ function! linny_menu#render_view(view_name)
 
     endfor
   endif
-endfunction
-
-function! s:menu_level0()
-
-  let t:linny_menu_current_menu_type = "menu_level0"
-
-  call linny_menu#reset()
-
-  "create root, walk widgets
-  call linny_menu#render_view('root')
-
-"  call s:add_item_section("# Starred documents")
-  "let starred = linny_menu#starred_docs()
-"  call s:partial_files_listing( starred, {'sort':'az'}, 0)
-
-"  call s:add_item_section("# Starred terms")
-"  let starred = linny_menu#starred_terms()
-"  let starred_list = {}
-
-"  for i in starred
-"    let starred_list[i['taxonomy'].','.i['term']] = i
-"  endfor
-
-"  for sk in sort(keys(starred_list))
-"    call s:add_item_document_taxo_key_val(starred_list[sk]['taxonomy'], starred_list[sk]['term'], 1)
-"  endfor
-
-"  call s:add_item_section("# Taxonomies")
-
-  "let index_keys_list = linny#parse_json_file(g:linny_index_path . '/_index_taxonomies.json', [])
-  "for k in sort(index_keys_list)
-    "let tax_config = linny#index_tax_config(k)
-    "if has_key(tax_config, 'top_level')
-      "let top_level = get(tax_config, 'top_level')
-      "if top_level
-        "call s:add_item_document_taxo_key(k)
-      "endif
-    "end
-  "endfor
-
-"  call s:add_item_section("# Recently modifies documents")
-  "let recent = linny_menu#recent_files()
-  "call s:partial_files_listing( recent , {'sort':'date'}, 0)
 
   call s:add_item_section("# Configuration")
-  call s:add_item_document("index configuration", g:linny_path_wiki_config ."/L0-CONF-ROOT.yml", 'c')
+  call s:add_item_document("Edit this view", g:linny_path_wiki_config ."/views/".a:view_name.".yml", 'c')
 
 endfunction
 
-function! s:menu_level1(term)
+function! s:menu_level0(view_name)
+  let t:linny_menu_current_menu_type = "menu_level0"
+  call linny_menu#reset()
+  call linny_menu#render_view(a:view_name)
+endfunction
+
+function! s:menu_level1(tax)
 
   let t:linny_menu_current_menu_type = "menu_level1"
 
-  let term_config = linny#index_tax_config(a:term)
-  let term_plural = a:term
-  if has_key(term_config, 'plural')
-    let term_plural = get(term_config, 'plural')
+  let tax_config = linny#tax_config(a:tax)
+
+  let tax_plural = a:tax
+  if has_key(tax_config, 'plural')
+    let tax_plural = get(tax_config, 'plural')
   end
-  let l1_config = linny#taxConfig(a:term)
 
   call linny_menu#reset()
   call s:add_item_special_event("/  <home>", "home", '0')
   call s:add_item_special_event(".. <up>", "home", 'u')
-  call s:add_item_section("# " . toupper(term_plural) )
+  call s:add_item_section("# " . toupper(tax_plural) )
   call s:add_item_divider()
 
   let views_string = ""
-  let views_list = linny_menu#get_views_list(l1_config)
-  let views = linny_menu#get_views(l1_config)
+  let views_list = linny_menu#get_views_list(tax_config)
+  let views = linny_menu#get_views(tax_config)
 
-  let l1_state = linny_menu#termLeafState(a:term)
+  let l1_state = linny_menu#termLeafState(a:tax)
   let active_view = linny_menu#menu_get_active_view(l1_state)
 
   if len(views) < 3 && !has_key(views,'NONE')
@@ -434,15 +420,15 @@ function! s:menu_level1(term)
 
   let group_by = ''
 
-  if has_key(l1_config, 'views')
-    let views = get(l1_config, 'views')
+  if has_key(tax_config, 'views')
+    let views = get(tax_config, 'views')
     let views_list = keys(views)
     if has_key(views[views_list[0]], 'group_by' )
       let group_by = get(views[views_list[0]], 'group_by')
     end
   end
 
-  let termslistDict = linny#parse_json_file( linny#l1_index_filepath(a:term), [] )
+  let termslistDict = linny#parse_json_file( linny#l1_index_filepath(a:tax), [] )
   let termslist = keys(termslistDict)
 
   let term_menu = {}
@@ -485,7 +471,7 @@ function! s:menu_level1(term)
     call s:add_item_section("### " . linny_menu#string_capitalize(group) )
 
     for val in term_menu[group]
-      call s:add_item_document_taxo_key_val(a:term, val, 0)
+      call s:add_item_document_taxo_key_val(a:tax, val, 0)
     endfor
 
   endfor
@@ -495,10 +481,10 @@ function! s:menu_level1(term)
 
   call s:add_item_section("### " . toupper('Configuration'))
 
-  if filereadable(linny#l1_config_filepath(a:term))
-    call s:add_item_document("Open ". a:term." Config", linny#l1_config_filepath(a:term),'c')
+  if filereadable(linny#l1_config_filepath(a:tax))
+    call s:add_item_document("Open ". a:tax." Config", linny#l1_config_filepath(a:tax),'c')
   else
-    call s:add_item_special_event("Create ". a:term." Config", "createl1config", 'C')
+    call s:add_item_special_event("Create ". a:tax." Config", "createl1config", 'C')
   endif
 
 
@@ -511,6 +497,7 @@ function! s:partial_debug_info()
   call s:add_item_text("t:linny_menu_name = ".t:linny_menu_name)
   call s:add_item_text("t:linny_menu_taxonomy = ".t:linny_menu_taxonomy)
   call s:add_item_text("t:linny_menu_term = ".t:linny_menu_term)
+  call s:add_item_text("t:linny_menu_view = ".t:linny_menu_view)
   call s:add_item_text("g:linny_index_version = ".g:linny_index_version)
   call s:add_item_text("g:linny_index_path = ".g:linny_index_path)
   call s:add_item_text("Loading time = ".t:linny_load_time)
@@ -544,7 +531,7 @@ function! linny_menu#cycle_l1_view(direction)
 
   let state = linny_menu#termLeafState(t:linny_menu_taxonomy)
   let active_view = linny_menu#menu_get_active_view(state)
-  let config = linny#taxConfig(t:linny_menu_taxonomy)
+  let config = linny#tax_config(t:linny_menu_taxonomy)
   let views = linny_menu#get_views_list(config)
 
   let newstate = linny_menu#new_active_view(state, views, a:direction, active_view)
@@ -567,7 +554,7 @@ function! linny_menu#dropdown_l1_view()
 
   let state = linny_menu#termLeafState(t:linny_menu_taxonomy)
   let active_view = linny_menu#menu_get_active_view(state)
-  let config = linny#taxConfig(t:linny_menu_taxonomy)
+  let config = linny#tax_config(t:linny_menu_taxonomy)
   let views = linny_menu#get_views_list(config)
 
   call popup_create(views, #{
@@ -602,7 +589,7 @@ function! linny_menu#dropdown_l2_view()
 
   let state = linny_menu#termValueLeafState(t:linny_menu_taxonomy, t:linny_menu_term)
   let active_view = linny_menu#menu_get_active_view(state)
-  let config = linny#termConfig(t:linny_menu_taxonomy, t:linny_menu_term)
+  let config = linny#term_config(t:linny_menu_taxonomy, t:linny_menu_term)
   let views = linny_menu#get_views_list(config)
 
   call popup_create(views, #{
@@ -627,7 +614,7 @@ function! linny_menu#cycle_l2_view(direction)
   let state = linny_menu#termValueLeafState(t:linny_menu_taxonomy, t:linny_menu_term)
 
   let active_view = linny_menu#menu_get_active_view(state)
-  let config = linny#termConfig(t:linny_menu_taxonomy, t:linny_menu_term)
+  let config = linny#term_config(t:linny_menu_taxonomy, t:linny_menu_term)
   let views = linny_menu#get_views_list(config)
 
   let newstate = linny_menu#new_active_view(state, views, a:direction, active_view)
@@ -739,26 +726,27 @@ function! linny_menu#calcActiveViewArrow(views_list, active_view, padding_left)
 
 endfunction
 
-function! s:menu_level2(term, value)
+function! s:menu_level2(tax, term)
 
   let t:linny_menu_current_menu_type = "menu_level2"
 
   let infotext =''
   let group_by =''
 
-  let l2_config = linny#termConfig(a:term, a:value)
+  let l2_config = linny#term_config(a:tax, a:term)
 
-  let term_config = linny#index_tax_config(a:term)
-  let term_plural = a:term
-  if has_key(term_config, 'plural')
-    let term_plural = get(term_config, 'plural')
+  let tax_config = linny#tax_config(a:tax)
+
+  let tax_plural = a:tax
+  if has_key(tax_config, 'plural')
+    let tax_plural = get(tax_config, 'plural')
   end
 
   call linny_menu#reset()
 
   call s:add_item_special_event("/  <home>", "home", '0')
-  call s:add_item_ex_event(".. <up> ". term_plural, ":call linny_menu#openterm('".a:term."','')", 'u')
-  call s:add_item_section("# " . toupper(a:term) . ' : ' . toupper(a:value))
+  call s:add_item_ex_event(".. <up> ". tax_plural, ":call linny_menu#openterm('".a:tax."','')", 'u')
+  call s:add_item_section("# " . toupper(a:tax) . ' : ' . toupper(a:term))
 
   call s:add_item_divider()
 
@@ -770,7 +758,7 @@ function! s:menu_level2(term, value)
   let views_string = ""
   let views_list = linny_menu#get_views_list(l2_config)
   let views = linny_menu#get_views(l2_config)
-  let l2_state = linny_menu#termValueLeafState(a:term, a:value)
+  let l2_state = linny_menu#termValueLeafState(a:tax, a:term)
   let active_view = linny_menu#menu_get_active_view(l2_state)
 
   if len(views) <=3 && !has_key(views,'NONE')
@@ -796,7 +784,7 @@ function! s:menu_level2(term, value)
 
   endif
 
-  let files_in_menu = linny#parse_json_file(linny#l2_index_filepath( a:term, a:value), [])
+  let files_in_menu = linny#parse_json_file(linny#l2_index_filepath( a:tax, a:term), [])
   let view_props = linny_menu#menu_current_view_props(active_view, views_list, views)
   let files_index = linny#parse_json_file(g:linny_index_path . '/_index_docs_with_props.json',[])
 
@@ -867,10 +855,10 @@ function! s:menu_level2(term, value)
 
   call s:add_item_section("### " . toupper('Configuration'))
 
-  if filereadable(linny#l2_config_filepath(a:term, a:value))
-    call s:add_item_document("Open ". a:term." ".a:value." Config", linny#l2_config_filepath(a:term, a:value),'c')
+  if filereadable(linny#l2_config_filepath(a:tax, a:term))
+    call s:add_item_document("Open ". a:tax." ".a:term." Config", linny#l2_config_filepath(a:tax, a:term),'c')
   else
-    call s:add_item_special_event("Create ". a:term." ".a:value." Config", "createl2config", 'c')
+    call s:add_item_special_event("Create ". a:tax." ".a:term." Config", "createl2config", 'c')
   endif
 
   call s:add_item_empty_line()
@@ -1157,6 +1145,14 @@ endfunction
 function! linny_menu#openterm(taxonomy, taxo_term) abort
   let t:linny_menu_taxonomy = a:taxonomy
   let t:linny_menu_term = a:taxo_term
+  let t:linny_menu_view = ''
+  call linny_menu#openandshow()
+endfunction
+
+function! linny_menu#openview(view_name) abort
+  let t:linny_menu_taxonomy = ''
+  let t:linny_menu_term = ''
+  let t:linny_menu_view = a:view_name
   call linny_menu#openandshow()
 endfunction
 
@@ -1164,14 +1160,17 @@ function! linny_menu#openandshow() abort
 
   let t:linny_start_load_time = localtime()
 
-  if t:linny_menu_taxonomy!="" && t:linny_menu_term!=""
+  if t:linny_menu_view != ""
+    call s:menu_level0(t:linny_menu_view)
+
+  elseif t:linny_menu_taxonomy!="" && t:linny_menu_term!=""
     call s:menu_level2(t:linny_menu_taxonomy, t:linny_menu_term)
 
   elseif t:linny_menu_taxonomy!="" && t:linny_menu_term==""
     call s:menu_level1(t:linny_menu_taxonomy)
 
   elseif t:linny_menu_taxonomy=="" && t:linny_menu_term==""
-    call s:menu_level0()
+    call s:menu_level0('root')
   endif
 
   call s:partial_footer_items()
@@ -1758,7 +1757,7 @@ function! linny_menu#new_document_in_leaf(...)
       let entry['value'] = t:linny_menu_term
       call add(taxoEntries, entry)
 
-      let config = linny#termConfig(t:linny_menu_taxonomy, t:linny_menu_term)
+      let config = linny#term_config(t:linny_menu_taxonomy, t:linny_menu_term)
       if has_key(config, 'frontmatter_template')
         let fm_template = get(config,'frontmatter_template')
         if(type(fm_template)==4)

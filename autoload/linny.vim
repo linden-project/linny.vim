@@ -224,7 +224,7 @@ func! linny#browse_taxonomy_terms()
 endfunc
 
 func! linny#taxTermTitle(tax, term)
-  let l2_config = linny#termConfig(a:tax, a:term)
+  let l2_config = linny#term_config(a:tax, a:term)
   if has_key(l2_config, 'title')
     return get(l2_config, 'title')
   else
@@ -355,12 +355,12 @@ function! linny#view_config(view_name)
   return config
 endfunction
 
-function! linny#taxConfig(tax)
+function! linny#tax_config(tax)
   let config = linny#parse_yaml_to_dict( linny#l1_config_filepath(a:tax))
   return config
 endfunction
 
-function! linny#termConfig(tax, term)
+function! linny#term_config(tax, term)
   let config = linny#parse_yaml_to_dict( linny#l2_config_filepath(a:tax, a:term))
   return config
 endfunction
