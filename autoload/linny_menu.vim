@@ -127,7 +127,7 @@ endfunc
 
 function! linny_menu#recent_files()
   let files = []
-  let files = systemlist('ls -1t '.g:linny_root_path.'/wiki | grep -ve "^index.*" | head -5')
+  let files = systemlist('ls -1t '.g:linny_path_wiki_content.' | grep -ve "^index.*" | head -5')
   return files
 endfunction
 
@@ -216,13 +216,13 @@ function! s:partial_files_listing(files_list, view_props, bool_extra_file_info)
 
     let entry = {}
     let entry.orgTitle = k
-    let entry.orgFile = g:linny_root_path . "/wiki/" . titles[k]
+    let entry.orgFile = g:linny_path_wiki_content . "/" . titles[k]
     let entry.orgBaseFile = titles[k]
 
     if vsort == 'az'
       let t_sortable[tolower(k)] = entry
     elseif vsort == 'date'
-      let modFileTime = getftime(g:linny_root_path . "/wiki/".titles[k])
+      let modFileTime = getftime(g:linny_path_wiki_content . "/".titles[k])
       let t_sortable[string(99999999999-modFileTime).k] = entry
     else
       let t_sortable[i] = entry
@@ -257,18 +257,14 @@ function! s:partial_files_listing(files_list, view_props, bool_extra_file_info)
 
 endfunction
 
-function! s:menu_level0()
 
-  let t:linny_menu_current_menu_type = "menu_level0"
-
-  call linny_menu#reset()
-
-  call s:add_item_section("# Starred documents")
+" VIEW WIDGETS
+function! linny_menu#widget_starred_documents(widgetconf)
   let starred = linny_menu#starred_docs()
-
   call s:partial_files_listing( starred, {'sort':'az'}, 0)
+endfunction
 
-  call s:add_item_section("# Starred terms")
+function! linny_menu#widget_starred_terms(widgetconf)
   let starred = linny_menu#starred_terms()
   let starred_list = {}
 
@@ -279,31 +275,105 @@ function! s:menu_level0()
   for sk in sort(keys(starred_list))
     call s:add_item_document_taxo_key_val(starred_list[sk]['taxonomy'], starred_list[sk]['term'], 1)
   endfor
+endfunction
 
-  call s:add_item_section("# Taxonomies")
-
+function! linny_menu#widget_starred_taxonomies(widgetconf)
   let index_keys_list = linny#parse_json_file(g:linny_index_path . '/_index_taxonomies.json', [])
   for k in sort(index_keys_list)
-    let term_config = linny#index_tax_config(k)
-    if has_key(term_config, 'top_level')
-      let top_level = get(term_config, 'top_level')
+    let tax_config = linny#index_tax_config(k)
+    if has_key(tax_config, 'top_level')
+      let top_level = get(tax_config, 'top_level')
       if top_level
         call s:add_item_document_taxo_key(k)
       endif
     end
   endfor
+endfunction
 
-  call s:add_item_section("# All documents")
-  call s:add_item_document("Sorted A-Z", g:linny_root_path ."/wiki/index.md", 'a')
-  "call s:add_item_document("Sorted NEW-OLD", g:linny_root_path ."/wiki/index.md", 'a')
+function! linny_menu#widget_all_taxonomies(widgetconf)
+  let index_keys_list = linny#parse_json_file(g:linny_index_path . '/_index_taxonomies.json', [])
+  for k in sort(index_keys_list)
+    call s:add_item_document_taxo_key(k)
+  endfor
+endfunction
 
-
-  call s:add_item_section("# Recently modifies documents")
+function! linny_menu#widget_recently_modified_documents(widgetconf)
   let recent = linny_menu#recent_files()
   call s:partial_files_listing( recent , {'sort':'date'}, 0)
+endfunction
+
+" END VIEW WIDGETS
+
+function! linny_menu#render_view(view_name)
+  let root_view_config = linny#view_config(a:view_name)
+  if has_key(root_view_config, 'widgets')
+    let widgets = get(root_view_config,'widgets')
+    for widget in widgets
+
+      call s:add_item_section("# ". widget['title'])
+
+      if widget['type'] == "starred_documents"
+        call linny_menu#widget_starred_documents(widget)
+      elseif widget['type'] == "starred_terms"
+        call linny_menu#widget_starred_terms(widget)
+      elseif widget['type'] == "starred_taxonomies"
+        call linny_menu#widget_starred_taxonomies(widget)
+      elseif widget['type'] == "all_taxonomies"
+        call linny_menu#widget_all_taxonomies(widget)
+      elseif widget['type'] == "recently_modified_documents"
+        call linny_menu#widget_recently_modified_documents(widget)
+      else
+        call s:add_item_section("## ERROR unsupported widget type: ". widget['type'])
+      endif
+
+    endfor
+  endif
+endfunction
+
+function! s:menu_level0()
+
+  let t:linny_menu_current_menu_type = "menu_level0"
+
+  call linny_menu#reset()
+
+  "create root, walk widgets
+  call linny_menu#render_view('root')
+
+"  call s:add_item_section("# Starred documents")
+  "let starred = linny_menu#starred_docs()
+"  call s:partial_files_listing( starred, {'sort':'az'}, 0)
+
+"  call s:add_item_section("# Starred terms")
+"  let starred = linny_menu#starred_terms()
+"  let starred_list = {}
+
+"  for i in starred
+"    let starred_list[i['taxonomy'].','.i['term']] = i
+"  endfor
+
+"  for sk in sort(keys(starred_list))
+"    call s:add_item_document_taxo_key_val(starred_list[sk]['taxonomy'], starred_list[sk]['term'], 1)
+"  endfor
+
+"  call s:add_item_section("# Taxonomies")
+
+  "let index_keys_list = linny#parse_json_file(g:linny_index_path . '/_index_taxonomies.json', [])
+  "for k in sort(index_keys_list)
+    "let tax_config = linny#index_tax_config(k)
+    "if has_key(tax_config, 'top_level')
+      "let top_level = get(tax_config, 'top_level')
+      "if top_level
+        "call s:add_item_document_taxo_key(k)
+      "endif
+    "end
+  "endfor
+
+"  call s:add_item_section("# Recently modifies documents")
+  "let recent = linny_menu#recent_files()
+  "call s:partial_files_listing( recent , {'sort':'date'}, 0)
 
   call s:add_item_section("# Configuration")
-  call s:add_item_document("index configuration", g:linny_root_path ."/config/L0-CONF-ROOT.yml", 'c')
+  call s:add_item_document("index configuration", g:linny_path_wiki_config ."/L0-CONF-ROOT.yml", 'c')
 
 endfunction
 
@@ -1258,7 +1328,7 @@ function! linny_menu#RemapGlobalStarredDocs()
   let t_sortable = {}
 
   for k in keys(titles)
-    let t_sortable[tolower(k)] = g:linny_root_path . "/wiki/" . titles[k]
+    let t_sortable[tolower(k)] = g:linny_path_wiki_content . "/" . titles[k]
   endfor
 
   let title_keys = sort(keys(t_sortable))
@@ -1675,7 +1745,7 @@ endfunction
 function! linny_menu#new_document_in_leaf(...)
   let title = join(a:000)
   let fileName = linny_wiki#WordFilename(title)
-  let relativePath = fnameescape(g:linny_root_path . '/wiki/' . fileName)
+  let relativePath = fnameescape(g:linny_path_wiki_content . '/' . fileName)
 
   if !filereadable(relativePath)
     let taxonomy = ''
@@ -1937,34 +2007,3 @@ endfunc
 function! linny_menu#string_capitalize(capstring)
   return toupper(strpart(a:capstring, 0, 1)).strpart(a:capstring,1)
 endfunction
-
-
-"----------------------------------------------------------------------
-" testing case
-"----------------------------------------------------------------------
-if 0
-
-  call linny_menu#reset()
-
-  call linny_menu#append("/  <home>" , "home", "...", '', '' ,'0')
-  call s:add_item_special_event("/  <home>", "home", '0')
-  call linny_menu#append('# Start', '')
-  call s:add_item_section('# Start 2')
-  call linny_menu#append('test1', 'echo 1', 'help 1', '0', '2', '3')
-  call linny_menu#append('test2', 'echo 2', 'help 2')
-
-  call linny_menu#append('# Misc', '')
-  call linny_menu#append('test3', 'echo 3')
-  call linny_menu#append('test4', 'echo 4')
-  call linny_menu#append("test5\nasdfafffff\njkjkj", 'echo 5')
-  call linny_menu#append('text1', '')
-  call linny_menu#append('text2', '')
-  call linny_menu#append("-----------------------------------------", '')
-  call linny_menu#append("some title", ":botright vs ". g:linny_root_path . "/wiki/sometitle.md", "...")
-
-  call s:add_item_document("some title", g:linny_root_path . "/wiki/sometitle.md", '')
-
-  call linny_menu#list()
-endif
-
-

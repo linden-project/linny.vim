@@ -1,14 +1,18 @@
 if exists("g:loaded_linny_autoload")
 "    finish
 endif
+
 let g:loaded_linny_autoload = 1
 
 " MAIN CONF SETTINGS
-call linny_util#initVariable("g:linny_path_dbroot", '~/Linny')
-call linny_util#initVariable("g:linny_index_version", 'linden01')
-call linny_util#initVariable("g:linny_path_dbindex", '~/.linny/index')
-call linny_util#initVariable("g:linny_path_uistate", '~/.linny/state')
-call linny_util#initVariable("g:linny_index_cli_command", 'cd $HOME/.vim/linny-script/ && rvm 2.5.1 do ruby ./make_wiki_index.rb')
+
+call linny_util#initVariable("g:linnycfg_path_index", '~/.linny_temp/index')
+call linny_util#initVariable("g:linnycfg_path_state", '~/.linny_temp/state')
+call linny_util#initVariable("g:linnycfg_rebuild_index_command", '')
+call linny_util#initVariable("g:linnycfg_index_version", 'linden01')
+call linny_util#initVariable("g:linnycfg_debug", 0)
+call linny_util#initVariable("g:linnycfg_path_wiki_content", '~/Linny/wikiContent')
+call linny_util#initVariable("g:linnycfg_path_wiki_config", '~/Linny/wikiConfig')
 
 "----------------------------------------------------------------------
 " Wiki Options
@@ -31,20 +35,28 @@ call linny_util#initVariable("g:linny_menu_options", 'T')
 call linny_util#initVariable("g:linny_menu_display_docs_count", 1)
 call linny_util#initVariable("g:linny_menu_display_taxo_count", 1)
 call linny_util#initVariable("g:linnytabnr", 1)
-call linny_util#initVariable("g:linny_debug", 1)
 
+
+" CONFIG VARS ARE TRANSFERED TO REEGULAR VARS
+" CONFIG IS READ
+" CACHE IS SETUP
 function! linny#Init()
 
-  let g:linny_root_path = expand(g:linny_path_dbroot)
-  let g:linny_state_path = expand(g:linny_path_uistate)
-  let g:linny_index_path = expand(g:linny_path_dbindex)
+  let g:linny_path_wiki_content = expand(g:linnycfg_path_wiki_content)
+  let g:linny_path_wiki_config = expand(g:linnycfg_path_wiki_config)
+
+  let g:linny_state_path = expand(g:linnycfg_path_state)
+  let g:linny_index_path = expand(g:linnycfg_path_index)
+
+  let g:linny_index_version = g:linnycfg_index_version
+  let g:linny_debug = g:linnycfg_debug
 
   let g:linny_wikitags_register = get(g:, 'linny_wikitags_register', {})
   let g:linny_leader = get(g:, 'linny_leader', ';')
 
   call linny#setup_paths()
 
-  let g:linny_index_config = linny#parse_yaml_to_dict( expand( g:linny_root_path .'/config/L0-CONF-ROOT.yml'))
+  let g:linny_index_config = linny#parse_yaml_to_dict( expand( g:linny_path_wiki_config .'/L0-CONF-ROOT.yml'))
 
   call linny#cache_index()
 
@@ -64,9 +76,10 @@ function! linny#RegisterLinnyWikitag(tagKey, primaryAction, secondaryAction)
   endif
 endfunction
 
+" CHECK LINNY WORKING PATHS AND CREATE IF NEEDED
 function! linny#setup_paths()
-
-  call linny#fatal_check_dir(g:linny_root_path)
+  call linny#fatal_check_dir(g:linny_path_wiki_content)
+  call linny#fatal_check_dir(g:linny_path_wiki_config)
 
   call linny#create_dir_if_not_exixt(g:linny_state_path)
   call linny#fatal_check_dir(g:linny_state_path)
@@ -101,7 +114,7 @@ function! linny#FilenameToWord(filename)
 
 endfunction
 
-"user func for mapping
+" USER FUNC FOR MAPPING
 function! linny#FilenameToWordToUnamedRegister()
   let @@ = linny#FilenameToWikiLink( expand('%:t:r') )
 endfunction
@@ -126,13 +139,11 @@ function! linny#new_dir(...)
 endfunction
 
 function! linny#make_index()
-  if exists('g:linny_index_cli_command')
-    execute "!". g:linny_index_cli_command
-
+  if exists('g:linnycfg_rebuild_index_command')
+    execute "!". g:linnycfg_rebuild_index_command
     call linny#cache_index()
-
   else
-    echo "Error: g:linny_index_cli_command not set"
+    echo "Error: g:linnycfg_rebuild_index_command not set"
   endif
 endfunction
 
@@ -222,12 +233,12 @@ func! linny#taxTermTitle(tax, term)
 endfunc
 
 function! linny#grep(...)
-  let awkLinnyGrep = "grep -nri ".'"'.join(a:000).'"'." ". g:linny_root_path ."/wiki | awk -F".'"'.":".'"'." {'gsub(/^[ \t]/, ".'""'.", $3);print $1".'"'.'|"$2"| "$3'."'}"
+  let awkLinnyGrep = "grep -nri ".'"'.join(a:000).'"'." ". g:linny_path_wiki_content ." | awk -F".'"'.":".'"'." {'gsub(/^[ \t]/, ".'""'.", $3);print $1".'"'.'|"$2"| "$3'."'}"
   execute 'AsyncRun! '. awkLinnyGrep
 endfunction
 
 function! linny#move_to(dest)
-  let relativePath = fnameescape( g:linny_root_path . '/wiki/')
+  let relativePath = fnameescape( g:linny_path_wiki_content . '/')
   exec "!mkdir -p ". relativePath ."/".a:dest
   exec "!mv '%' " . relativePath . "/".a:dest."/"
   exec "bdelete"
@@ -291,7 +302,7 @@ endfunction
 
 
 function! linny#l1_index_filepath(tax)
-  if g:linny_index_version == "linden02"
+  if g:linnycfg_index_version == "linden02"
     return g:linny_index_path . '/'.tolower(a:tax).'/index.json'
   else
     return g:linny_index_path . '/L1-INDEX-TAX-'.tolower(a:tax).'.json'
@@ -299,19 +310,23 @@ function! linny#l1_index_filepath(tax)
 endfunction
 
 function! linny#l2_index_filepath(tax, term)
-  if g:linny_index_version == "linden02"
+  if g:linnycfg_index_version == "linden02"
     return g:linny_index_path . '/'.tolower(a:tax).'/'.substitute(tolower(a:term),' ','-','g').'/index.json'
   else
     return g:linny_index_path . '/L2-INDEX-TAX-'.tolower(a:tax).'-TRM-'.tolower(a:term).'.json'
   endif
 endfunction
 
+function! linny#view_config_filepath(view_name)
+  return g:linny_path_wiki_config ."/views/".tolower(a:view_name).'.yml'
+endfunction
+
 function! linny#l1_config_filepath(tax)
-  return g:linny_root_path ."/config/L1-CONF-TAX-".tolower(a:tax).'.yml'
+  return g:linny_path_wiki_config ."/L1-CONF-TAX-".tolower(a:tax).'.yml'
 endfunction
 
 function! linny#l2_config_filepath(tax, term)
-  return g:linny_root_path ."/config/L2-CONF-TAX-".tolower(a:tax).'-TRM-'.tolower(a:term).'.yml'
+  return g:linny_path_wiki_config ."/L2-CONF-TAX-".tolower(a:tax).'-TRM-'.tolower(a:term).'.yml'
 endfunction
 
 function! linny#l1_state_filepath(tax)
@@ -333,6 +348,11 @@ function! linny#index_tax_config(tax)
 
   return {}
 
+endfunction
+
+function! linny#view_config(view_name)
+  let config = linny#parse_yaml_to_dict( linny#view_config_filepath(a:view_name))
+  return config
 endfunction
 
 function! linny#taxConfig(tax)
