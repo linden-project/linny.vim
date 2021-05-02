@@ -1,7 +1,5 @@
 # Linny.vim
 
-![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/linden-project/linny.vim)
-
 Personal wiki and document database powered by markdown and front matter.
 
 # Installation
