@@ -22,11 +22,6 @@ task :release, [:new_version] do |task, args|
   end
 end
 
-desc "create doc/linny.txt"
-task :gen_doc do
-  sh "~/cForks/vim-tools/html2vimdoc/bin/python ~/cForks/vim-tools/html2vimdoc.py --file=Linny ./linny_help_source.md > doc/linny.txt"
-end
-
 desc "test"
 task :test do
   sh "test/run"

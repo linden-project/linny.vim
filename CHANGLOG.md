@@ -1,6 +1,10 @@
 # Changelog Linny.vim
 
-## 0.5.5 30 december 2020
+## 0.6.0 - 2 may 2021
+- Comply with **Linden Specification 0.2**
+- Complete documentation
+
+## 0.5.5 - 30 december 2020
 - force extra space for wikitags
 
 ## 0.5.4
