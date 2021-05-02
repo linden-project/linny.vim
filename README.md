@@ -1,6 +1,8 @@
 # Linny.vim
 
-Personal wiki and document database powered by markdown and front matter.
+Personal wiki and document database powered by Markdown and Front Matter.
+
+![](linny-vim1.gif)
 
 # Installation
 

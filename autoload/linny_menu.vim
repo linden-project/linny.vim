@@ -239,6 +239,7 @@ function! s:partial_files_listing(files_list, view_props, bool_extra_file_info)
     let tasks_stats_str = ''
     if (a:bool_extra_file_info)
       let filename = t_sortable[tk]['orgBaseFile']
+      echom t:linny_tasks_count
       if has_key(t:linny_tasks_count, filename)
 
         let open = t:linny_tasks_count[filename]['open']
