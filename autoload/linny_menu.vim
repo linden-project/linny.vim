@@ -7,7 +7,6 @@
 "
 "======================================================================
 
-
 let t:linny_menu_items = []
 let t:linny_tasks_count = {}
 let t:linny_menu_cursor = 0

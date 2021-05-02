@@ -4,33 +4,34 @@ endif
 
 let g:loaded_linny_autoload = 1
 
+"----------------------------------------------------------------------
 " MAIN CONF SETTINGS
-
+"----------------------------------------------------------------------
 call linny_util#initVariable("g:linnycfg_path_index", '~/.linny_temp/index')
 call linny_util#initVariable("g:linnycfg_path_state", '~/.linny_temp/state')
 call linny_util#initVariable("g:linnycfg_rebuild_index_command", '')
 call linny_util#initVariable("g:linnycfg_index_version", 'linden01')
 call linny_util#initVariable("g:linnycfg_debug", 0)
+call linny_util#initVariable("g:linnycfg_setup_autocommands", 1)
 call linny_util#initVariable("g:linnycfg_path_wiki_content", '~/Linny/wikiContent')
 call linny_util#initVariable("g:linnycfg_path_wiki_config", '~/Linny/wikiConfig')
 
 "----------------------------------------------------------------------
-" Wiki Options
+" NAVIGATOR OPTIONS
 "----------------------------------------------------------------------
+call linny_util#initVariable("g:linny_menu_max_width", 50)
+call linny_util#initVariable("g:linny_menu_padding_left", 3)
+call linny_util#initVariable("g:linny_menu_padding_right", 3)
 
+"----------------------------------------------------------------------
+" Don't modify these
+"----------------------------------------------------------------------
 call linny_util#initVariable("g:startWord", '[[')
 call linny_util#initVariable("g:endWord", ']]')
 call linny_util#initVariable("g:startLink", '(')
 call linny_util#initVariable("g:endLink", ')')
 call linny_util#initVariable("g:spaceReplaceChar", '_')
 
-"----------------------------------------------------------------------
-" Global Options
-"----------------------------------------------------------------------
-
-call linny_util#initVariable("g:linny_menu_max_width", 50)
-call linny_util#initVariable("g:linny_menu_padding_left", 3)
-call linny_util#initVariable("g:linny_menu_padding_right", 3)
 call linny_util#initVariable("g:linny_menu_options", 'T')
 call linny_util#initVariable("g:linny_menu_display_docs_count", 1)
 call linny_util#initVariable("g:linny_menu_display_taxo_count", 1)
@@ -56,7 +57,7 @@ function! linny#Init()
 
   call linny#setup_paths()
 
-  let g:linny_index_config = linny#parse_yaml_to_dict( expand( g:linny_path_wiki_config .'/L0-CONF-ROOT.yml'))
+  "let g:linny_index_config = linny#parse_yaml_to_dict( expand( g:linny_path_wiki_config .'/L0-CONF-ROOT.yml'))
 
   call linny#cache_index()
 
@@ -68,11 +69,13 @@ function! linny#ListTags()
   echom g:linny_wikitags_register
 endfunction
 
-function! linny#RegisterLinnyWikitag(tagKey, primaryAction, secondaryAction)
+function! linny#RegisterLinnyWikitag(tagKey, primaryAction, ...)
+  let secondaryAction = a:0 >= 1 ? a:1 : a:primaryAction
+
   if has_key(g:linny_wikitags_register, a:tagKey)
     return
   else
-    let g:linny_wikitags_register[toupper(a:tagKey).' '] = {'primaryAction': a:primaryAction, 'secondaryAction': a:secondaryAction}
+    let g:linny_wikitags_register[toupper(a:tagKey).' '] = {'primaryAction': a:primaryAction, 'secondaryAction': secondaryAction}
   endif
 endfunction
 
@@ -232,11 +235,6 @@ func! linny#taxTermTitle(tax, term)
   end
 endfunc
 
-function! linny#grep(...)
-  let awkLinnyGrep = "grep -nri ".'"'.join(a:000).'"'." ". g:linny_path_wiki_content ." | awk -F".'"'.":".'"'." {'gsub(/^[ \t]/, ".'""'.", $3);print $1".'"'.'|"$2"| "$3'."'}"
-  execute 'AsyncRun! '. awkLinnyGrep
-endfunction
-
 function! linny#move_to(dest)
   let relativePath = fnameescape( g:linny_path_wiki_content . '/')
   exec "!mkdir -p ". relativePath ."/".a:dest
@@ -302,19 +300,11 @@ endfunction
 
 
 function! linny#l1_index_filepath(tax)
-  if g:linnycfg_index_version == "linden02"
-    return g:linny_index_path . '/'.tolower(a:tax).'/index.json'
-  else
-    return g:linny_index_path . '/L1-INDEX-TAX-'.tolower(a:tax).'.json'
-  endif
+  return g:linny_index_path . '/'.tolower(a:tax).'/index.json'
 endfunction
 
 function! linny#l2_index_filepath(tax, term)
-  if g:linnycfg_index_version == "linden02"
-    return g:linny_index_path . '/'.tolower(a:tax).'/'.substitute(tolower(a:term),' ','-','g').'/index.json'
-  else
-    return g:linny_index_path . '/L2-INDEX-TAX-'.tolower(a:tax).'-TRM-'.tolower(a:term).'.json'
-  endif
+  return g:linny_index_path . '/'.tolower(a:tax).'/'.substitute(tolower(a:term),' ','-','g').'/index.json'
 endfunction
 
 function! linny#view_config_filepath(view_name)
@@ -337,18 +327,18 @@ function! linny#l2_state_filepath(tax, term)
   return g:linny_state_path ."/L2-STATE-TRM-".tolower(a:tax).'-TRM-'.tolower(a:term).'.json'
 endfunction
 
-function! linny#index_tax_config(tax)
-  if has_key(g:linny_index_config, 'index_keys')
-    let index_keys = get(g:linny_index_config,'index_keys')
-    if has_key(index_keys, a:tax)
-      let tax_config = get(index_keys, a:tax)
-      return tax_config
-    endif
-  endif
+"function! linny#index_tax_config(tax)
+  "if has_key(g:linny_index_config, 'index_keys')
+    "let index_keys = get(g:linny_index_config,'index_keys')
+    "if has_key(index_keys, a:tax)
+      "let tax_config = get(index_keys, a:tax)
+      "return tax_config
+    "endif
+  "endif
 
-  return {}
+  "return {}
 
-endfunction
+"endfunction
 
 function! linny#view_config(view_name)
   let config = linny#parse_yaml_to_dict( linny#view_config_filepath(a:view_name))

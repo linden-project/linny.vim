@@ -1,40 +1,103 @@
-*Linny*  A document database powered by front matter and markdown
+*Linny.vim*  A personal wiki database powered by Front matter and Markdown
+
+
 >
   “Everything is connected.”
                                                 - Dirk Gently by Douglas Adams
-<
+
+
 ===============================================================================
 Contents ~
 
- 1. Introduction                                           |Linny-introduction|
- 2. Usage                                                         |Linny-usage|
-  1. Global commands                                    |Linny-global-commands|
-   1. LinnyMenuOpen                                             |linnymenuopen|
-   2. LinnyMenuClose                                           |linnymenuclose|
- 3. Mappings                                                   |Linny-mappings|
-   1. map '<ENTER>'                                           |Linny-map-enter|
- 4. Options                                                     |Linny-options|
- 5. Bugs                                                           |Linny-bugs|
- 6. License                                                     |Linny-license|
- 7. Contributing                                           |Linny-contributing|
- 8. Changelog                                                 |Linny-changelog|
+     1. Introduction                                      |Linny-introduction|
+     2. Setup                                                    |Linny-setup|
+       2.1 Install Linny.vim
+       2.2 Install an indexer
+       2.3 Minimal configuration
+       2.3 Custom wikitags
+     3.1 Global commands                               |Linny-global-commands|
+       3.1.1 LinnyMenuOpen                                     |LinnyMenuOpen|
+       3.1.2 LinnyMenuClose                                   |LinnyMenuClose|
+       3.1.3 LinnyNewDoc                                         |LinnyNewDoc|
+     4. Configuration                                    |Linny-configuration|
+       4.1 Options                                             |Linny-options|
+       4.2 Mappings                                           |Linny-mappings|
+     5. Bugs
+     6. License
+     7. Contributing
+     8. Changelog
 
 ===============================================================================
                                                            *Linny-introduction*
-Introduction ~
+1. Introduction ~
 
-Linny is a personal database powered by front matter and markdown.
+Linny.vim is a personal wiki and document database powered by Front Matter and
+Markdown. Linny.vim needs a Linden Indexer as companion component to work.
 
 ===============================================================================
-                                                                  *Linny-usage*
-Usage ~
+                                                                  *Linny-setup*
+2. Setup ~
 
 -------------------------------------------------------------------------------
+
+2.1 Install linny.vim ~
+
+Use your favorite package manager.
+
+Using vim-plug:
+
+  Plug 'linden-project/linny.vim'
+
+-------------------------------------------------------------------------------
+
+2.2 Install an indexer ~
+
+Linny.vim needs an indexer to work properly.  Currently Carl is the only
+working indexer for Linny.vim >= 0.6. Read the installation guideline of Carl
+at https://github.com/linden-project/carl
+
+-------------------------------------------------------------------------------
+
+2.3 Minimal Configuration ~
+
+Linny.vim needs some minimal configuration to work properly. The order of the
+configuration is important: 1st Global options, 2nd The Linny Init call, 3rd
+Custom wikitags.
+
+Below a minimal setup:
+
+  " 1ST GLOBAL OPTION
+  let g:linnycfg_path_wiki_content     = $HOME . '/MyWiki/wikiContent'
+  let g:linnycfg_path_wiki_config      = $HOME . '/MyWiki/wikiConfig'
+  let g:linnycfg_path_index            = $HOME . '/MyWiki/wikiIndex'
+
+  " 2ND Linny needs to be initialized
+  call linny#Init()
+
+-------------------------------------------------------------------------------
+
+Configure custom wikitags ~
+
+Custom wikitags can be defined after Linny has been initialized.
+
+  " 3RD CUSTOM WIKITAGS
+  function! Linny_open_issue(innertag)
+    execute "!firefox https://github.com/linden-project/linny.vim/issues/" . a:innertag
+  endfunction
+
+  function! Linny_open_issue_in_opera_browser(innertag)
+    execute "!opera https://github.com/linden-project/linny.vim/issues/" . a:innertag
+  endfunction
+
+  "                               WIKITAG NAME  PRIMARY FUNCION     SECONDARY FUNCTION (OPTIONAL)
+  call linny#RegisterLinnyWikitag('LINNYISSUE', 'Linny_open_issue', 'Linny_open_issue_in_opera_browser')
+
+===============================================================================
                                                         *Linny-global-commands*
 Global commands ~
 
 -------------------------------------------------------------------------------
-                                                                *linnymenuopen*
+                                                                *LinnyMenuOpen*
 LinnyMenuOpen ~
 >
   Opens Linny Menu. If current term is set for current tab, the term menu is
@@ -42,31 +105,110 @@ LinnyMenuOpen ~
   When both are unset, the home menu is opened.
 <
 -------------------------------------------------------------------------------
-                                                               *linnymenuclose*
+                                                               *LinnyMenuClose*
 LinnyMenuClose ~
-
+>
 Closes the Linny Menu when opened.
 
+-------------------------------------------------------------------------------
+                                                                  *LinnyNewDoc*
+LinnyNewDoc ~
+>
+Creates a new document in the wiki. If the menu in a term it will add this
+taxonomy and term to the front matter of the document.
+
+Example:
+
+  :LinnyNewDoc My new Document
+
+This creates .../wikiContent/my_new_document.md
+
+
 ===============================================================================
+                                                          *Linny-configuration*
+Configuration ~
+
+-------------------------------------------------------------------------------
                                                                *Linny-mappings*
 Mappings ~
 
+Linny sets some default mappings. See |linnycfg_setup_autocommands| if you can
+skip these default mappings and set them yourself.
+
 -------------------------------------------------------------------------------
-                                                              *Linny-map-enter*
+
 map '<ENTER>' ~
+>
+Enter executes or opens a wiki link.
 
-Enter opens a wiki link
+map '<CTRL> <ENTER>' ~
+>
+CTRL + Enter executes the secondary wiki action. In case of a regular wiki link
+it opens the document in a new vim tab.
 
-===============================================================================
+-------------------------------------------------------------------------------
                                                                 *Linny-options*
 Options ~
+
+g:linnycfg_path_wiki_content ~
+
+Default: '~/Linny/wikiContent'
+
+Path to the directory containing all Markdown files. All files are stored in
+one directory without subdirectories.
+
+The indexer needs to be configurated with this same path.
+
+g:linnycfg_path_wiki_config ~
+
+Default: '~/Linny/wikiConfig'
+
+Path to the directory containing all configuration files. This directoy need
+
+The indexer needs to be configurated with this same path.
+
+g:linnycfg_path_index ~
+
+Default: '~/.linny_temp/index'
+
+Path to the generated index. The index structure should comply with the Linden
+Specification.
+
+The indexer needs to be configurated with this same path.
+
+g:linnycfg_path_state ~
+
+Default value: '~/.linny_temp/state'
+
+Location where Linny.vim stores it's state data. E.g. the state of a view. When
+running multiple environments you need to separate the state paths too. This directory is only used by Linny.vim
+
+g:linnycfg_rebuild_index_command ~
+
+Default value: ''
+
+When the indexer is not running as deamon this command rebuilds the index.
+
+g:linnycfg_debug ~
+
+Default value: 0
+
+Enables debugging information
+
+                                                   *linnycfg_setup_autocommands*
+g:linnycfg_setup_autocommands ~
+
+Default value: 1
+
+By settings this to 0 you disable the setup of the autocommands if you want to
+define them yourself. The autocommands are defines in `plugin/linny.vim`.
 
 ===============================================================================
                                                                    *Linny-bugs*
 Bugs ~
 
 Please submit bug reports in the issue tracker at
-https://github.com/mipmip/linny.vim.
+https://github.com/linden-project/linny.vim.
 
 ===============================================================================
                                                                 *Linny-license*
@@ -78,12 +220,12 @@ MIT - Copyright (c) Pim Snel
                                                            *Linny-contributing*
 Contributing ~
 
-See https://github.com/mipmip/linny.vim/blob/master/CONTIBUTING.md
+See https://github.com/linden-project/linny.vim/blob/master/CONTIBUTING.md
 
 ===============================================================================
                                                               *Linny-changelog*
 Changelog ~
 
-See https://github.com/mipmip/linny.vim/blob/master/CHANGLOG.md
+See https://github.com/linden-project/linny.vim/blob/master/CHANGLOG.md
 
 vim: ft=help

@@ -1,9 +1,8 @@
 # Linny.vim
 
-![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/mipmip/linny.vim)
-[![Build Status](https://travis-ci.org/mipmip/linny.vim.svg?branch=master)](https://travis-ci.org/mipmip/linny.vim)
+![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/linden-project/linny.vim)
 
-Personal text database powered by markdown and front matter.
+Personal wiki and document database powered by markdown and front matter.
 
 # Installation
 
@@ -12,18 +11,20 @@ Use your favorite package manager.
 Using vim-plug:
 
 ```
-Plug 'mipmip/linny.vim'
+Plug 'linden-project/linny.vim'
 ```
 
 # Documentation
 
-The official manual can be browsed directly in Vim:
+The official manual can be read directly in Vim:
 
 ```
 :help linny
 ```
 
-Alternatively, you can read [linny.txt](https://github.com/mipmip/linny.vim/blob/master/doc/linny.txt) in your browser.
+Alternatively, you can read
+[linny.txt](https://github.com/linden-project/linny.vim/blob/master/doc/linny.txt)
+in your browser.
 
 # Credits
 
@@ -34,4 +35,4 @@ Alternatively, you can read [linny.txt](https://github.com/mipmip/linny.vim/blob
 
 # License
 
-MIT - Copyright 2019 (c) Pim Snel.
+MIT - Copyright 2019-2021 (c) Pim Snel.

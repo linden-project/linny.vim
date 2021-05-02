@@ -332,8 +332,8 @@ function! linny_wiki#GotoLinkInNewTab()
   call linny_wiki#GotoLinkMain(0,1)
 endfunction
 
-" ******** Go to link main executer *****************
-function! linny_wiki#GotoLinkWithCTRL()
+" ******** Go to link secondary executer *****************
+function! linny_wiki#GotoLinkWithMeta()
   call linny_wiki#GotoLinkMain(1,0)
 endfunction
 
