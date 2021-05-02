@@ -4,6 +4,10 @@ Personal wiki and document database powered by Markdown and Front Matter.
 
 ![](linny-vim1.gif)
 
+# Quickstart
+
+[Read the Linny.vim + Carl quick start tutorial](https://linden-project.github.io/posts/tutorial-linny-and-carl/)
+
 # Installation
 
 Use your favorite package manager.
