@@ -1,11 +1,5 @@
-"======================================================================
-"
-" linny_menu.vim
-"
-" Inspired by QuickMenu of skywind
-" Last change: 2017/08/08 15:20:20
-"
-"======================================================================
+" MIT - Copyright (c) Pim Snel 2019-2021
+" Orinally forked from QuickMenu by skywind3000
 
 let t:linny_menu_items = []
 let t:linny_tasks_count = {}
@@ -794,42 +788,44 @@ function! s:menu_level2(tax, term)
   for file_in_menu in files_in_menu
     let hide = 0
 
-    if s:displayFileAskViewProps(view_props, files_index[file_in_menu])
+    if has_key(files_index, file_in_menu)
+      if s:displayFileAskViewProps(view_props, files_index[file_in_menu])
 
-      let file_in_menu_dict = {}
-      let file_in_menu_dict.file = file_in_menu
-      let file_in_menu_dict.fm = files_index[file_in_menu]
+        let file_in_menu_dict = {}
+        let file_in_menu_dict.file = file_in_menu
+        let file_in_menu_dict.fm = files_index[file_in_menu]
 
-      if has_key(view_props, 'group_by')
-        let group_by = get(view_props,'group_by')
+        if has_key(view_props, 'group_by')
+          let group_by = get(view_props,'group_by')
 
-        if has_key(files_index[file_in_menu], group_by)
-          let group_by_val =  tolower(get(files_index[file_in_menu], group_by))
+          if has_key(files_index[file_in_menu], group_by)
+            let group_by_val =  tolower(get(files_index[file_in_menu], group_by))
 
-          if !has_key(files_menu,group_by_val)
-            let files_menu[group_by_val] = []
-          end
+            if !has_key(files_menu,group_by_val)
+              let files_menu[group_by_val] = []
+            end
 
-          call add(files_menu[group_by_val], file_in_menu_dict)
+            call add(files_menu[group_by_val], file_in_menu_dict)
+
+          else
+            if !has_key(files_menu,'other')
+              let files_menu['other'] = []
+            end
+
+            call add(files_menu['other'], file_in_menu_dict)
+
+          endif
 
         else
-          if !has_key(files_menu,'other')
-            let files_menu['other'] = []
+          if !has_key(files_menu,'Documents')
+            let files_menu['Documents'] = []
           end
 
-          call add(files_menu['other'], file_in_menu_dict)
-
-        endif
-
-      else
-        if !has_key(files_menu,'Documents')
-          let files_menu['Documents'] = []
+          call add(files_menu['Documents'], file_in_menu_dict)
         end
 
-        call add(files_menu['Documents'], file_in_menu_dict)
-      end
-
-    end
+      endif
+    endif
 
   endfor
 

@@ -1,3 +1,5 @@
+" Copyright (c) Pim Snel 2019-2021
+
 if exists('b:current_syntax')
 endif
 

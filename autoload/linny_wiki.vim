@@ -1,3 +1,5 @@
+" Copyright (c) Pim Snel 2019-2021
+
 let s:lastPosLine = 0
 let s:lastPosCol = 0
 
@@ -61,7 +63,7 @@ function! linny_wiki#FindNonExistingLinks()
         let word = mstr[2:-3]
 
         "TODO move to register wikitag
-        if linny_wiki#wikiWordHasPrefix(word, "DIR") || linny_wiki#wikiWordHasPrefix(word, "FILE") || linny_wiki#wikiWordHasTag(word) !=''
+        if linny_wiki#wikiWordHasTag(word) !=''
         else
           let fileName = linny_wiki#WordFilename(word)
           if(linny_wiki#FileExist(linny_wiki#FilePath(fileName)) != 1)

@@ -1,3 +1,5 @@
+" Copyright (c) Pim Snel 2019-2021
+
 " Overwrite default Markdown Fold function
 function! MarkdownFold()
   let line = getline(v:lnum)

@@ -1,3 +1,5 @@
+" Copyright (c) Pim Snel 2019-2021
+
 syn clear markdownLinkText
 syn region markdownLinkText matchgroup=markdownLinkTextDelimiter start="!\=[[(]\@=" end="\]\%( \=[[(]\)\@=" nextgroup=markdownLink,markdownId skipwhite contains=@markdownInline,markdownLineStart
 

@@ -1,3 +1,5 @@
+" Copyright (c) Pim Snel 2019-2021
+
 function! linny_fs#dir_create_if_path_not_exist(path)
   if !filereadable(a:path)
     call job_start(["mkdir","-p",a:path])

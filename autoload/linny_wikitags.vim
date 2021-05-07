@@ -1,3 +1,4 @@
+" Copyright (c) Pim Snel 2019-2021
 
 " FILE PRIMARY
 function! linny_wikitags#file(innertag)
@@ -22,7 +23,6 @@ function! linny_wikitags#dir2nd(innertag)
   "silent execute "!open " . a:innertag
   execute 'NERDTree ' . fnameescape(a:innertag)
 endfunction
-
 
 " SHELL PRIMARY
 function! linny_wikitags#shell(innertag)

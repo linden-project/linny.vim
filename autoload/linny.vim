@@ -1,3 +1,5 @@
+" Copyright (c) Pim Snel 2019-2021
+
 if exists("g:loaded_linny_autoload")
 "    finish
 endif
@@ -122,24 +124,24 @@ function! linny#FilenameToWordToUnamedRegister()
   let @@ = linny#FilenameToWikiLink( expand('%:t:r') )
 endfunction
 
-function! linny#new_dir(...)
+"function! linny#new_dir(...)
 
-  let dir_name = join(a:000)
+  "let dir_name = join(a:000)
 
-  if !isdirectory(g:linny_dirs_root)
-    echo "g:linny_dirs_root is not a valid directory"
-    return
-  endif
+  "if !isdirectory(g:linny_dirs_root)
+    "echo "g:linny_dirs_root is not a valid directory"
+    "return
+  "endif
 
-  let relativePath = fnameescape(g:linny_dirs_root .'/'.dir_name )
-  if filereadable(relativePath)
-    echo "directory name already exist"
-    return
-  endif
+  "let relativePath = fnameescape(g:linny_dirs_root .'/'.dir_name )
+  "if filereadable(relativePath)
+    "echo "directory name already exist"
+    "return
+  "endif
 
-  exec "!mkdir ". relativePath
-  return g:linny_dirs_root .'/'.dir_name
-endfunction
+  "exec "!mkdir ". relativePath
+  "return g:linny_dirs_root .'/'.dir_name
+"endfunction
 
 function! linny#make_index()
   if exists('g:linnycfg_rebuild_index_command')
