@@ -143,7 +143,7 @@ endfunction
 
 function! linny#make_index()
   if exists('g:linnycfg_rebuild_index_command')
-    execute "!". g:linnycfg_rebuild_index_command
+    silent execute "!". g:linnycfg_rebuild_index_command
     call linny#cache_index()
   else
     echo "Error: g:linnycfg_rebuild_index_command not set"
