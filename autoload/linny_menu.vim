@@ -274,16 +274,10 @@ endfunction
 
 function! linny_menu#widget_starred_taxonomies(widgetconf)
 
-  let index_keys_list = linny#parse_json_file(g:linny_index_path . '/_index_taxonomies.json', [])
+  let index_keys_list = linny#parse_json_file(g:linny_index_path . '/_index_taxonomies_starred.json', [])
 
   for k in sort(index_keys_list)
-    let tax_config = linny#tax_config(k)
-    if has_key(tax_config, 'starred')
-      let top_level = get(tax_config, 'starred')
-      if top_level
-        call s:add_item_document_taxo_key(k)
-      endif
-    end
+    call s:add_item_document_taxo_key(k)
   endfor
 endfunction
 
