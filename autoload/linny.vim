@@ -165,6 +165,11 @@ function! linny#doc_title_from_index(filename)
   return a:filename
 endfunction
 
+func! linny#btx()
+  call linny#browse_taxonomies()
+  return ''
+endfunction
+
 func! linny#browse_taxonomies()
 
   let relativePath = fnameescape(g:linny_index_path . '/_index_taxonomies.json')
@@ -192,6 +197,11 @@ func! linny#browse_taxonomies()
 
   return ''
 endfunc
+
+func! linny#btr()
+  call linny#browse_taxonomy_terms()
+  return ''
+endfunction
 
 func! linny#browse_taxonomy_terms()
 

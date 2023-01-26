@@ -43,15 +43,25 @@ if !hlexists('markdownLinkText')
   syn region markdownLinkText matchgroup=markdownLinkTextDelimiter start="!\=\[\%(\_[^]]*]\%( \=[[(]\)\)\@=" end="\]\%( \=[[(]\)\@=" keepend nextgroup=markdownLink,markdownId skipwhite contains=@markdownInline,markdownLineStart
   syn region markdownLink matchgroup=markdownLinkDelimiter start="(" end=")" contains=markdownUrl keepend contained
   syn region markdownAutomaticLink matchgroup=markdownUrlDelimiter start="<\%(\w\+:\|[[:alnum:]_+-]\+@\)\@=" end=">" keepend oneline
+
+  hi def link LinnyLinkText             htmlLink
+  hi def link LinnyId                   Type
+
+  syn region LinnyLinkText matchgroup=markdownLinkTextDelimiter start="!\=[[(]\@=" end="\]\%( \=[[(]\)\@=" nextgroup=markdownLink,LinnyId skipwhite contains=@markdownInline,markdownLineStart
+  syn region LinnyId matchgroup=markdownIdDelimiter start="\[\[" end="\]\]" keepend contained
+
+else
+
+  syn clear markdownLinkText
+  syn clear markdownId
+
+  syn region markdownLinkText matchgroup=markdownLinkTextDelimiter start="!\=[[(]\@=" end="\]\%( \=[[(]\)\@=" nextgroup=markdownLink,markdownId skipwhite contains=@markdownInline,markdownLineStart
+  syn region markdownId matchgroup=markdownIdDelimiter start="\[\[" end="\]\]" keepend contained
+
 endif
 
-hi def link LinnyLinkText             htmlLink
-hi def link LinnyId                   Type
 hi def link LinnyTestFileExist        Keyword
 hi def link LinnyTestFileNotExist     Comment
-
-syn region LinnyLinkText matchgroup=markdownLinkTextDelimiter start="!\=[[(]\@=" end="\]\%( \=[[(]\)\@=" nextgroup=markdownLink,LinnyId skipwhite contains=@markdownInline,markdownLineStart
-syn region LinnyId matchgroup=markdownIdDelimiter start="\[\[" end="\]\]" keepend contained
 
 syn keyword LinnyTestFileExist FILEEXISTS
 syn keyword LinnyTestFileNotExist FILENOTEXIST

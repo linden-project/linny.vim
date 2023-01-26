@@ -22,6 +22,7 @@ Contents ~
      4. Configuration                                    |Linny-configuration|
        4.1 Options                                             |Linny-options|
        4.2 Mappings                                           |Linny-mappings|
+       4.3 Extra Mappings                               |Linny-extra-mappings|
      5. Bugs
      6. License
      7. Contributing
@@ -145,6 +146,39 @@ map '<CTRL> <ENTER>' ~
 >
 CTRL + Enter executes the secondary wiki action. In case of a regular wiki link
 it opens the document in a new vim tab.
+
+-------------------------------------------------------------------------------
+
+                                                         Linny-extra-mappings
+
+Extra Mappings
+
+-------------------------------------------------------------------------------
+
+Extra useful mappings you should set yourself. These are examples.
+
+map <silent> <leader>w :call linny#FilenameToWordToUnamedRegister()<CR>
+
+  Put Linny Link of filename in register
+
+inoremap <C-k> <C-R>=linny#browse_taxonomies()<CR>
+
+  In YAML Front Matter browse through and select Taxonomies from INS Mode
+
+nmap <C-k> :startinsert<CR> <C-R>=linny#browse_taxonomies()<CR>
+
+  In YAML Front Matter browse through and select Taxonomies from NOR Mode
+  here mapped to CTRL + k
+
+inoremap <C-l> <C-R>=linny#browse_taxonomy_terms()<CR>
+
+  In YAML Front Matter browse through and select terms from INS mode
+  here mapped to CTRL + L
+
+nmap <C-l> startinsert<CR> <C-R>=linny#browse_taxonomy_terms()<CR>
+
+  In YAML Front Matter browse through and select terms from NOR mode
+  here mapped to CTRL + L
 
 -------------------------------------------------------------------------------
                                                                 *Linny-options*
