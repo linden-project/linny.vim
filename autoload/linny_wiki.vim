@@ -13,14 +13,9 @@ function! linny_wiki#wikiWordHasTag(word)
   return ''
 endfunction
 
-function! linny_wiki#executeWikitagAction(word, tagKey, withCTRL)
+function! linny_wiki#executeWikitagAction(word, tagKey)
   let inner = trim(a:word[len(a:tagKey):-1])
-
-  if a:withCTRL
-    let action = "secondaryAction"
-  else
-    let action = "primaryAction"
-  endif
+  let action = "primaryAction"
 
   execute "call ".g:linny_wikitags_register[a:tagKey][action]."(\"".inner."\")"
   execute "redraw!"
@@ -322,42 +317,8 @@ function! linny_wiki#GetLink()
   return link
 endfunction
 
-" ******** CHECK FOR SPECIALE LINKS *****************
-
 " ******** Go to link *****************
 function! linny_wiki#GotoLink()
-  call linny_wiki#GotoLinkMain(0,0)
-endfunction
-
-" ******** Go to link in new tab *************
-function! linny_wiki#GotoLinkInNewTab()
-  call linny_wiki#GotoLinkMain(0,1)
-endfunction
-
-" ******** Go to link secondary executer *****************
-function! linny_wiki#GotoLinkWithMeta()
-  call linny_wiki#GotoLinkMain(1,0)
-endfunction
-
-function! linny_wiki#GenerateFirstContent(wikiTitle,fileLinesIn)
-
-  if len(a:fileLinesIn) > 0
-    let fileLines = a:fileLinesIn
-  else
-    let fileLines = []
-    call add(fileLines, '---')
-    call add(fileLines, 'title: "'.a:wikiTitle.'"')
-    call add(fileLines, 'crdate: "'.strftime("%Y-%m-%d").'"')
-
-    call add(fileLines, '---')
-    call add(fileLines, '')
-  endif
-
-  return fileLines
-
-endfunction
-
-function! linny_wiki#GotoLinkMain(withCTRL, openInNewTab)
 
   if linny_wiki#CursorInFrontMatter()
     call linny_wiki#CallFrontMatterLink()
@@ -374,57 +335,25 @@ function! linny_wiki#GotoLinkMain(withCTRL, openInNewTab)
     let tag = linny_wiki#wikiWordHasTag(word)
 
     if(tag != '')
-      call linny_wiki#executeWikitagAction(word, tag, a:withCTRL)
+      call linny_wiki#executeWikitagAction(word, tag)
     else
-
-      let strCmd = ""
-      let fileLines = []
-
-      " If clicked with CTRL Copy FrontMatter
-      if(a:withCTRL)
-        if(getline(1) == '---')
-          let ok = cursor(1, 1)
-
-          let frontmatterEnd = search('---', '', line("w$"))
-          if (frontmatterEnd > 0)
-            let fileLinesTemp = getbufline(bufnr('%'), 1, frontmatterEnd)
-            for lineTemp in fileLinesTemp
-              if lineTemp =~ "^title:.*"
-                call add(fileLines, "title: " . word)
-              else
-                call add(fileLines, lineTemp)
-              endif
-            endfor
-
-            call add(fileLines, "")
-          endif
-        end
-      endif
 
       let fileName = linny_wiki#GetLink()
       if (empty(fileName))
 
         let fileName = linny_wiki#WordFilename(word)
-
-        "Write title to the new document if file not exist
         if(linny_wiki#FileExist(linny_wiki#FilePath(fileName)) != 1)
-
-          let fileLines = linny_wiki#GenerateFirstContent(word,fileLines)
-
+          let fileLines = linny#generate_first_content(word, [])
           if writefile(fileLines, linny_wiki#FilePath(fileName))
             echomsg 'write error'
           endif
-
-          "let strCmd = 'normal!\ a'.escape(word, ' \').'\<esc>yypv$r=o\<cr>'
         endif
       endif
 
       let link = linny_wiki#FilePath(fileName)
 
       let openCmd='edit'
-      if(a:openInNewTab)
-        let openCmd='tabnew'
-      end
+      let strCmd = ""
       exec openCmd . ' +execute\ "' . escape(strCmd, ' "\') . '" ' . link
 
     endif

@@ -258,6 +258,7 @@ function! linny#generate_first_content(title, taxoEntries)
   let fileLines = []
   call add(fileLines, '---')
   call add(fileLines, 'title: "'.a:title.'"')
+  call add(fileLines, 'crdate: "'.strftime("%Y-%m-%d").'"')
 
   for entry in a:taxoEntries
     call add(fileLines, entry['term'] . ': '.entry['value'])

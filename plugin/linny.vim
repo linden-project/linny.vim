@@ -12,7 +12,6 @@ if g:linnycfg_setup_autocommands
   augroup END
 
   autocmd FileType markdown nnoremap <buffer> <CR> :call linny_wiki#GotoLink()<CR>
-  autocmd FileType markdown nnoremap <C13>         :call linny_wiki#GotoLinkWithMeta()<CR>
 endif
 
 "----------------------------------------------------------------------
