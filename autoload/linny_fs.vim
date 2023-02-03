@@ -6,7 +6,7 @@ function! linny_fs#dir_create_if_path_not_exist(path)
   endif
 endfunction
 
-function! linny_fs#os_open_dir_in_filemanager(path)
+function! linny_fs#os_open_with_filemanager(path)
   if has("unix")
     call job_start( ["xdg-open", a:path])
   else

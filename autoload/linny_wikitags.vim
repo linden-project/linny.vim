@@ -1,8 +1,8 @@
-" Copyright (c) Pim Snel 2019-2021
+" Copyright (c) Pim Snel 2019-2023
 
 " FILE PRIMARY
 function! linny_wikitags#file(innertag)
-  silent execute "!open " . a:innertag
+  call linny_fs#os_open_with_filemanager(expand(a:innertag))
 endfunction
 
 function! linny_wikitags#mkdir_if_not_exist(innertag)
@@ -13,15 +13,16 @@ endfunction
 
 " DIR PRIMARY
 function! linny_wikitags#dir1st(innertag)
-  call linny_wikitags#mkdir_if_not_exist(a:innertag)
-  silent execute "!open " . a:innertag
+  call linny_wikitags#mkdir_if_not_exist(expand(a:innertag))
+  call linny_fs#os_open_with_filemanager(expand(a:innertag))
 endfunction
 
 " DIR SECONDARY TODO check nerdtree else netrw
 function! linny_wikitags#dir2nd(innertag)
-  call linny_wikitags#mkdir_if_not_exist(a:innertag)
-  "silent execute "!open " . a:innertag
-  execute 'NERDTree ' . fnameescape(a:innertag)
+  call linny_wikitags#mkdir_if_not_exist(expand(a:innertag))
+  if exists(":NERDTree")
+    execute 'NERDTree ' . fnameescape(expand(a:innertag))
+  endif
 endfunction
 
 " SHELL PRIMARY

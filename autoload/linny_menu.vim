@@ -1647,7 +1647,7 @@ function! <SID>linny_menu_execute(index) abort
           if item.event =~ "file:///"
             let dirstring = split(item.event, "file://")
             call linny_fs#dir_create_if_path_not_exist(dirstring[1])
-            call linny_fs#os_open_dir_in_filemanager(dirstring[1])
+            call linny_fs#os_open_with_filemanager(dirstring[1])
           endif
         else
 
