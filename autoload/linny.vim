@@ -329,7 +329,7 @@ function! linny#l1_config_filepath(tax)
 endfunction
 
 function! linny#l2_config_filepath(tax, term)
-  return g:linny_path_wiki_config ."/L2-CONF-TAX-".tolower(a:tax).'-TRM-'.tolower(a:term).'.yml'
+  return g:linny_path_wiki_config ."/L2-CONF-TAX-".tolower(a:tax).'-TRM-'.substitute(tolower(a:term),' ','-','g').'.yml'
 endfunction
 
 function! linny#l1_state_filepath(tax)
