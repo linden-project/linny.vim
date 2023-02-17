@@ -851,8 +851,8 @@ function! s:menu_level2(tax, term)
   endif
 
   call s:add_item_section("### " . toupper('hot keys'))
-  call s:add_item_special_event("<new document>", "newdocingroup", 'N')
-  call s:add_item_special_event("<archive document>", "archivedocument", 'A')
+  call s:add_item_special_event("<new document>", "newdocingroup", 'A')
+  call s:add_item_special_event("<open context menu>", "opencontextmenu", 'm')
 endfunc
 
 function! s:partial_footer_items()
@@ -1574,10 +1574,10 @@ endfunction
 function! linny_menu#dropdown_item()
 
   if t:linny_menu_item_for_dropdown.option_type == 'taxo_key_val'
-    let t:linny_menu_dropdownviews = ["archive", "rename"]
+    let t:linny_menu_dropdownviews = ["archive"]
     let name = t:linny_menu_item_for_dropdown.option_data.taxo_term
   elseif t:linny_menu_item_for_dropdown.option_type == 'document'
-    let t:linny_menu_dropdownviews = ["archive", "rename", "delete"]
+    let t:linny_menu_dropdownviews = ["archive"]
     let name = trim(split(t:linny_menu_item_for_dropdown.text,']')[1])
   else
     return
@@ -1602,9 +1602,27 @@ endfunction
 
 function! linny_menu#dropdown_item_callcack(id, result)
   if a:result != -1
-    echom t:linny_menu_dropdownviews[a:result-1]
+    call linny_menu#exec_content_menu(t:linny_menu_dropdownviews[a:result-1],t:linny_menu_item_for_dropdown)
   endif
   let t:linny_menu_item_for_dropdown = 0
+endfunction
+
+function! linny_menu#exec_content_menu(action, item)
+  if a:item.option_type == 'taxo_key_val'
+    if a:action == "archive"
+      call linny_menu#archiveL2config(a:item.option_data.taxo_key, a:item.option_data.taxo_term)
+      return
+    endif
+  elseif a:item.option_type == 'document'
+    if a:action == "archive"
+      return
+    endif
+  endif
+
+  echom "Not yet implemented: ". a:action
+
+
+
 endfunction
 
 function! <SID>linny_menu_execute(index) abort
@@ -1675,12 +1693,11 @@ function! <SID>linny_menu_execute(index) abort
 
       endif
 
-    elseif(item.event == 'archivedocument')
-
-
-
     elseif(item.event == 'createl2config')
       call s:createl2config(t:linny_menu_taxonomy, t:linny_menu_term)
+
+    elseif(item.event == 'opencontextmenu')
+      echo "Place cursor on item first"
 
     elseif(item.event == 'newdocingroup')
 
@@ -1733,6 +1750,33 @@ function! <SID>linny_menu_execute(index) abort
   endif
 
 endfunc
+
+function! linny_menu#archiveL2config(taxonomy, taxo_term)
+  let confFileName = linny#l2_config_filepath(a:taxonomy, a:taxo_term)
+  let fileLines = []
+  if filereadable(confFileName)
+    let fileLines = readfile(confFileName)
+    let fileLines = ['---','archive: true'] + fileLines[1:-1]
+  else
+    call add(fileLines, '---')
+    call add(fileLines, 'title: '.linny_menu#string_capitalize(a:taxo_term))
+    call add(fileLines, 'archive: true')
+    call add(fileLines, 'infotext: About '. a:taxo_term)
+    call add(fileLines, 'views:')
+    call add(fileLines, '  az:')
+    call add(fileLines, '    sort: az')
+    call add(fileLines, '  date:')
+    call add(fileLines, '    sort: date')
+    call add(fileLines, '  type:')
+    call add(fileLines, '    group_by: type')
+    call add(fileLines, 'locations:')
+    call add(fileLines, '  #website: https://www.'.a:taxo_term.'.vim')
+  endif
+  if writefile(fileLines, confFileName)
+    echomsg 'write error'
+  endif
+endfunction
+
 
 function! s:createl2config(taxonomy, taxo_term)
   let confFileName = linny#l2_config_filepath(a:taxonomy, a:taxo_term)
