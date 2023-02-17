@@ -855,14 +855,20 @@ function! s:menu_level2(tax, term)
   call s:add_item_special_event("<open context menu>", "opencontextmenu", 'm')
 endfunc
 
+
 function! s:partial_footer_items()
-"  call s:add_item_empty_line()
-"  call s:add_item_special_event("<hard refresh>", "hardrefresh", 'H')
   call s:add_item_special_event("<refresh>", "refresh", 'R')
+  call s:add_item_special_event("<home>", "home", 'H')
+  call s:add_item_special_event("<online book>", "onlinebook", '?')
   call s:add_item_empty_line()
 
-  call s:add_item_special_event("<online book>", "onlinebook", '?')
-  call s:add_item_footer('Linny ' . linny_version#PluginVersion())
+  let fred_version = system('fred version')
+  if v:shell_error != 0
+    let fred_version = "not installed"
+  endif
+
+  call s:add_item_footer('linny: ' . linny_version#PluginVersion())
+  call s:add_item_footer('fred:  ' . fred_version)
 endfunction
 
 function! s:displayFileAskViewProps(view_props, file_dict)
@@ -1205,6 +1211,31 @@ function! linny_menu#openandshow() abort
 
   return 1
 endfunc
+
+function! linny_menu#start()
+  exec ':only'
+  call linny_menu#open()
+  call s:menu_level0('root')
+
+  let view_config = linny#view_config('root')
+  if has_key(view_config, 'home_file')
+    exec ':only'
+    let currentwidth = t:linny_menu_lastmaxsize
+    let currentWindow=winnr()
+    execute ":botright vs ".  g:linny_path_wiki_content . "/" .view_config.home_file
+
+    let newWindow=winnr()
+
+    exec currentWindow."wincmd w"
+    setlocal foldcolumn=0
+    exec "vertical resize " . currentwidth
+    exec currentWindow."call linny_menu#openandshow()"
+    exec newWindow."wincmd w"
+
+  endif
+
+
+endfunction
 
 function! linny_menu#close()
   if Window_exist()
@@ -1673,7 +1704,7 @@ function! <SID>linny_menu_execute(index) abort
 
 
     elseif(item.event == 'home')
-      call linny_menu#openterm('','')
+      call linny_menu#start()
 
     elseif(item.event == 'createl1config')
 

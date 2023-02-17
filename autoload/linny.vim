@@ -59,8 +59,6 @@ function! linny#Init()
 
   call linny#setup_paths()
 
-  "let g:linny_index_config = linny#parse_yaml_to_dict( expand( g:linny_path_wiki_config .'/L0-CONF-ROOT.yml'))
-
   call linny#cache_index()
 
   call linny_menu#RemapGlobalKeys()
@@ -123,25 +121,6 @@ endfunction
 function! linny#FilenameToWordToUnamedRegister()
   let @@ = linny#FilenameToWikiLink( expand('%:t:r') )
 endfunction
-
-"function! linny#new_dir(...)
-
-  "let dir_name = join(a:000)
-
-  "if !isdirectory(g:linny_dirs_root)
-    "echo "g:linny_dirs_root is not a valid directory"
-    "return
-  "endif
-
-  "let relativePath = fnameescape(g:linny_dirs_root .'/'.dir_name )
-  "if filereadable(relativePath)
-    "echo "directory name already exist"
-    "return
-  "endif
-
-  "exec "!mkdir ". relativePath
-  "return g:linny_dirs_root .'/'.dir_name
-"endfunction
 
 function! linny#make_index()
   if exists('g:linnycfg_rebuild_index_command')

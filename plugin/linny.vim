@@ -20,6 +20,7 @@ endif
 command! -nargs=+ LinnyNewDoc :call linny_menu#new_document_in_leaf(<f-args>)
 command! LinnyMenuOpen :call linny_menu#open()
 command! LinnyMenuClose :call linny_menu#close()
+command! LinnyStart :call linny_menu#start()
 
 "----------------------------------------------------------------------
 " REGISTER DEFAULT WIKITAGS
