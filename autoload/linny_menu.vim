@@ -860,6 +860,8 @@ function! s:partial_footer_items()
 "  call s:add_item_special_event("<hard refresh>", "hardrefresh", 'H')
   call s:add_item_special_event("<refresh>", "refresh", 'R')
   call s:add_item_empty_line()
+
+  call s:add_item_special_event("<online book>", "onlinebook", '?')
   call s:add_item_footer('Linny ' . linny_version#PluginVersion())
 endfunction
 
@@ -1615,6 +1617,7 @@ function! linny_menu#exec_content_menu(action, item)
     endif
   elseif a:item.option_type == 'document'
     if a:action == "archive"
+      call job_start( ["fred" ,'set_key_val', a:item.option_data.abs_path, 'archive', 'true'])
       return
     endif
   endif
@@ -1660,6 +1663,14 @@ function! <SID>linny_menu_execute(index) abort
 
     elseif(item.event == 'refresh')
       call linny_menu#refreshMenu()
+
+    elseif(item.event == 'onlinebook')
+      if has("unix")
+        call job_start( ["xdg-open" ,'https://linden-project.github.io'])
+      else
+        call job_start( ["open" ,'https://linden-project.github.io'])
+      endif
+
 
     elseif(item.event == 'home')
       call linny_menu#openterm('','')
@@ -1722,6 +1733,15 @@ function! <SID>linny_menu_execute(index) abort
           let dirstring = split(item.event, "file://")
           call linny_fs#dir_create_if_path_not_exist(dirstring[1])
           call linny_fs#os_open_with_filemanager(dirstring[1])
+
+        elseif item.event =~ "https://"
+          let url = 'https://' . split(item.event, "https://")[1]
+          if has("unix")
+            call job_start( ["xdg-open", url])
+          else
+            call job_start( ["open", url])
+          endif
+
         endif
       else
 
