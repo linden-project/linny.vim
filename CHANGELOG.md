@@ -1,9 +1,14 @@
 # Changelog Linny.vim
 
-## Next version
+## 0.7.0 - 17 feb 2023
 - fix DIR and FILE wikitags on non macOS machines
 - improve help
 - use starred taxonomies
+- context menu for terms and documents
+- archive action for documents (using fred)
+- archive action for terms
+- open website from locations
+- link to linden-project
 
 ## 0.6.0 - 2 may 2021
 - Comply with **Linden Specification 0.2**

@@ -1,4 +1,4 @@
-" Copyright (c) Pim Snel 2019-2021
+" Copyright (c) Pim Snel 2019-2023
 
 if exists("g:loaded_linny_autoload")
 "    finish

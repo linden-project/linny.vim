@@ -1,4 +1,4 @@
-" Copyright (c) Pim Snel 2019-2021
+" Copyright (c) Pim Snel 2019-2023
 
 let s:lastPosLine = 0
 let s:lastPosCol = 0

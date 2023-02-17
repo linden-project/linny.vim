@@ -1,4 +1,4 @@
-" Copyright (c) Pim Snel 2019-2021
+" Copyright (c) Pim Snel 2019-2023
 
 function! linny_util#initVariable(var, value)
   if !exists(a:var)

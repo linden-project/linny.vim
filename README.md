@@ -39,4 +39,4 @@ in your browser.
 
 # License
 
-MIT - Copyright 2019-2021 (c) Pim Snel.
+MIT - Copyright 2019-2023 (c) Pim Snel.
