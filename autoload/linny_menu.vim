@@ -1,4 +1,4 @@
-" MIT - Copyright (c) Pim Snel 2019-2021
+" MIT - Copyright (c) Pim Snel 2019-2023
 " Orinally forked from QuickMenu by skywind3000
 
 let t:linny_menu_items = []
@@ -850,9 +850,9 @@ function! s:menu_level2(tax, term)
     call s:add_item_special_event("Create ". a:tax." ".a:term." Config", "createl2config", 'c')
   endif
 
-  call s:add_item_empty_line()
-  call s:add_item_special_event("<new document>", "newdocingroup", 'A')
-
+  call s:add_item_section("### " . toupper('hot keys'))
+  call s:add_item_special_event("<new document>", "newdocingroup", 'N')
+  call s:add_item_special_event("<archive document>", "archivedocument", 'A')
 endfunc
 
 function! s:partial_footer_items()
@@ -1415,6 +1415,7 @@ function! Setup_keymaps(items)
 
 
   noremap <silent> <buffer> <CR> :call <SID>linny_menu_enter()<cr>
+  noremap <silent> <buffer> m :call <SID>linny_menu_hotkey('m')<cr>
 
   let t:linny_menu_line = 0
   if cursor_pos > 0
@@ -1528,7 +1529,6 @@ function! <SID>linny_menu_close()
   redraw | echo "" | redraw
 endfunc
 
-
 "----------------------------------------------------------------------
 " execute selected
 "----------------------------------------------------------------------
@@ -1554,6 +1554,59 @@ function! <SID>linny_menu_execute_by_string(cmd) abort
 
 endfunction
 
+function! <SID>linny_menu_hotkey(key) abort
+  let index = line('.') - 2
+
+  let item = s:get_item_by_index(index)
+
+  if item.mode != 0 || item.event == ''
+    return
+  endif
+
+  let t:linny_menu_line = index + 2
+  let t:linny_menu_cursor = t:linny_menu_line
+  let t:linny_menu_item_for_dropdown = item
+
+  call linny_menu#dropdown_item()
+
+endfunction
+
+function! linny_menu#dropdown_item()
+
+  if t:linny_menu_item_for_dropdown.option_type == 'taxo_key_val'
+    let t:linny_menu_dropdownviews = ["archive", "rename"]
+    let name = t:linny_menu_item_for_dropdown.option_data.taxo_term
+  elseif t:linny_menu_item_for_dropdown.option_type == 'document'
+    let t:linny_menu_dropdownviews = ["archive", "rename", "delete"]
+    let name = trim(split(t:linny_menu_item_for_dropdown.text,']')[1])
+  else
+    return
+  endif
+
+  call popup_create(t:linny_menu_dropdownviews, #{
+        \ zindex: 200,
+        \ drag: 0,
+        \ line: t:linny_menu_line + 1,
+        \ title: 'Action for '.name,
+        \ col: 10,
+        \ wrap: 0,
+        \ border: [],
+        \ cursorline: 1,
+        \ padding: [0,1,0,1],
+        \ filter: 'popup_filter_menu',
+        \ mapping: 0,
+        \ callback: 'linny_menu#dropdown_item_callcack',
+        \ })
+
+endfunction
+
+function! linny_menu#dropdown_item_callcack(id, result)
+  if a:result != -1
+    echom t:linny_menu_dropdownviews[a:result-1]
+  endif
+  let t:linny_menu_item_for_dropdown = 0
+endfunction
+
 function! <SID>linny_menu_execute(index) abort
 
   let item = s:get_item_by_index(a:index)
@@ -1567,113 +1620,117 @@ function! <SID>linny_menu_execute(index) abort
 
   redraw | echo "" | redraw
 
-    " als event een string is
-    if type(item.event) == 1
+  " als event een string is
+  if type(item.event) == 1
 
-      if(item.event == 'close')
-        close!
+    if(item.event == 'close')
+      close!
 
-      elseif(item.event == 'cycle_l1_view')
-        call linny_menu#cycle_l1_view(1)
-        call linny_menu#openandshow()
+    elseif(item.event == 'cycle_l1_view')
+      call linny_menu#cycle_l1_view(1)
+      call linny_menu#openandshow()
 
-      elseif(item.event == 'dropdown_l1_view')
-        call linny_menu#dropdown_l1_view()
+    elseif(item.event == 'dropdown_l1_view')
+      call linny_menu#dropdown_l1_view()
 
-      elseif(item.event == 'dropdown_l2_view')
-        call linny_menu#dropdown_l2_view()
+    elseif(item.event == 'dropdown_l2_view')
+      call linny_menu#dropdown_l2_view()
 
-      elseif(item.event == 'cycle_l2_view')
-        call linny_menu#cycle_l2_view(1)
-        call linny_menu#openandshow()
+    elseif(item.event == 'cycle_l2_view')
+      call linny_menu#cycle_l2_view(1)
+      call linny_menu#openandshow()
 
-      elseif(item.event == 'refresh')
-        call linny_menu#refreshMenu()
+    elseif(item.event == 'refresh')
+      call linny_menu#refreshMenu()
 
-      elseif(item.event == 'home')
-        call linny_menu#openterm('','')
+    elseif(item.event == 'home')
+      call linny_menu#openterm('','')
 
-      elseif(item.event == 'createl1config')
+    elseif(item.event == 'createl1config')
 
-        let confFileName = linny#l1_config_filepath(t:linny_menu_taxonomy)
+      let confFileName = linny#l1_config_filepath(t:linny_menu_taxonomy)
 
-        let fileLines = []
-        call add(fileLines, '---')
-        call add(fileLines, 'title: '.linny_menu#string_capitalize(t:linny_menu_taxonomy))
-        call add(fileLines, 'infotext: About '. t:linny_menu_taxonomy)
-        call add(fileLines, 'views:')
-        call add(fileLines, '  type:')
-        call add(fileLines, '    group_by: type')
+      let fileLines = []
+      call add(fileLines, '---')
+      call add(fileLines, 'title: '.linny_menu#string_capitalize(t:linny_menu_taxonomy))
+      call add(fileLines, 'infotext: About '. t:linny_menu_taxonomy)
+      call add(fileLines, 'views:')
+      call add(fileLines, '  type:')
+      call add(fileLines, '    group_by: type')
 
-        if writefile(fileLines, confFileName)
-          echomsg 'write error'
-        else
-          exec ':only'
-          let currentwidth = t:linny_menu_lastmaxsize
-          let currentWindow=winnr()
-          execute ":botright vs ". confFileName
-          let newWindow=winnr()
-
-          exec currentWindow."wincmd w"
-          setlocal foldcolumn=0
-          exec "vertical resize " . currentwidth
-          exec currentWindow."call linny_menu#openandshow()"
-          exec newWindow."wincmd w"
-
-        endif
-
-      elseif(item.event == 'createl2config')
-        call s:createl2config(t:linny_menu_taxonomy, t:linny_menu_term)
-
-      elseif(item.event == 'newdocingroup')
-
-        call inputsave()
-        let name = input('Enter document name: ')
-        call inputrestore()
-
-        echo name
-        if(!empty(name))
-          call linny_menu#new_document_in_leaf(name)
-        else
-          return 0
-        endif
-
-      elseif item.event[0] != '='
-
-        if item.event =~ "linny_menu#openterm"
-          exec item.event
-
-        elseif item.event =~ "openexternal"
-          if item.event =~ "file:///"
-            let dirstring = split(item.event, "file://")
-            call linny_fs#dir_create_if_path_not_exist(dirstring[1])
-            call linny_fs#os_open_with_filemanager(dirstring[1])
-          endif
-        else
-
-          let currentwidth = t:linny_menu_lastmaxsize
-          let currentWindow=winnr()
-
-          exec ':only'
-          exec item.event
-          let newWindow=winnr()
-
-          exec currentWindow."wincmd w"
-          setlocal foldcolumn=0
-          exec "vertical resize " . currentwidth
-          exec newWindow."wincmd w"
-
-        endif
+      if writefile(fileLines, confFileName)
+        echomsg 'write error'
       else
-      "  let script = matchstr(item.event, '^=\s*\zs.*')
+        exec ':only'
+        let currentwidth = t:linny_menu_lastmaxsize
+        let currentWindow=winnr()
+        execute ":botright vs ". confFileName
+        let newWindow=winnr()
+
+        exec currentWindow."wincmd w"
+        setlocal foldcolumn=0
+        exec "vertical resize " . currentwidth
+        exec currentWindow."call linny_menu#openandshow()"
+        exec newWindow."wincmd w"
+
       endif
 
-    " als event een functie is
-    elseif type(item.event) == 2
+    elseif(item.event == 'archivedocument')
 
-      call item.event()
 
+
+    elseif(item.event == 'createl2config')
+      call s:createl2config(t:linny_menu_taxonomy, t:linny_menu_term)
+
+    elseif(item.event == 'newdocingroup')
+
+      call inputsave()
+      let name = input('Enter document name: ')
+      call inputrestore()
+
+      echo name
+      if(!empty(name))
+        call linny_menu#new_document_in_leaf(name)
+      else
+        return 0
+      endif
+
+    elseif item.event[0] != '='
+
+      if item.event =~ "linny_menu#openterm"
+        exec item.event
+
+      elseif item.event =~ "openexternal"
+        if item.event =~ "file:///"
+          let dirstring = split(item.event, "file://")
+          call linny_fs#dir_create_if_path_not_exist(dirstring[1])
+          call linny_fs#os_open_with_filemanager(dirstring[1])
+        endif
+      else
+
+        let currentwidth = t:linny_menu_lastmaxsize
+        let currentWindow=winnr()
+
+        exec ':only'
+        exec item.event
+        let newWindow=winnr()
+
+        exec currentWindow."wincmd w"
+        setlocal foldcolumn=0
+        exec "vertical resize " . currentwidth
+        exec newWindow."wincmd w"
+
+      endif
+    else
+      "  let script = matchstr(item.event, '^=\s*\zs.*')
     endif
+
+    " als event een functie is
+  elseif type(item.event) == 2
+
+    call item.event()
+
+  endif
 
 endfunc
 
