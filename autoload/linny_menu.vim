@@ -1225,6 +1225,7 @@ endfunc
 
 function! linny_menu#start()
 
+  call linny_menu#tabInitState()
   call linny_menu#openterm('','')
 " exec ':only'
 " call linny_menu#open()
