@@ -259,6 +259,15 @@ function! linny_menu#widget_starred_documents(widgetconf)
   call s:partial_files_listing( starred, {'sort':'az'}, 0)
 endfunction
 
+function! linny_menu#widget_all_level0_views(widgetconf)
+  echom a:widgetconf
+  let level0views = glob(g:linny_path_wiki_config .'/views/*.yml',0,1)
+  for viewfile in sort(level0views)
+    let filename = substitute(viewfile, '^.*/', '', '')
+    call s:add_item_document(filename, viewfile,'')
+  endfor
+endfunction
+
 function! linny_menu#widget_starred_terms(widgetconf)
   let starred = linny_menu#starred_terms()
   let starred_list = {}
@@ -332,6 +341,8 @@ function! linny_menu#render_view(view_name)
         call linny_menu#widget_all_taxonomies(widget)
       elseif widget['type'] == "recently_modified_documents"
         call linny_menu#widget_recently_modified_documents(widget)
+      elseif widget['type'] == "all_level0_views"
+        call linny_menu#widget_all_level0_views(widget)
       else
         call s:add_item_section("## ERROR unsupported widget type: ". widget['type'])
       endif
@@ -1213,26 +1224,28 @@ function! linny_menu#openandshow() abort
 endfunc
 
 function! linny_menu#start()
-  exec ':only'
-  call linny_menu#open()
-  call s:menu_level0('root')
 
-  let view_config = linny#view_config('root')
-  if has_key(view_config, 'home_file')
-    exec ':only'
-    let currentwidth = t:linny_menu_lastmaxsize
-    let currentWindow=winnr()
-    execute ":botright vs ".  g:linny_path_wiki_content . "/" .view_config.home_file
+  call linny_menu#openterm('','')
+" exec ':only'
+" call linny_menu#open()
+" call s:menu_level0('root')
 
-    let newWindow=winnr()
+" let view_config = linny#view_config('root')
+" if has_key(view_config, 'home_file')
+"   exec ':only'
+"   let currentwidth = t:linny_menu_lastmaxsize
+"   let currentWindow=winnr()
+"   execute ":botright vs ".  g:linny_path_wiki_content . "/" .view_config.home_file
 
-    exec currentWindow."wincmd w"
-    setlocal foldcolumn=0
-    exec "vertical resize " . currentwidth
-    exec currentWindow."call linny_menu#openandshow()"
-    exec newWindow."wincmd w"
+"   let newWindow=winnr()
 
-  endif
+"   exec currentWindow."wincmd w"
+"   setlocal foldcolumn=0
+"   exec "vertical resize " . currentwidth
+"   exec currentWindow."call linny_menu#openandshow()"
+"   exec newWindow."wincmd w"
+
+" endif
 
 
 endfunction
