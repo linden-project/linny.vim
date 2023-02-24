@@ -1,5 +1,8 @@
 # Changelog Linny.vim
 
+## Next
+- add copy document menu action
+
 ## 0.7.0 - 17 feb 2023
 - fix DIR and FILE wikitags on non macOS machines
 - improve help

@@ -11,9 +11,7 @@ let t:linny_menu_taxonomy = ""
 let t:linny_menu_term = ""
 let t:linny_menu_current_menu_type = "not_set"
 
-"----------------------------------------------------------------------
-" Internal State
-"----------------------------------------------------------------------
+" INTERNAL STATE
 function! linny_menu#tabInitState()
   if !exists('t:linny_menu_name')
     let t:linny_menu_items = []
@@ -33,9 +31,7 @@ function! NewLinnyTabNr()
   return g:linnytabnr
 endfunction
 
-"----------------------------------------------------------------------
-" popup window management
-"----------------------------------------------------------------------
+" POPUP WINDOW MANAGEMENT
 function! Window_exist()
 
   if !exists('t:linny_menu_bid')
@@ -52,7 +48,7 @@ function! Window_close()
     return 0
   endif
 
-  "if last window, first create new one
+  " IF LAST WINDOW, FIRST CREATE NEW ONE
   if winbufnr(2) == -1
     exec "below vnew"
   endif
@@ -944,9 +940,7 @@ function! s:testFileWithDisplayExpression(file_dict, expr )
 
 endfunction
 
-"----------------------------------------------------------------------
-" menu operation
-"----------------------------------------------------------------------
+" MENU OPERATION
 
 function! linny_menu#reset()
   let t:linny_menu_items = []
@@ -955,9 +949,7 @@ function! linny_menu#reset()
 endfunc
 
 
-"----------------------------------------------------------------------
-" items list functions {{{
-"----------------------------------------------------------------------
+" ITEMS LIST FUNCTIONS {{{
 
 function! s:item_default()
   let item = {}
@@ -1146,9 +1138,7 @@ endfunction
 
 "}}}
 
-"----------------------------------------------------------------------
-" linny_menu interface
-"----------------------------------------------------------------------
+" LINNY_MENU INTERFACE
 
 function! linny_menu#openterm(taxonomy, taxo_term) abort
   let t:linny_menu_taxonomy = a:taxonomy
@@ -1307,9 +1297,7 @@ endfunc
 
 
 
-"----------------------------------------------------------------------
-" render text
-"----------------------------------------------------------------------
+" RENDER TEXT
 function! Window_render(items) abort
   setlocal modifiable
   let ln = 2
@@ -1426,9 +1414,7 @@ function! linny_menu#openFile(filepath)
 
 endfunction
 
-"----------------------------------------------------------------------
-" all keys
-"----------------------------------------------------------------------
+" ALL KEYS
 function! Setup_keymaps(items)
 
   let ln = 0
@@ -1480,9 +1466,7 @@ function! Setup_keymaps(items)
 endfunc
 
 
-"----------------------------------------------------------------------
-" reset cursor
-"----------------------------------------------------------------------
+" RESET CURSOR
 function! Set_cursor() abort
   let curline = line('.')
   let lastline = t:linny_menu_line
@@ -1536,9 +1520,7 @@ function! Set_cursor() abort
   endif
 endfunc
 
-"----------------------------------------------------------------------
 " SPECIAL 3RD LEVEL ACTIONS {{{
-"----------------------------------------------------------------------
 "
 function! linny_menu#open_document_in_new_tab()
 
@@ -1568,26 +1550,20 @@ endfunction
 "}}}
 
 
-"----------------------------------------------------------------------
-" close linny_menu
-"----------------------------------------------------------------------
+" CLOSE LINNY_MENU
 function! <SID>linny_menu_close()
   close
   redraw | echo "" | redraw
 endfunc
 
-"----------------------------------------------------------------------
-" execute selected
-"----------------------------------------------------------------------
+" EXECUTE SELECTED
 function! <SID>linny_menu_enter() abort
   let ln = line('.')
   call <SID>linny_menu_execute(ln - 2)
 endfunc
 
 
-"----------------------------------------------------------------------
-" execute item
-"----------------------------------------------------------------------
+" EXECUTE ITEM
 function! <SID>linny_menu_execute_by_string(cmd) abort
   redraw | echo "" | redraw
 
@@ -1624,7 +1600,7 @@ function! linny_menu#dropdown_item()
     let t:linny_menu_dropdownviews = ["archive"]
     let name = t:linny_menu_item_for_dropdown.option_data.taxo_term
   elseif t:linny_menu_item_for_dropdown.option_type == 'document'
-    let t:linny_menu_dropdownviews = ["archive"]
+    let t:linny_menu_dropdownviews = ["copy", "archive"]
     let name = trim(split(t:linny_menu_item_for_dropdown.text,']')[1])
   else
     return
@@ -1656,20 +1632,26 @@ endfunction
 
 function! linny_menu#exec_content_menu(action, item)
   if a:item.option_type == 'taxo_key_val'
+
     if a:action == "archive"
       call linny_menu#archiveL2config(a:item.option_data.taxo_key, a:item.option_data.taxo_term)
       return
     endif
+
   elseif a:item.option_type == 'document'
+
     if a:action == "archive"
       call job_start( ["fred" ,'set_key_val', a:item.option_data.abs_path, 'archive', 'true'])
       return
+
+    elseif a:action == "copy"
+      call inputsave()
+      let name = input('Enter document name: ')
+      call inputrestore()
+      call linny_menu#copy_document(a:item.option_data.abs_path, name)
+      return
     endif
   endif
-
-  echom "Not yet implemented: ". a:action
-
-
 
 endfunction
 
@@ -1761,7 +1743,6 @@ function! <SID>linny_menu_execute(index) abort
       let name = input('Enter document name: ')
       call inputrestore()
 
-      echo name
       if(!empty(name))
         call linny_menu#new_document_in_leaf(name)
       else
@@ -1896,6 +1877,76 @@ function! s:createl2config(taxonomy, taxo_term)
 
 endfunction
 
+function! linny_menu#replace_key_value_in_root_frontmatter_filelines(fileLines, key, newvalue)
+
+  let frontmatter_started = 0
+  let idx = 0
+
+  let new_lines = []
+
+  for line in a:fileLines
+
+    if frontmatter_started == 0 && line[0:len("---")] == "---"
+      let frontmatter_started = 1
+    elseif line[0:len("---")] == "---"
+      break
+    endif
+
+    if frontmatter_started == 1 && line[0:len(a:key.":")-1] == a:key.":"
+      let a:fileLines[idx] = a:key . ": " . a:newvalue
+      break
+    endif
+
+    let idx += 1
+
+  endfor
+
+  return a:fileLines
+
+endfunction
+
+function! linny_menu#copy_document(source_path, new_title)
+  let fileName = linny_wiki#WordFilename(a:new_title)
+  let relativePath = fnameescape(g:linny_path_wiki_content . '/' . fileName)
+
+  if !filereadable(relativePath) && filereadable(a:source_path)
+
+    let fileLines = readfile(a:source_path)
+    let fileLines = linny_menu#replace_key_value_in_root_frontmatter_filelines(fileLines, "title", a:new_title)
+
+    if writefile(fileLines, relativePath)
+      echomsg 'write error'
+    endif
+
+    call linny_menu#open_document_in_right_pane(relativePath)
+
+  else
+    echom "Could not copy document with file path: " . a:source_path
+  endif
+
+endfunction
+
+function! linny_menu#open_document_in_right_pane(relativePath)
+  if bufname('%') =~ "[linny_menu]"
+    let currentwidth = t:linny_menu_lastmaxsize
+    let currentWindow=winnr()
+
+    exec ':only'
+    execute ':botright vs '. a:relativePath
+
+    let newWindow=winnr()
+
+    exec currentWindow."wincmd w"
+    exec currentWindow."call linny_menu#openandshow()"
+    setlocal foldcolumn=0
+    exec "vertical resize " . currentwidth
+    exec newWindow."wincmd w"
+
+  else
+    execute 'e '. a:relativePath
+  end
+endfunction
+
 function! linny_menu#new_document_in_leaf(...)
   let title = join(a:000)
   let fileName = linny_wiki#WordFilename(title)
@@ -1937,24 +1988,7 @@ function! linny_menu#new_document_in_leaf(...)
     endif
   endif
 
-  if bufname('%') =~ "[linny_menu]"
-    let currentwidth = t:linny_menu_lastmaxsize
-    let currentWindow=winnr()
-
-    exec ':only'
-    execute ':botright vs '. relativePath
-
-    let newWindow=winnr()
-
-    exec currentWindow."wincmd w"
-    exec currentWindow."call linny_menu#openandshow()"
-    setlocal foldcolumn=0
-    exec "vertical resize " . currentwidth
-    exec newWindow."wincmd w"
-
-  else
-    execute 'e '. relativePath
-  end
+  call linny_menu#open_document_in_right_pane(relativePath)
 
 endfunction
 
@@ -1967,9 +2001,7 @@ function! PrePad(s,amt,...)
     return repeat(char,a:amt - len(a:s)) . a:s
 endfunction
 
-"----------------------------------------------------------------------
-" selectable items, generate keymap
-"----------------------------------------------------------------------
+" SELECTABLE ITEMS, GENERATE KEYMAP
 function! Select_items() abort
 
   let items = []
@@ -1991,9 +2023,7 @@ function! Select_items() abort
 
 endfunc
 
-"----------------------------------------------------------------------
-" expand menu items
-"----------------------------------------------------------------------
+" EXPAND MENU ITEMS
 function! Menu_expand(item) abort
 
   let items = []
@@ -2046,10 +2076,7 @@ function! Menu_expand(item) abort
   return items
 endfunc
 
-
-"----------------------------------------------------------------------
 " eval & expand: '%{script}' in string
-"----------------------------------------------------------------------
 function! Expand_text(string) abort
   let partial = []
   let index = 0
@@ -2080,9 +2107,7 @@ function! Expand_text(string) abort
 endfunc
 
 
-"----------------------------------------------------------------------
-" string limit
-"----------------------------------------------------------------------
+" STRING LIMIT
 function! Slimit(text, limit, col)
   if a:limit <= 1
     return ""
@@ -2116,9 +2141,7 @@ function! Slimit(text, limit, col)
 endfunc
 
 
-"----------------------------------------------------------------------
-" show cmd message
-"----------------------------------------------------------------------
+" SHOW CMD MESSAGE
 function! Cmdmsg(content, highlight)
   let wincols = &columns
   let statusline = (&laststatus==1 && winnr('$')>1) || (&laststatus==2)
@@ -2141,9 +2164,7 @@ function! Cmdmsg(content, highlight)
 endfunc
 
 
-"----------------------------------------------------------------------
 " echo a error msg
-"----------------------------------------------------------------------
 function! Errmsg(msg)
   echohl ErrorMsg
   echo a:msg
@@ -2151,9 +2172,7 @@ function! Errmsg(msg)
 endfunc
 
 
-"----------------------------------------------------------------------
 " echo highlight
-"----------------------------------------------------------------------
 function! Highlight(standard, startify)
   exec "echohl ". (hlexists(a:startify)? a:startify : a:standard)
 endfunc
