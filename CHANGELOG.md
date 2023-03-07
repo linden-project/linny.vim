@@ -3,6 +3,13 @@
 ## Next
 - add copy document menu action
 
+## 0.7.1 - 5 mar 2023
+
+- new action: set taxonomy
+- new action: remove taxonomy
+- make ONLY config AND not OR
+- replace - for space in GROUP_BY
+
 ## 0.7.0 - 17 feb 2023
 - fix DIR and FILE wikitags on non macOS machines
 - improve help

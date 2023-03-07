@@ -18,6 +18,13 @@ Using vim-plug:
 Plug 'linden-project/linny.vim'
 ```
 
+## Install fred
+
+Some features for linny require [fred](https://github.com/linden-project/fred).
+
+Install the latest version on your system. Linny will show the version in the
+linny menu.
+
 # Documentation
 
 The official manual can be read directly in Vim:
