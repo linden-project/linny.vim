@@ -199,7 +199,7 @@ function! s:partial_files_listing(files_list, view_props, bool_extra_file_info)
   let t_sortable = {}
   let i = 0
   let longest_title_length = 0
-  let margin_count_string = 11
+  let margin_count_string = 5
   for k in keys(titles)
 
     if strchars(k) > longest_title_length
@@ -854,9 +854,9 @@ function! s:menu_level2(tax, term)
   call s:add_item_section("### " . toupper('Configuration'))
 
   if filereadable(linny#l2_config_filepath(a:tax, a:term))
-    call s:add_item_document("Open ". a:tax." ".a:term." Config", linny#l2_config_filepath(a:tax, a:term),'c')
+    call s:add_item_document("Open config: ".a:term."", linny#l2_config_filepath(a:tax, a:term),'c')
   else
-    call s:add_item_special_event("Create ". a:tax." ".a:term." Config", "createl2config", 'c')
+    call s:add_item_special_event("Create config: ". a:term." Config", "createl2config", 'c')
   endif
 
   call s:add_item_section("### " . toupper('hot keys'))
@@ -1725,7 +1725,8 @@ function! linny_menu#exec_content_menu(action, item)
 
     elseif a:action == "copy"
       call inputsave()
-      let name = input('Enter document name: ')
+      let oldtitle = trim(split(split(a:item.text,'[')[1],']')[1])
+      let name = input('Enter document name: ', oldtitle.' COPY')
       call inputrestore()
       call linny_menu#copy_document(a:item.option_data.abs_path, name)
       return

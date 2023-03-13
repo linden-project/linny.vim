@@ -2,6 +2,8 @@
 
 ## Next
 - add copy document menu action
+- set old name in document copy action
+- improve level 2 layout
 
 ## 0.7.1 - 5 mar 2023
 
