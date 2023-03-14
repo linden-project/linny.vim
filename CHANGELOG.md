@@ -1,6 +1,6 @@
 # Changelog Linny.vim
 
-## Next
+## 0.7.2 - 15 mrt 2023
 - add copy document menu action
 - set old name in document copy action
 - improved level 2 layout

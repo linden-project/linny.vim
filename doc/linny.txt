@@ -248,7 +248,7 @@ https://github.com/linden-project/linny.vim.
                                                                 *Linny-license*
 License ~
 
-MIT - Copyright (c) Pim Snel
+MIT - Copyright (c) Pim Snel 2019-2023
 
 ===============================================================================
                                                            *Linny-contributing*
