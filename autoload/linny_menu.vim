@@ -244,7 +244,7 @@ function! s:partial_files_listing(files_list, view_props, bool_extra_file_info)
       end
     end
 
-    call s:add_item_document(t_sortable[tk]['orgTitle'] . tasks_stats_str, t_sortable[tk]['orgFile'], '')
+    call s:add_item_document(t_sortable[tk]['orgTitle'] . tasks_stats_str, t_sortable[tk]['orgFile'], '', 'document')
   endfor
 
 endfunction
@@ -261,7 +261,7 @@ function! linny_menu#widget_all_level0_views(widgetconf)
   let level0views = glob(g:linny_path_wiki_config .'/views/*.yml',0,1)
   for viewfile in sort(level0views)
     let filename = substitute(viewfile, '^.*/', '', '')
-    call s:add_item_document(filename, viewfile,'')
+    call s:add_item_document(filename, viewfile,'','file')
   endfor
 endfunction
 
@@ -348,7 +348,7 @@ function! linny_menu#render_view(view_name)
   endif
 
   call s:add_item_section("# Configuration")
-  call s:add_item_document("Edit this view", g:linny_path_wiki_config ."/views/".a:view_name.".yml", 'c')
+  call s:add_item_document("Edit this view", g:linny_path_wiki_config ."/views/".a:view_name.".yml", 'c', 'file')
 
 endfunction
 
@@ -477,7 +477,7 @@ function! s:menu_level1(tax)
   call s:add_item_section("### " . toupper('Configuration'))
 
   if filereadable(linny#l1_config_filepath(a:tax))
-    call s:add_item_document("Open ". a:tax." Config", linny#l1_config_filepath(a:tax),'c')
+    call s:add_item_document("Open ". a:tax." Config", linny#l1_config_filepath(a:tax),'c', 'file')
   else
     call s:add_item_special_event("Create ". a:tax." Config", "createl1config", 'C')
   endif
@@ -741,7 +741,7 @@ function! s:menu_level2(tax, term)
 
   call s:add_item_special_event("/  <home>", "home", '0')
   call s:add_item_ex_event(".. <up> ". tax_plural, ":call linny_menu#openterm('".a:tax."','')", 'u')
-  call s:add_item_section("# " . toupper(a:tax) . ' : ' . toupper(a:term))
+  call s:add_item_section("# " . toupper(a:tax) . ': ' . toupper(a:term))
 
   call s:add_item_divider()
 
@@ -840,10 +840,34 @@ function! s:menu_level2(tax, term)
   call s:add_item_empty_line()
   call s:add_item_divider()
 
+  if has_key(l2_config, 'mounts')
+    let mounts = get(l2_config,'mounts')
+    if(type(mounts)==4)
+      for m in keys(mounts)
+        call s:add_item_section("### MOUNT: " . m)
+        let mountfiles = glob(mounts[m].source . "/*.md",0, 1)
+        let excludes = []
+        if has_key(mounts[m], 'exclude')
+          let excludes = mounts[m].exclude
+        endif
+        for mfile in mountfiles
+          let filename = split(mfile,"/")[-1]
+          if index(excludes, filename) != 0
+            call s:add_item_document(filename, mfile, '', 'file')
+          endif
+        endfor
+      endfor
+    endif
+
+    call s:add_item_empty_line()
+    call s:add_item_divider()
+
+  endif
+
   if has_key(l2_config, 'locations')
     let locations = get(l2_config,'locations')
     if(type(locations)==4)
-      call s:add_item_section("### " . toupper('Locaties'))
+      call s:add_item_section("### " . toupper('Locations'))
 
       for l in keys(locations)
         call s:add_item_external_location(l, get(locations,l))
@@ -854,7 +878,7 @@ function! s:menu_level2(tax, term)
   call s:add_item_section("### " . toupper('Configuration'))
 
   if filereadable(linny#l2_config_filepath(a:tax, a:term))
-    call s:add_item_document("Open config: ".a:term."", linny#l2_config_filepath(a:tax, a:term),'c')
+    call s:add_item_document("Open config: ".a:term."", linny#l2_config_filepath(a:tax, a:term),'c', 'file')
   else
     call s:add_item_special_event("Create config: ". a:term." Config", "createl2config", 'c')
   endif
@@ -1022,11 +1046,11 @@ function! s:add_item_text(text)
   call s:append_to_items(item)
 endfunction
 
-function! s:add_item_document(title, abs_path, keyboard_key)
+function! s:add_item_document(title, abs_path, keyboard_key, type)
   let item = s:item_default()
   let item.mode = 0
   let item.key = a:keyboard_key
-  let item.option_type = 'document'
+  let item.option_type = a:type
   let item.option_data.abs_path = a:abs_path
   let item.text = a:title
   let item.event = ":keepalt botright vs ". a:abs_path
@@ -1947,17 +1971,8 @@ function! linny_menu#archiveL2config(taxonomy, taxo_term)
   else
     call add(fileLines, '---')
     call add(fileLines, 'title: '.linny_menu#string_capitalize(a:taxo_term))
-    call add(fileLines, 'archive: true')
     call add(fileLines, 'infotext: About '. a:taxo_term)
-    call add(fileLines, 'views:')
-    call add(fileLines, '  az:')
-    call add(fileLines, '    sort: az')
-    call add(fileLines, '  date:')
-    call add(fileLines, '    sort: date')
-    call add(fileLines, '  type:')
-    call add(fileLines, '    group_by: type')
-    call add(fileLines, 'locations:')
-    call add(fileLines, '  #website: https://www.'.a:taxo_term.'.vim')
+    call add(fileLines, 'archive: true')
   endif
   if writefile(fileLines, confFileName)
     echomsg 'write error'
@@ -1984,9 +1999,14 @@ function! s:createl2config(taxonomy, taxo_term)
 
   else
     let fileLines = []
+
     call add(fileLines, '---')
     call add(fileLines, 'title: '.linny_menu#string_capitalize(a:taxo_term))
     call add(fileLines, 'infotext: About '. a:taxo_term)
+    call add(fileLines, '')
+    call add(fileLines, 'archive: false')
+    call add(fileLines, 'starred: false')
+    call add(fileLines, '')
     call add(fileLines, 'views:')
     call add(fileLines, '  az:')
     call add(fileLines, '    sort: az')
@@ -1994,8 +2014,31 @@ function! s:createl2config(taxonomy, taxo_term)
     call add(fileLines, '    sort: date')
     call add(fileLines, '  type:')
     call add(fileLines, '    group_by: type')
-    call add(fileLines, 'locations:')
+    call add(fileLines, '')
+    call add(fileLines, '#mounts:')
+    call add(fileLines, '  #project docs:')
+    call add(fileLines, '    #source: /home/john/projects/some-project')
+    call add(fileLines, '    #exclude:')
+    call add(fileLines, '      #- README.md')
+    call add(fileLines, '')
+    call add(fileLines, '#locations:')
     call add(fileLines, '  #website: https://www.'.a:taxo_term.'.vim')
+    call add(fileLines, '')
+    call add(fileLines, '#frontmatter_template:')
+    call add(fileLines, '  #project: prj-x')
+
+"    call add(fileLines, '---')
+"    call add(fileLines, 'title: '.linny_menu#string_capitalize(a:taxo_term))
+"    call add(fileLines, 'infotext: About '. a:taxo_term)
+"    call add(fileLines, 'views:')
+"    call add(fileLines, '  az:')
+"    call add(fileLines, '    sort: az')
+"    call add(fileLines, '  date:')
+"    call add(fileLines, '    sort: date')
+"    call add(fileLines, '  type:')
+"    call add(fileLines, '    group_by: type')
+"    call add(fileLines, 'locations:')
+"    call add(fileLines, '  #website: https://www.'.a:taxo_term.'.vim')
     "call add(fileLines, '  #dir1: file:///Applications/')
     "call add(fileLines, '  #file1: file:///Projects/file1.someformat')
 

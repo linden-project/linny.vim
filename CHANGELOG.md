@@ -3,7 +3,11 @@
 ## Next
 - add copy document menu action
 - set old name in document copy action
-- improve level 2 layout
+- improved level 2 layout
+- only action menu for linny documents
+- new level-2 mounts
+- new level-2 mounts template example in new configuration
+- update new configuration template
 
 ## 0.7.1 - 5 mar 2023
 
