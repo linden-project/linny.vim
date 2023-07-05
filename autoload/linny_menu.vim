@@ -1417,7 +1417,14 @@ function! linny_menu#refreshMenu()
 endfunction
 
 function! linny_menu#openHome()
+
+  if !exists('t:linny_menu_name')
+    echomsg 'ERROR No Linny Menu opened. Are you in Linny?'
+    return
+  endif
+
   call linny_menu#openterm('','')
+
 endfunction
 
 function! linny_menu#openFile(filepath)
