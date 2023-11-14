@@ -119,7 +119,7 @@ endfunc
 
 function! linny_menu#recent_files(number)
   let files = []
-  let files = systemlist('ls -1t '.g:linny_path_wiki_content.' | grep -ve "^index.*" | head -' . a:number)
+  let files = systemlist('ls -1t '.g:linny_path_wiki_content.' | grep -ve "^index.*\|\.docdir" | head -' . a:number)
   return files
 endfunction
 
@@ -1640,7 +1640,7 @@ function! linny_menu#dropdown_item()
     let name = t:linny_menu_item_for_dropdown.option_data.taxo_term
   elseif t:linny_menu_item_for_dropdown.option_type == 'document'
 
-    let t:linny_menu_dropdownviews = ["copy", "------", "archive", "set taxonomy", "remove taxonomy"]
+    let t:linny_menu_dropdownviews = ["copy", "------", "archive", "set taxonomy", "remove taxonomy", "open docdir"]
 
     if len(t:linny_menu_repeat_last_taxo_term) > 0
       let t:linny_menu_dropdownviews += ["set " . t:linny_menu_repeat_last_taxo_term[0] .": ". t:linny_menu_repeat_last_taxo_term[1]]
@@ -1761,6 +1761,11 @@ function! linny_menu#exec_content_menu(action, item)
       call inputrestore()
       call linny_menu#copy_document(a:item.option_data.abs_path, name)
       return
+
+    elseif a:action == "open docdir"
+      let newdocdir = a:item.option_data.abs_path[:-3]."docdir"
+      call linny_fs#dir_create_if_path_not_exist(newdocdir)
+      call linny_fs#os_open_with_filemanager(newdocdir)
 
     elseif a:action == "set taxonomy"
 
