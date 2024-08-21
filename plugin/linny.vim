@@ -22,6 +22,8 @@ command! LinnyMenuOpen :call linny_menu#open()
 command! LinnyMenuClose :call linny_menu#close()
 command! LinnyStart :call linny_menu#start()
 
+command! LinnyWordToRegister :call linny#FilenameToWordToUnamedRegister()
+
 "----------------------------------------------------------------------
 " REGISTER DEFAULT WIKITAGS
 "----------------------------------------------------------------------
