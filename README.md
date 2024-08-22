@@ -1,12 +1,17 @@
 # Linny.vim
 
+*Update 22 August 2024 - As the creator of Linny.vim has switched to NeoVim.
+Linny is now fully compatible with NeoVim* 
+
+**RIP Bram Molenaar**
+
 Personal wiki and document database powered by Markdown and Front Matter.
 
 ![](linny-vim1.gif)
 
 # Quickstart
 
-[Read the Linny.vim + Carl quick start tutorial](https://linden-project.github.io/posts/tutorial-linny-and-carl/)
+Read the [Linny.vim + Notes Boilerplate quick start tutorial](https://linden-project.github.io/posts/tutorial-linny-and-carl/)
 
 # Installation
 
@@ -27,7 +32,7 @@ linny menu.
 
 # Documentation
 
-The official manual can be read directly in Vim:
+The official manual can be read directly in Vim/NeoVim:
 
 ```
 :help linny
@@ -46,4 +51,4 @@ in your browser.
 
 # License
 
-MIT - Copyright 2019-2023 (c) Pim Snel.
+MIT - Copyright 2019-2024 (c) Pim Snel.
