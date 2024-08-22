@@ -2390,6 +2390,35 @@ endfunction
 
 
 
+
+function! popup#close(id, result = 0) abort
+    if has('popupwin')
+        call popup_close(a:id, a:result)
+    elseif has('nvim')
+        call popup#setoptions(a:id, #{result: a:result})
+        call nvim_win_close(a:id, v:true)
+    endif
+endfunction
+
+function! popup#getoptions(id) abort
+    if has('popupwin')
+        return popup_getoptions(a:id)
+    elseif has('nvim')
+        return getbufvar(winbufnr(a:id), 'popup_options', {})
+    endif
+endfunction
+
+function! popup#setoptions(id, options) abort
+    if has('popupwin')
+        return popup_setoptions(a:id, a:options)
+    elseif has('nvim')
+        call setbufvar(winbufnr(a:id), 'popup_options',
+            \ extend(popup#getoptions(a:id), a:options))
+    endif
+endfunction
+
+
+
 " THE REST FOR NEOVIM ONLY
 if !has('nvim')
     finish
