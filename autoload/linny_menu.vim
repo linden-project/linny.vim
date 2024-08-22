@@ -1714,11 +1714,7 @@ function! linny_menu#dropdown_remove_taxo_item_callcack(id, result)
     let item = t:linny_menu_item_for_dropdown
     let unset_taxo = t:linny_menu_taxo_items_for_dropdown[a:result-1]
 
-    if has('nvim')
-      call jobstart( ["fred" ,'unset_key', item.option_data.abs_path, unset_taxo])
-    else
-      call job_start( ["fred" ,'unset_key', item.option_data.abs_path, unset_taxo])
-    endif
+    call s:jobstart( ["fred" ,'unset_key', item.option_data.abs_path, unset_taxo])
 
     echo "Removed ". unset_taxo . " from " . item.option_data.abs_path
 
@@ -1735,7 +1731,7 @@ function! linny_menu#dropdown_term_item_callcack(id, result)
     let taxo_item = t:linny_menu_set_taxo
     let term_item = t:linny_menu_term_items_for_dropdown[a:result-1]
 
-    call job_start( ["fred" ,'set_string_val', item.option_data.abs_path, taxo_item, term_item])
+    call s:job_start( ["fred" ,'set_string_val', item.option_data.abs_path, taxo_item, term_item])
     let t:linny_menu_repeat_last_taxo_term = [taxo_item, term_item]
   endif
 
@@ -1752,11 +1748,11 @@ function! linny_menu#exec_content_menu(action, item)
   elseif a:item.option_type == 'document'
 
     if a:action == "set archive"
-      call job_start( ["fred" ,'set_bool_val', a:item.option_data.abs_path, 'archive', 'true'])
+      call s:job_start( ["fred" ,'set_bool_val', a:item.option_data.abs_path, 'archive', 'true'])
       return
 
     elseif a:action == "toggle starred"
-      call job_start( ["fred" ,'toggle_bool_val', a:item.option_data.abs_path, 'starred'])
+      call s:job_start( ["fred" ,'toggle_bool_val', a:item.option_data.abs_path, 'starred'])
       return
 
     elseif a:action == "copy"
@@ -1829,7 +1825,7 @@ function! linny_menu#exec_content_menu(action, item)
     elseif a:action =~ "set "
 
       let taxo_and_term = split(a:action[4:-1],': ')
-      call job_start( ["fred" ,'set_string_val', a:item.option_data.abs_path, taxo_and_term[0], taxo_and_term[1]])
+      call s:job_start( ["fred" ,'set_string_val', a:item.option_data.abs_path, taxo_and_term[0], taxo_and_term[1]])
 
     endif
 
@@ -1875,9 +1871,9 @@ function! <SID>linny_menu_execute(index) abort
 
     elseif(item.event == 'onlinebook')
       if has("unix")
-        call job_start( ["xdg-open" ,'https://linden-project.github.io'])
+        call s:job_start( ["xdg-open" ,'https://linden-project.github.io'])
       else
-        call job_start( ["open" ,'https://linden-project.github.io'])
+        call s:job_start( ["open" ,'https://linden-project.github.io'])
       endif
 
 
@@ -1945,19 +1941,9 @@ function! <SID>linny_menu_execute(index) abort
         elseif item.event =~ "https://"
           let url = 'https://' . split(item.event, "https://")[1]
           if has("unix")
-
-            if has('nvim')
-              call jobstart( ["xdg-open", url])
-            else
-              call job_start( ["xdg-open", url])
-            endif
-
+            call s:job_start( ["xdg-open", url])
           else
-            if has('nvim')
-              call jobstart( ["open", url])
-            else
-              call job_start( ["open", url])
-            endif
+            call s:job_start( ["open", url])
           endif
 
         endif
@@ -2403,7 +2389,12 @@ endfunction
 
 
 
-
+function s:job_start(command)
+if has('nvim')
+  call jobstart( a:command)
+else
+  call job_start( a:command)
+endif
 
 " THE REST FOR VIM/NEOVIM
 if !has('nvim')
