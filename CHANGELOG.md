@@ -1,5 +1,14 @@
 # Changelog Linny.vim
 
+## 0.8.next
+
+- new cmd LinnyOpenNotebook: switch to other notebook cLinden/linny-notebook-template 🎉
+- Breaking: notebook dirstruct is now fixed
+    - ./config/
+    - ./content/
+    - ./lindenConfig/
+    - ./lindenIndex/
+
 ## 0.8.0 - 22 aug 2024
 
 - make Linny fully NeoVim compatible.

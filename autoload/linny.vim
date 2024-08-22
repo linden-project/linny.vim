@@ -15,8 +15,9 @@ call linny_util#initVariable("g:linnycfg_rebuild_index_command", '')
 call linny_util#initVariable("g:linnycfg_index_version", 'linden01')
 call linny_util#initVariable("g:linnycfg_debug", 0)
 call linny_util#initVariable("g:linnycfg_setup_autocommands", 1)
-call linny_util#initVariable("g:linnycfg_path_wiki_content", '~/Linny/wikiContent')
-call linny_util#initVariable("g:linnycfg_path_wiki_config", '~/Linny/wikiConfig')
+call linny_util#initVariable("g:linny_open_notebook_path", '~/LinnyNotebook')
+"call linny_util#initVariable("g:linnycfg_path_wiki_content", '~/Linny/wikiContent')
+"call linny_util#initVariable("g:linnycfg_path_wiki_config", '~/Linny/wikiConfig')
 
 "----------------------------------------------------------------------
 " NAVIGATOR OPTIONS
@@ -45,11 +46,11 @@ call linny_util#initVariable("g:linnytabnr", 1)
 " CACHE IS SETUP
 function! linny#Init()
 
-  let g:linny_path_wiki_content = expand(g:linnycfg_path_wiki_content)
-  let g:linny_path_wiki_config = expand(g:linnycfg_path_wiki_config)
+  let g:linny_open_notebook_path = expand(g:linny_open_notebook_path)
+
+  call linny_notebook#init()
 
   let g:linny_state_path = expand(g:linnycfg_path_state)
-  let g:linny_index_path = expand(g:linnycfg_path_index)
 
   let g:linny_index_version = g:linnycfg_index_version
   let g:linny_debug = g:linnycfg_debug

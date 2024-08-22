@@ -18,11 +18,19 @@ endif
 " DEFINED COMMANDS
 "----------------------------------------------------------------------
 command! -nargs=+ LinnyNewDoc :call linny_menu#new_document_in_leaf(<f-args>)
-command! LinnyMenuOpen :call linny_menu#open()
-command! LinnyMenuClose :call linny_menu#close()
+
 command! LinnyStart :call linny_menu#start()
 
+command! LinnyMenuToggle :call linny_menu#toggle()
+command! LinnyMenuOpen :call linny_menu#open()
+command! LinnyMenuClose :call linny_menu#close()
+
+command! LinnyMenuClose :call linny_menu#close()
+
 command! LinnyWordToRegister :call linny#FilenameToWordToUnamedRegister()
+
+command! LinnyOpenNotebook :call linny_notebook#open()
+
 
 "----------------------------------------------------------------------
 " REGISTER DEFAULT WIKITAGS
