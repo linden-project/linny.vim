@@ -23,6 +23,12 @@ Using vim-plug:
 Plug 'linden-project/linny.vim'
 ```
 
+## NeoVim
+
+More instructions will follow but you can checkout [my neovim
+configuration](https://github.com/mipmip/nixos/tree/main/home/pim/files-main/nvim)
+as example.
+
 ## Install fred
 
 Some features for linny require [fred](https://github.com/linden-project/fred).
