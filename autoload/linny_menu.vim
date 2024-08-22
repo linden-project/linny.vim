@@ -2391,12 +2391,13 @@ endif
 
 function s:options(opts, useropts) abort
 
-    if has_key(a:opts, 'cursorline')
-      if a:opts.cursorline == 0
-        let a:opts.cursorline = false
-      elseif a:opts.cursorline == 1
-       let a:opts.cursorline = true
+    if has_key(a:useropts, 'cursorline')
+      if a:useropts.cursorline == 0
+        let a:useropts.cursorline = false
+      elseif a:useropts.cursorline == 1
+       let a:useropts.cursorline = true
       end
+      echom a:useropts.cursorline
     end
 
     call extend(extend(a:opts, a:useropts), #{
