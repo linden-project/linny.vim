@@ -1940,9 +1940,19 @@ function! <SID>linny_menu_execute(index) abort
         elseif item.event =~ "https://"
           let url = 'https://' . split(item.event, "https://")[1]
           if has("unix")
-            call job_start( ["xdg-open", url])
+
+            if has('nvim')
+              call jobstart( ["xdg-open", url])
+            else
+              call job_start( ["xdg-open", url])
+            endif
+
           else
-            call job_start( ["open", url])
+            if has('nvim')
+              call jobstart( ["open", url])
+            else
+              call job_start( ["open", url])
+            endif
           endif
 
         endif
