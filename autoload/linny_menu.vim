@@ -2390,17 +2390,21 @@ endfunction
 
 
 
+" THE REST FOR VIM/NEOVIM
+if !has('nvim')
+    finish
+endif
 
-function! popup#close(id, result = 0) abort
+function! linny_menu#close_pop(id, result = 0) abort
     if has('popupwin')
         call popup_close(a:id, a:result)
     elseif has('nvim')
-        call popup#setoptions(a:id, #{result: a:result})
+        call linny_menu#setoptions(a:id, #{result: a:result})
         call nvim_win_close(a:id, v:true)
     endif
 endfunction
 
-function! popup#getoptions(id) abort
+function! linny_menu#getoptions(id) abort
     if has('popupwin')
         return popup_getoptions(a:id)
     elseif has('nvim')
@@ -2408,15 +2412,14 @@ function! popup#getoptions(id) abort
     endif
 endfunction
 
-function! popup#setoptions(id, options) abort
+function! linny_menu#setoptions(id, options) abort
     if has('popupwin')
         return popup_setoptions(a:id, a:options)
     elseif has('nvim')
         call setbufvar(winbufnr(a:id), 'popup_options',
-            \ extend(popup#getoptions(a:id), a:options))
+            \ extend(linny_menu#getoptions(a:id), a:options))
     endif
 endfunction
-
 
 
 " THE REST FOR NEOVIM ONLY
@@ -2564,7 +2567,7 @@ function s:floatwin(lines, opts) abort
         call nvim_win_set_cursor(l:id, [a:opts.firstline, 0])
     endif
     if a:opts.time
-        call timer_start(a:opts.time, {-> win_getid() == l:id && popup#close(l:id)})
+        call timer_start(a:opts.time, {-> win_getid() == l:id && linny_menu#close_pop(l:id)})
     endif
 
     return l:id
@@ -2623,7 +2626,7 @@ endfunction
 function s:set_keymaps(window, mode, keymaps) abort
     for [l:lhs, l:result] in items(a:keymaps)
         call nvim_buf_set_keymap(winbufnr(a:window), a:mode, l:lhs,
-            \ printf('<Cmd>call popup#close(%d, %s)<CR>', a:window, string(l:result)),
+            \ printf('<Cmd>call linny_menu#close_pop(%d, %s)<CR>', a:window, string(l:result)),
             \ {'noremap': v:true, 'nowait': v:true})
     endfor
 endfunction
