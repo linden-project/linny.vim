@@ -2399,9 +2399,9 @@ endif
 function s:num2bool(key, dict) abort
   if has_key(a:dict, a:key)
     if a:dict[a:key] == 0
-      let a:dict[a:key] = false
+      let a:dict[a:key] = v:false
     elseif a:dict[a:key] == 1
-      let a:dict[a:key] = true
+      let a:dict[a:key] = v:true
     endif
   endif
   return a:dict
@@ -2411,7 +2411,7 @@ function s:options(opts, useropts) abort
 
     let useropts = s:num2bool('wrap',a:useropts)
     let useropts = s:num2bool('cursorline',a:useropts)
-    let useropts = s:num2bool('border',a:useropts)
+    "let useropts = s:num2bool('border',a:useropts)
 "    if has_key(a:useropts, 'cursorline')
 "      if a:useropts.cursorline == 0
 "        let a:useropts.cursorline = false
