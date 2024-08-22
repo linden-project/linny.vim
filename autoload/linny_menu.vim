@@ -1714,7 +1714,12 @@ function! linny_menu#dropdown_remove_taxo_item_callcack(id, result)
     let item = t:linny_menu_item_for_dropdown
     let unset_taxo = t:linny_menu_taxo_items_for_dropdown[a:result-1]
 
-    call job_start( ["fred" ,'unset_key', item.option_data.abs_path, unset_taxo])
+    if has('nvim')
+      call jobstart( ["fred" ,'unset_key', item.option_data.abs_path, unset_taxo])
+    else
+      call job_start( ["fred" ,'unset_key', item.option_data.abs_path, unset_taxo])
+    endif
+
     echo "Removed ". unset_taxo . " from " . item.option_data.abs_path
 
     return
