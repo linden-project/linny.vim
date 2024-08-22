@@ -48,6 +48,17 @@ Alternatively, you can read
 [linny.txt](https://github.com/linden-project/linny.vim/blob/master/doc/linny.txt)
 in your browser.
 
+# Release Notes
+
+first update CHANGELOG.md with new version.
+
+```bash
+rake bump\[0.8.0\]
+git commit -m "version bump" -a
+rake release\[0.8.0\]
+```
+
+
 # Credits
 
 - [vimwiki](https://github.com/vimwiki/vimwiki) - The most popular Wiki plugin for Vim
