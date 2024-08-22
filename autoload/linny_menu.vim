@@ -558,6 +558,7 @@ function! linny_menu#dropdown_l1_view()
         \ line: 10,
         \ title: views[active_view],
         \ col: 9,
+        \ wrap: 0,
         \ border: [],
         \ cursorline: 1,
         \ padding: [0,1,0,1],
@@ -592,6 +593,7 @@ function! linny_menu#dropdown_l2_view()
         \ line: 10,
         \ title: views[active_view],
         \ col: 9,
+        \ wrap: 0,
         \ border: [],
         \ cursorline: 1,
         \ padding: [0,1,0,1],
@@ -1655,6 +1657,7 @@ function! linny_menu#dropdown_item()
         \ line: t:linny_menu_line + 1,
         \ title: 'Action for '.name,
         \ col: 10,
+        \ wrap: 0,
         \ border: [],
         \ cursorline: 1,
         \ padding: [0,1,0,1],
@@ -1691,6 +1694,7 @@ function! linny_menu#dropdown_taxo_item_callcack(id, result)
             \ line: t:linny_menu_line + 1,
             \ title: name . ': ' . t:linny_menu_set_taxo . ' > Set Term',
             \ col: 10,
+            \ wrap: 0,
             \ border: [],
             \ cursorline: 1,
             \ padding: [0,1,0,1],
@@ -1779,6 +1783,7 @@ function! linny_menu#exec_content_menu(action, item)
             \ line: t:linny_menu_line + 1,
             \ title: name . ': Set Taxonomy',
             \ col: 10,
+            \ wrap: 0,
             \ border: [],
             \ cursorline: 1,
             \ padding: [0,1,0,1],
@@ -1805,6 +1810,7 @@ function! linny_menu#exec_content_menu(action, item)
             \ line: t:linny_menu_line + 1,
             \ title: name . ': Remove Taxonomy',
             \ col: 10,
+            \ wrap: 0,
             \ border: [],
             \ cursorline: 1,
             \ padding: [0,1,0,1],
@@ -2389,16 +2395,33 @@ if !has('nvim')
     finish
 endif
 
+
+function s:num2bool(key, dict) abort
+  if has_key(a:dict, a:key)
+    if a:dict[a:key] == 0
+      let a:dict[a:key] = false
+    elseif a:dict[a:key] == 1
+      let a:dict[a:key] = true
+    endif
+  endif
+  return a:dict
+endfunction
+
 function s:options(opts, useropts) abort
 
-    if has_key(a:useropts, 'cursorline')
-      if a:useropts.cursorline == 0
-        let a:useropts.cursorline = false
-      elseif a:useropts.cursorline == 1
-       let a:useropts.cursorline = true
-      end
-      echom a:useropts.cursorline
-    end
+    let useropts = s:num2bool('wrap',a:useropts)
+    let useropts = s:num2bool('cursorline',a:useropts)
+    let useropts = s:num2bool('border',a:useropts)
+"    if has_key(a:useropts, 'cursorline')
+"      if a:useropts.cursorline == 0
+"        let a:useropts.cursorline = false
+"      elseif a:useropts.cursorline == 1
+"       let a:useropts.cursorline = true
+"      end
+"    end
+
+
+
 
     call extend(extend(a:opts, a:useropts), #{
         \ line: 0, col: 0, pos: 'topleft', posinvert: v:true, textprop: '',
