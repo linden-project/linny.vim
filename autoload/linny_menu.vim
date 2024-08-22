@@ -1809,7 +1809,7 @@ function! linny_menu#exec_content_menu(action, item)
       let t:linny_menu_taxo_items_for_dropdown = sort(index_keys_list)
       let name = trim(split(t:linny_menu_item_for_dropdown.text,']')[1])
 
-      call linny_menu#popup_create(t:linny_menu_taxo_items_for_dropdown, #{
+      call linny_menu#create_popup(t:linny_menu_taxo_items_for_dropdown, #{
             \ zindex: 300,
             \ drag: 0,
             \ line: t:linny_menu_line + 1,
