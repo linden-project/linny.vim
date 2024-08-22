@@ -2390,6 +2390,13 @@ if !has('nvim')
 endif
 
 function s:options(opts, useropts) abort
+
+    if a:opts.cursorline == 0
+      let a:opts.cursorline = false
+    elseif a:opts.cursorline == 1
+      let a:opts.cursorline = true
+    end
+
     call extend(extend(a:opts, a:useropts), #{
         \ line: 0, col: 0, pos: 'topleft', posinvert: v:true, textprop: '',
         \ textpropwin: 0, textpropid: 0, fixed: v:false, flip: v:true, maxheight: 999,
