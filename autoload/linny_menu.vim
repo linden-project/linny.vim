@@ -1941,9 +1941,11 @@ function! <SID>linny_menu_execute(index) abort
         elseif item.event =~ "https://"
           let url = 'https://' . split(item.event, "https://")[1]
           if has("unix")
+
             call s:job_start( ["xdg-open", url])
+
           else
-            call s:job_start( ["open", url])
+              call s:job_start( ["open", url])
           endif
 
         endif
@@ -2390,11 +2392,12 @@ endfunction
 
 
 function s:job_start(command)
-if has('nvim')
-  call jobstart( a:command)
-else
-  call job_start( a:command)
-endif
+  if has('nvim')
+    call jobstart( a:command)
+  else
+    call job_start( a:command)
+  endif
+endfunction
 
 " THE REST FOR VIM/NEOVIM
 if !has('nvim')
