@@ -1,5 +1,10 @@
 # Changelog Linny.vim
 
+## 0.8.0 - 22 aug 2024
+
+- make Linny fully NeoVim compatible.
+- update documentation
+
 ## 0.7.2 - 15 mrt 2023
 - add copy document menu action
 - set old name in document copy action
