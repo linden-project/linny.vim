@@ -19,14 +19,25 @@ Use your favorite package manager.
 
 Using vim-plug:
 
-```
+```vim
 Plug 'linden-project/linny.vim'
+```
+
+Using Lazy:
+
+```lua
+{
+  'linden-project/linny.vim',
+  enabled = true,
+  config = function()
+    vim.fn['linny#Init']()
+  end,
+}
 ```
 
 ## NeoVim
 
-More instructions will follow but you can checkout [my neovim
-configuration](https://github.com/mipmip/nixos/tree/main/home/pim/files-main/nvim)
+More instructions will follow but you can checkout [my neovim configuration](https://github.com/mipmip/nixos/tree/main/home/pim/files-main/nvim)
 as example.
 
 ## Install fred
@@ -58,7 +69,6 @@ git commit -m "version bump" -a
 rake release\[0.8.0\]
 ```
 
-
 # Credits
 
 - [vimwiki](https://github.com/vimwiki/vimwiki) - The most popular Wiki plugin for Vim
@@ -68,4 +78,4 @@ rake release\[0.8.0\]
 
 # License
 
-MIT - Copyright 2019-2024 (c) Pim Snel.
+MIT - Copyright 2019-2025 (c) Pim Snel.
