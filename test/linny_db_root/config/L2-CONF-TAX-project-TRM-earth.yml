@@ -1,9 +1,0 @@
----
-type: planet
-title: Earth
-infotext: Nice friendly planet
-views:
-  type:
-    group_by: type
-locations:
-  #website: https://www.earth.vim
