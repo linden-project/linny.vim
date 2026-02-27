@@ -29,7 +29,7 @@ command! LinnyMenuClose :call linny_menu#close()
 
 command! LinnyWordToRegister :call linny#FilenameToWordToUnamedRegister()
 
-command! LinnyOpenNotebook :call linny_notebook#open()
+command! -nargs=? LinnyOpenNotebook :call linny_notebook#open(<q-args>)
 
 
 "----------------------------------------------------------------------
