@@ -7,10 +7,14 @@ function! linny_notebook#init()
   let g:linny_index_path = expand(g:linny_open_notebook_path . '/lindenIndex')
 endfunction
 
-function! linny_notebook#open()
-  call inputsave()
-  let path = input('Enter path to notebook: ')
-  call inputrestore()
+function! linny_notebook#open(...)
+  if a:0 > 0 && !empty(a:1)
+    let path = a:1
+  else
+    call inputsave()
+    let path = input('Enter path to notebook: ')
+    call inputrestore()
+  endif
 
   if(!empty(path))
     echo path
@@ -30,5 +34,4 @@ function! linny_notebook#open()
   endif
 
 endfunction
-
 
