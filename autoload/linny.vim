@@ -48,7 +48,7 @@ function! linny#Init()
 
   let g:linny_open_notebook_path = expand(g:linny_open_notebook_path)
 
-  call linny_notebook#init()
+  call luaeval("require('linny.notebook').init()")
 
   let g:linny_state_path = expand(g:linnycfg_path_state)
 

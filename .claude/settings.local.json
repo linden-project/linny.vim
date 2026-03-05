@@ -16,7 +16,8 @@
       "Bash(/home/pim/cLinden/linny.vim/VERSION)",
       "Bash(chmod:*)",
       "Bash(bash:*)",
-      "Bash(tree:*)"
+      "Bash(tree:*)",
+      "Bash(openspec new:change:*)"
     ],
     "deny": [],
     "ask": []
