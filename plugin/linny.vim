@@ -33,10 +33,37 @@ command! -nargs=? LinnyOpenNotebook :call linny_notebook#open(<q-args>)
 
 
 "----------------------------------------------------------------------
+" WIKITAG WRAPPER FUNCTIONS (call Lua implementations)
+"----------------------------------------------------------------------
+function! LinnyWikitag_file(innertag)
+  call luaeval("require('linny.wikitags').file(_A)", a:innertag)
+endfunction
+
+function! LinnyWikitag_dir1st(innertag)
+  call luaeval("require('linny.wikitags').dir1st(_A)", a:innertag)
+endfunction
+
+function! LinnyWikitag_dir2nd(innertag)
+  call luaeval("require('linny.wikitags').dir2nd(_A)", a:innertag)
+endfunction
+
+function! LinnyWikitag_shell(innertag)
+  call luaeval("require('linny.wikitags').shell(_A)", a:innertag)
+endfunction
+
+function! LinnyWikitag_linny(innertag)
+  call luaeval("require('linny.wikitags').linny(_A)", a:innertag)
+endfunction
+
+function! LinnyWikitag_vim(innertag)
+  call luaeval("require('linny.wikitags').vim_cmd(_A)", a:innertag)
+endfunction
+
+"----------------------------------------------------------------------
 " REGISTER DEFAULT WIKITAGS
 "----------------------------------------------------------------------
-call linny#RegisterLinnyWikitag('FILE',   'linny_wikitags#file',  'linny_wikitags#file')
-call linny#RegisterLinnyWikitag('DIR',    'linny_wikitags#dir1st','linny_wikitags#dir2nd')
-call linny#RegisterLinnyWikitag('SHELL',  'linny_wikitags#shell', 'linny_wikitags#shell')
-call linny#RegisterLinnyWikitag('LIN',    'linny_wikitags#linny', 'linny_wikitags#linny')
-call linny#RegisterLinnyWikitag('VIM',    'linny_wikitags#vim',   'linny_wikitags#vim')
+call linny#RegisterLinnyWikitag('FILE',   'LinnyWikitag_file',  'LinnyWikitag_file')
+call linny#RegisterLinnyWikitag('DIR',    'LinnyWikitag_dir1st','LinnyWikitag_dir2nd')
+call linny#RegisterLinnyWikitag('SHELL',  'LinnyWikitag_shell', 'LinnyWikitag_shell')
+call linny#RegisterLinnyWikitag('LIN',    'LinnyWikitag_linny', 'LinnyWikitag_linny')
+call linny#RegisterLinnyWikitag('VIM',    'LinnyWikitag_vim',   'LinnyWikitag_vim')

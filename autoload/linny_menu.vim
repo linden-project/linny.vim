@@ -1765,8 +1765,8 @@ function! linny_menu#exec_content_menu(action, item)
 
     elseif a:action == "open docdir"
       let newdocdir = a:item.option_data.abs_path[:-3]."docdir"
-      call linny_fs#dir_create_if_path_not_exist(newdocdir)
-      call linny_fs#os_open_with_filemanager(newdocdir)
+      call luaeval("require('linny.fs').dir_create_if_not_exist(_A)", newdocdir)
+      call luaeval("require('linny.fs').os_open_with_filemanager(_A)", newdocdir)
 
     elseif a:action == "set taxonomy"
 
@@ -1935,8 +1935,8 @@ function! <SID>linny_menu_execute(index) abort
       elseif item.event =~ "openexternal"
         if item.event =~ "file:///"
           let dirstring = split(item.event, "file://")
-          call linny_fs#dir_create_if_path_not_exist(dirstring[1])
-          call linny_fs#os_open_with_filemanager(dirstring[1])
+          call luaeval("require('linny.fs').dir_create_if_not_exist(_A)", dirstring[1])
+          call luaeval("require('linny.fs').os_open_with_filemanager(_A)", dirstring[1])
 
         elseif item.event =~ "https://"
           let url = 'https://' . split(item.event, "https://")[1]

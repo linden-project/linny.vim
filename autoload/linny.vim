@@ -9,36 +9,36 @@ let g:loaded_linny_autoload = 1
 "----------------------------------------------------------------------
 " MAIN CONF SETTINGS
 "----------------------------------------------------------------------
-call linny_util#initVariable("g:linnycfg_path_index", '~/.linny_temp/index')
-call linny_util#initVariable("g:linnycfg_path_state", '~/.linny_temp/state')
-call linny_util#initVariable("g:linnycfg_rebuild_index_command", '')
-call linny_util#initVariable("g:linnycfg_index_version", 'linden01')
-call linny_util#initVariable("g:linnycfg_debug", 0)
-call linny_util#initVariable("g:linnycfg_setup_autocommands", 1)
-call linny_util#initVariable("g:linny_open_notebook_path", '~/LinnyNotebook')
-"call linny_util#initVariable("g:linnycfg_path_wiki_content", '~/Linny/wikiContent')
-"call linny_util#initVariable("g:linnycfg_path_wiki_config", '~/Linny/wikiConfig')
+call luaeval("require('linny.util').init_variable(_A[1], _A[2])", ["g:linnycfg_path_index", '~/.linny_temp/index'])
+call luaeval("require('linny.util').init_variable(_A[1], _A[2])", ["g:linnycfg_path_state", '~/.linny_temp/state'])
+call luaeval("require('linny.util').init_variable(_A[1], _A[2])", ["g:linnycfg_rebuild_index_command", ''])
+call luaeval("require('linny.util').init_variable(_A[1], _A[2])", ["g:linnycfg_index_version", 'linden01'])
+call luaeval("require('linny.util').init_variable(_A[1], _A[2])", ["g:linnycfg_debug", 0])
+call luaeval("require('linny.util').init_variable(_A[1], _A[2])", ["g:linnycfg_setup_autocommands", 1])
+call luaeval("require('linny.util').init_variable(_A[1], _A[2])", ["g:linny_open_notebook_path", '~/LinnyNotebook'])
+"call luaeval("require('linny.util').init_variable(_A[1], _A[2])", ["g:linnycfg_path_wiki_content", '~/Linny/wikiContent'])
+"call luaeval("require('linny.util').init_variable(_A[1], _A[2])", ["g:linnycfg_path_wiki_config", '~/Linny/wikiConfig'])
 
 "----------------------------------------------------------------------
 " NAVIGATOR OPTIONS
 "----------------------------------------------------------------------
-call linny_util#initVariable("g:linny_menu_max_width", 50)
-call linny_util#initVariable("g:linny_menu_padding_left", 3)
-call linny_util#initVariable("g:linny_menu_padding_right", 3)
+call luaeval("require('linny.util').init_variable(_A[1], _A[2])", ["g:linny_menu_max_width", 50])
+call luaeval("require('linny.util').init_variable(_A[1], _A[2])", ["g:linny_menu_padding_left", 3])
+call luaeval("require('linny.util').init_variable(_A[1], _A[2])", ["g:linny_menu_padding_right", 3])
 
 "----------------------------------------------------------------------
 " Don't modify these
 "----------------------------------------------------------------------
-call linny_util#initVariable("g:startWord", '[[')
-call linny_util#initVariable("g:endWord", ']]')
-call linny_util#initVariable("g:startLink", '(')
-call linny_util#initVariable("g:endLink", ')')
-call linny_util#initVariable("g:spaceReplaceChar", '_')
+call luaeval("require('linny.util').init_variable(_A[1], _A[2])", ["g:startWord", '[['])
+call luaeval("require('linny.util').init_variable(_A[1], _A[2])", ["g:endWord", ']]'])
+call luaeval("require('linny.util').init_variable(_A[1], _A[2])", ["g:startLink", '('])
+call luaeval("require('linny.util').init_variable(_A[1], _A[2])", ["g:endLink", ')'])
+call luaeval("require('linny.util').init_variable(_A[1], _A[2])", ["g:spaceReplaceChar", '_'])
 
-call linny_util#initVariable("g:linny_menu_options", 'T')
-call linny_util#initVariable("g:linny_menu_display_docs_count", 1)
-call linny_util#initVariable("g:linny_menu_display_taxo_count", 1)
-call linny_util#initVariable("g:linnytabnr", 1)
+call luaeval("require('linny.util').init_variable(_A[1], _A[2])", ["g:linny_menu_options", 'T'])
+call luaeval("require('linny.util').init_variable(_A[1], _A[2])", ["g:linny_menu_display_docs_count", 1])
+call luaeval("require('linny.util').init_variable(_A[1], _A[2])", ["g:linny_menu_display_taxo_count", 1])
+call luaeval("require('linny.util').init_variable(_A[1], _A[2])", ["g:linnytabnr", 1])
 
 
 " CONFIG VARS ARE TRANSFERED TO REEGULAR VARS
