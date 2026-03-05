@@ -2,6 +2,7 @@
 
 ## Next version
 
+- refactor: WIP rewrite all vimscript to lua
 
 ## 0.9.0 - 5 mrt 2026
 

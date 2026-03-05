@@ -2105,7 +2105,7 @@ function! linny_menu#replace_key_value_in_root_frontmatter_filelines(fileLines, 
 endfunction
 
 function! linny_menu#copy_document(source_path, new_title)
-  let fileName = linny_wiki#WordFilename(a:new_title)
+  let fileName = luaeval("require('linny.wiki').word_to_filename(_A)", a:new_title)
   let relativePath = fnameescape(g:linny_path_wiki_content . '/' . fileName)
 
   if !filereadable(relativePath) && filereadable(a:source_path)
@@ -2148,7 +2148,7 @@ endfunction
 
 function! linny_menu#new_document_in_leaf(...)
   let title = join(a:000)
-  let fileName = linny_wiki#WordFilename(title)
+  let fileName = luaeval("require('linny.wiki').word_to_filename(_A)", title)
   let relativePath = fnameescape(g:linny_path_wiki_content . '/' . fileName)
 
   if !filereadable(relativePath)

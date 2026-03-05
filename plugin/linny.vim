@@ -8,10 +8,10 @@
 " SETUP AUTOCOMMANDS
 if get(g:, 'linnycfg_setup_autocommands', 1)
   augroup MarkdownTasks
-    autocmd BufEnter,WinEnter,BufWinEnter *.md call linny_wiki#FindNonExistingLinks()
+    autocmd BufEnter,WinEnter,BufWinEnter *.md lua require('linny.wiki').find_non_existing_links()
   augroup END
 
-  autocmd FileType markdown nnoremap <buffer> <CR> :call linny_wiki#GotoLink()<CR>
+  autocmd FileType markdown nnoremap <buffer> <CR> :lua require('linny.wiki').goto_link()<CR>
 endif
 
 "----------------------------------------------------------------------

@@ -81,7 +81,7 @@ function! LinnyFoldText()
   return repeat('▧', v:foldlevel) . repeat(' ', indent) . text .' ('. lines .')'
 endfunction
 
-command! -buffer MdwiReturn call linny_wiki#Return()
+command! -buffer MdwiReturn lua require('linny.wiki').return_to_last()
 nnoremap <buffer> <script> <Plug>MdwiReturn :MdwiReturn<CR>
 if !hasmapto('<Plug>MdwiReturn')
   nmap <buffer> <silent> <Leader><CR> <Plug>MdwiReturn

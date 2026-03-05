@@ -186,7 +186,7 @@ endfunction
 
 func! linny#browse_taxonomy_terms()
 
-  let currentKey = linny_wiki#YamlKeyUnderCursor()
+  let currentKey = luaeval("require('linny.wiki').yaml_key_under_cursor()")
 
   let relativePath = fnameescape(linny#l1_index_filepath(currentKey))
 
