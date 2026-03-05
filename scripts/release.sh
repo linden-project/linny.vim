@@ -74,14 +74,14 @@ calculate_new_version() {
 select_bump_type() {
     local current="$1"
 
-    echo ""
+    echo "" >&2
     info "Current version: $current"
-    echo ""
-    echo "Select version bump type:"
-    echo "  1) major  - $(calculate_new_version "$current" major)"
-    echo "  2) minor  - $(calculate_new_version "$current" minor)"
-    echo "  3) patch  - $(calculate_new_version "$current" patch)"
-    echo ""
+    echo "" >&2
+    echo "Select version bump type:" >&2
+    echo "  1) major  - $(calculate_new_version "$current" major)" >&2
+    echo "  2) minor  - $(calculate_new_version "$current" minor)" >&2
+    echo "  3) patch  - $(calculate_new_version "$current" patch)" >&2
+    echo "" >&2
 
     read -p "Enter choice [1-3]: " choice
 
