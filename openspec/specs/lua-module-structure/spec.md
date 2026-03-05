@@ -3,9 +3,7 @@
 ## Purpose
 
 This capability defines the Lua module structure for the linny.vim plugin, following standard Neovim plugin conventions. It ensures that Lua modules are properly organized and accessible.
-
 ## Requirements
-
 ### Requirement: Lua module directory structure
 
 The plugin SHALL provide Lua modules under `lua/linny/` following standard Neovim plugin conventions.
@@ -22,12 +20,19 @@ The plugin SHALL provide Lua modules under `lua/linny/` following standard Neovi
 
 ### Requirement: Version function accessible via Lua
 
-The version function SHALL be accessible as `require('linny.version').plugin_version()`.
+The version function SHALL be accessible as `require('linny.version').plugin_version()` and SHALL read the version from the VERSION file at runtime.
 
-#### Scenario: Version function returns correct value
+#### Scenario: Version function returns value from VERSION file
 - **WHEN** calling `require('linny.version').plugin_version()`
-- **THEN** it SHALL return the version string `'0.8.0'`
+- **THEN** it SHALL return the content of the VERSION file
+- **AND** the value SHALL match what is in the VERSION file
+
+#### Scenario: VERSION file missing returns fallback
+- **WHEN** calling `require('linny.version').plugin_version()`
+- **AND** the VERSION file does not exist
+- **THEN** it SHALL return `"unknown"`
 
 #### Scenario: Version accessible from main module
 - **WHEN** calling `require('linny').version.plugin_version()`
 - **THEN** it SHALL return the same version string as the submodule
+

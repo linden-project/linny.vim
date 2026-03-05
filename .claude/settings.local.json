@@ -15,7 +15,8 @@
       "Bash(printf:*)",
       "Bash(/home/pim/cLinden/linny.vim/VERSION)",
       "Bash(chmod:*)",
-      "Bash(bash:*)"
+      "Bash(bash:*)",
+      "Bash(tree:*)"
     ],
     "deny": [],
     "ask": []

@@ -59,15 +59,9 @@ Alternatively, you can read
 [linny.txt](https://github.com/linden-project/linny.vim/blob/master/doc/linny.txt)
 in your browser.
 
-# Release Notes
+# Releasing
 
-first update CHANGELOG.md with new version.
-
-```bash
-rake bump\[0.8.0\]
-git commit -m "version bump" -a
-rake release\[0.8.0\]
-```
+For maintainers: run the script `./script/release.sh`.
 
 # Credits
 
@@ -78,4 +72,4 @@ rake release\[0.8.0\]
 
 # License
 
-MIT - Copyright 2019-2025 (c) Pim Snel.
+MIT - Copyright 2019-2026 (c) Pim Snel.
