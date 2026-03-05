@@ -2,6 +2,9 @@
 
 ## Next version
 
+
+## 0.9.0 - 5 mrt 2026
+
 - chore: new release script
 - chore: New nix development environment
 - chore: Lua testing framework
