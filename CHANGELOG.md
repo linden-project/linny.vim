@@ -2,6 +2,7 @@
 
 ## Next version
 
+- chore: new release script
 - chore: New nix development environment
 - chore: Lua testing framework
 - chore: openspec init

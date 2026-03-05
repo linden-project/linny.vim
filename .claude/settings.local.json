@@ -8,7 +8,14 @@
       "Bash(openspec list:*)",
       "Bash(openspec status:*)",
       "Bash(openspec instructions design:*)",
-      "Bash(openspec instructions apply:*)"
+      "Bash(openspec instructions apply:*)",
+      "Bash(openspec instructions specs:*)",
+      "Bash(openspec instructions tasks:*)",
+      "Skill(openspec-sync-specs)",
+      "Bash(printf:*)",
+      "Bash(/home/pim/cLinden/linny.vim/VERSION)",
+      "Bash(chmod:*)",
+      "Bash(bash:*)"
     ],
     "deny": [],
     "ask": []

@@ -900,7 +900,7 @@ function! s:partial_footer_items()
     let fred_version = "not installed"
   endif
 
-  call s:add_item_footer('linny: ' . linny_version#PluginVersion())
+  call s:add_item_footer('linny: ' . luaeval("require('linny.version').plugin_version()"))
   call s:add_item_footer('fred:  ' . fred_version)
 endfunction
 
