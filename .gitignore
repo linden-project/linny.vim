@@ -3,3 +3,8 @@ autoload/linny_version.vimbak
 doc/tags
 *.bak
 *.swp
+
+# Nix development environment
+.dev/
+.direnv/
+result

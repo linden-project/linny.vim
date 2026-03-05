@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(openspec new:*)",
+      "Bash(openspec instructions proposal:*)",
+      "Bash(vim:*)",
+      "Bash(nvim:*)",
+      "Bash(openspec list:*)",
+      "Bash(openspec status:*)",
+      "Bash(openspec instructions design:*)",
+      "Bash(openspec instructions apply:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

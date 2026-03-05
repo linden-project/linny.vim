@@ -1,0 +1,39 @@
+schema: spec-driven
+
+context: |
+  Linny.vim is a Vim/Neovim plugin for personal knowledge management.
+
+  Tech stack:
+  - Vimscript (primary language)
+  - Lua for tests (plenary.nvim)
+  - Nix flake for development environment
+
+  Project structure:
+  - plugin/linny.vim: Entry point, commands, and wikitag registration
+  - autoload/*.vim: Lazy-loaded functions (linny.vim, linny_wiki.vim, linny_menu.vim, etc.)
+  - tests/: Plenary test specs
+
+  Conventions:
+  - Autoload functions: linny#FunctionName(), linny_wiki#FunctionName()
+  - Use get(g:, 'varname', default) for config variables that may not be initialized
+  - Plugin files load at startup, autoload files load on first function call
+
+  Domain: Wiki-style personal knowledge management with markdown files,
+  frontmatter metadata, and wiki links [[like this]].
+
+rules:
+  proposal:
+    - Keep proposals concise (under 300 words)
+    - Focus on user-facing behavior changes
+
+  specs:
+    - Include scenarios for both Vim and Neovim compatibility
+    - Test autoload initialization order when relevant
+
+  design:
+    - Prefer minimal changes to existing patterns
+    - Note Vim/Neovim compatibility considerations
+
+  tasks:
+    - Include verification step (run tests or manual check)
+    - Reference specific file:line locations when possible

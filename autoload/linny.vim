@@ -71,6 +71,7 @@ function! linny#ListTags()
 endfunction
 
 function! linny#RegisterLinnyWikitag(tagKey, primaryAction, ...)
+  let g:linny_wikitags_register = get(g:, 'linny_wikitags_register', {})
   let secondaryAction = a:0 >= 1 ? a:1 : a:primaryAction
 
   if has_key(g:linny_wikitags_register, a:tagKey)

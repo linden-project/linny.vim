@@ -1,9 +1,12 @@
 # Changelog Linny.vim
 
-## 0.8.next
+## Next version
 
-- new cmd LinnyOpenNotebook: switch to other notebook cLinden/linny-notebook-template 🎉
-- Breaking: notebook dirstruct is now fixed
+- chore: New nix development environment
+- chore: Lua testing framework
+- chore: openspec init
+- feature: new cmd LinnyOpenNotebook: switch to other notebook /my/path/my-linny-notebook 🎉
+- Breaking: notebook dir structure is now fixed
     - ./config/
     - ./content/
     - ./lindenConfig/

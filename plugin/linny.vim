@@ -6,7 +6,7 @@
 "call linny#Init()
 
 " SETUP AUTOCOMMANDS
-if g:linnycfg_setup_autocommands
+if get(g:, 'linnycfg_setup_autocommands', 1)
   augroup MarkdownTasks
     autocmd BufEnter,WinEnter,BufWinEnter *.md call linny_wiki#FindNonExistingLinks()
   augroup END
