@@ -17,7 +17,7 @@ endif
 "----------------------------------------------------------------------
 " DEFINED COMMANDS
 "----------------------------------------------------------------------
-command! -nargs=+ LinnyNewDoc :call linny_menu#new_document_in_leaf(<f-args>)
+command! -nargs=+ LinnyNewDoc :call linny_menu_documents#new_in_leaf(<f-args>)
 
 command! LinnyStart :call linny_menu#start()
 

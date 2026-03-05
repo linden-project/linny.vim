@@ -78,7 +78,7 @@ function! linny_menu_views#dropdown_l1()
   let config = linny#tax_config(t:linny_menu_taxonomy)
   let views = linny_menu_views#get_list(config)
 
-  call linny_menu#create_popup(views, #{
+  call linny_menu_popup#create(views, #{
         \ zindex: 200,
         \ drag: 0,
         \ line: 10,
@@ -111,7 +111,7 @@ function! linny_menu_views#dropdown_l2()
   let config = linny#term_config(t:linny_menu_taxonomy, t:linny_menu_term)
   let views = linny_menu_views#get_list(config)
 
-  call linny_menu#create_popup(views, #{
+  call linny_menu_popup#create(views, #{
         \ zindex: 200,
         \ drag: 0,
         \ line: 10,
