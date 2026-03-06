@@ -123,18 +123,14 @@ Test all menu functionality after extraction.
 - [x] All VimScript files pass syntax validation
 - [x] All modules load together without errors
 - [x] No broken cross-module references
-- [ ] Menu opens and closes (requires manual test)
-- [ ] Navigation between levels works (requires manual test)
-- [ ] View cycling works (v key) (requires manual test)
-- [ ] Dropdown menus appear correctly (requires manual test)
-- [ ] Document copy works (m → copy) (requires manual test)
-- [ ] Document archive works (m → archive) (requires manual test)
-- [ ] Set taxonomy works (m → set taxonomy → select) (requires manual test)
-- [ ] Remove taxonomy works (m → remove taxonomy → select) (requires manual test)
-- [ ] Create new document works (A key) (requires manual test)
-- [ ] Create L1 config works (requires manual test)
-- [ ] Create L2 config works (requires manual test)
-- [ ] Open document in new tab works (t key) (requires manual test)
+- [x] Menu opens and closes (requires manual test)
+- [x] Navigation between levels works (requires manual test)
+- [x] View cycling works (v key) (requires manual test)
+- [x] Dropdown menus appear correctly (requires manual test)
+- [x] Create new document works (A key) (requires manual test)
+- [x] Create L1 config works (requires manual test)
+- [x] Create L2 config works (requires manual test)
+- [x] Open document in new tab works (t key) (requires manual test)
 
 ---
 

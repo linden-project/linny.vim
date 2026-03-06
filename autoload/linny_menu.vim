@@ -33,23 +33,23 @@ function! linny_menu#openandshow() abort
   let t:linny_start_load_time = localtime()
 
   if t:linny_menu_view != ""
-    call linny_menu_render#level0(t:linny_menu_view)
+    call luaeval("require('linny.menu.render').level0(_A)", t:linny_menu_view)
 
   elseif t:linny_menu_taxonomy!="" && t:linny_menu_term!=""
-    call linny_menu_render#level2(t:linny_menu_taxonomy, t:linny_menu_term)
+    call luaeval("require('linny.menu.render').level2(_A[1], _A[2])", [t:linny_menu_taxonomy, t:linny_menu_term])
 
   elseif t:linny_menu_taxonomy!="" && t:linny_menu_term==""
-    call linny_menu_render#level1(t:linny_menu_taxonomy)
+    call luaeval("require('linny.menu.render').level1(_A)", t:linny_menu_taxonomy)
 
   elseif t:linny_menu_taxonomy=="" && t:linny_menu_term==""
-    call linny_menu_render#level0('root')
+    call luaeval("require('linny.menu.render').level0(_A)", 'root')
   endif
 
-  call linny_menu_render#partial_footer_items()
+  call luaeval("require('linny.menu.render').partial_footer_items()")
 
   if g:linny_debug
     let t:linny_load_time = localtime() - t:linny_start_load_time
-    call linny_menu_render#partial_debug_info()
+    call luaeval("require('linny.menu.render').partial_debug_info()")
   endif
 
   let items = Select_items()

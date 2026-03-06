@@ -8,5 +8,6 @@ M.widgets = require('linny.menu.widgets')
 M.actions = require('linny.menu.actions')
 M.documents = require('linny.menu.documents')
 M.window = require('linny.menu.window')
+M.render = require('linny.menu.render')
 
 return M
