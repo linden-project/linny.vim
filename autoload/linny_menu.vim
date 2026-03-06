@@ -74,8 +74,8 @@ function! linny_menu#openandshow() abort
   let t:linny_menu_lastmaxsize = maxsize
 
   if 1
-    call linny_menu_window#open_window(maxsize)
-    call linny_menu_window#render(content)
+    call luaeval("require('linny.menu.window').open_window(_A)", maxsize)
+    call luaeval("require('linny.menu.window').render(_A)", content)
     call Setup_keymaps(content)
   else
     for item in content
@@ -116,22 +116,22 @@ function! linny_menu#start()
 endfunction
 
 function! linny_menu#close()
-  if linny_menu_window#exist()
-    call linny_menu_window#close_window()
+  if luaeval("require('linny.menu.window').exist()")
+    call luaeval("require('linny.menu.window').close_window()")
     return 0
   endif
 endfunction
 
 function! linny_menu#open()
-  if !linny_menu_window#exist()
+  if !luaeval("require('linny.menu.window').exist()")
     call luaeval("require('linny.menu.state').tab_init()")
     call linny_menu#openandshow()
   endif
 endfunction
 
 function! linny_menu#toggle() abort
-  if linny_menu_window#exist()
-    call linny_menu_window#close_window()
+  if luaeval("require('linny.menu.window').exist()")
+    call luaeval("require('linny.menu.window').close_window()")
     return 0
   endif
 
@@ -156,8 +156,8 @@ function! linny_menu#toggle() abort
   let maxsize += g:linny_menu_padding_right
 
   if 1
-    call linny_menu_window#open_window(maxsize)
-    call linny_menu_window#render(content)
+    call luaeval("require('linny.menu.window').open_window(_A)", maxsize)
+    call luaeval("require('linny.menu.window').render(_A)", content)
     call Setup_keymaps(content)
   else
     for item in content
