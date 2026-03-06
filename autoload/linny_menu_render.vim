@@ -3,7 +3,7 @@
 " Render level 0 (root/view level)
 function! linny_menu_render#level0(view_name)
   let t:linny_menu_current_menu_type = "menu_level0"
-  call linny_menu_state#reset()
+  call luaeval("require('linny.menu.state').reset()")
   call linny_menu_views#render(a:view_name)
 endfunction
 
@@ -19,17 +19,17 @@ function! linny_menu_render#level1(tax)
     let tax_plural = get(tax_config, 'plural')
   end
 
-  call linny_menu_state#reset()
-  call linny_menu_items#add_special_event("/  <home>", "home", '0')
-  call linny_menu_items#add_special_event(".. <up>", "home", 'u')
-  call linny_menu_items#add_section("# " . toupper(tax_plural) )
-  call linny_menu_items#add_divider()
+  call luaeval("require('linny.menu.state').reset()")
+  call luaeval("require('linny.menu.items').add_special_event(_A[1], _A[2], _A[3])", ["/  <home>", "home", '0'])
+  call luaeval("require('linny.menu.items').add_special_event(_A[1], _A[2], _A[3])", [".. <up>", "home", 'u'])
+  call luaeval("require('linny.menu.items').add_section(_A)", "# " . toupper(tax_plural))
+  call luaeval("require('linny.menu.items').add_divider()")
 
   let views_string = ""
   let views_list = linny_menu_views#get_list(tax_config)
   let views = linny_menu_views#get_views(tax_config)
 
-  let l1_state = linny_menu_state#term_leaf_state(a:tax)
+  let l1_state = luaeval("require('linny.menu.state').term_leaf_state(_A)", a:tax)
   let active_view = linny_menu_views#get_active(l1_state)
 
   if len(views) < 3 && !has_key(views,'NONE')
@@ -37,20 +37,20 @@ function! linny_menu_render#level1(tax)
       let views_string = views_string . "[" .view . "]"
     endfor
 
-    let active_arrow_string = linny_menu_util#calc_active_view_arrow(views_list, active_view, 4)
+    let active_arrow_string = luaeval("require('linny.menu.util').calc_active_view_arrow(_A[1], _A[2], _A[3])", [views_list, active_view, 4])
 
-    call linny_menu_items#add_section("### VIEW")
-    call linny_menu_items#add_special_event("". views_string  , "cycle_l1_view", 'v')
-    call linny_menu_items#add_text(active_arrow_string)
-    call linny_menu_items#add_divider()
+    call luaeval("require('linny.menu.items').add_section(_A)", "### VIEW")
+    call luaeval("require('linny.menu.items').add_special_event(_A[1], _A[2], _A[3])", [views_string, "cycle_l1_view", 'v'])
+    call luaeval("require('linny.menu.items').add_text(_A)", active_arrow_string)
+    call luaeval("require('linny.menu.items').add_divider()")
 
   elseif len(views) > 1
 
     let views_string = views_string . "[" .views_list[active_view] . " ▼]"
 
-    call linny_menu_items#add_section("### VIEW")
-    call linny_menu_items#add_special_event("". views_string  , "dropdown_l1_view", 'v')
-    call linny_menu_items#add_divider()
+    call luaeval("require('linny.menu.items').add_section(_A)", "### VIEW")
+    call luaeval("require('linny.menu.items').add_special_event(_A[1], _A[2], _A[3])", [views_string, "dropdown_l1_view", 'v'])
+    call luaeval("require('linny.menu.items').add_divider()")
 
   endif
 
@@ -113,38 +113,38 @@ function! linny_menu_render#level1(tax)
   endfor
 
   for group in sort(keys(term_menu))
-    call linny_menu_items#add_section("### " . linny_menu_util#string_capitalize( substitute(group, '-', ' ', 'g') ) )
+    call luaeval("require('linny.menu.items').add_section(_A)", "### " . luaeval("require('linny.menu.util').string_capitalize(_A)", substitute(group, '-', ' ', 'g')))
 
     for val in term_menu[group]
-      call linny_menu_items#add_document_taxo_key_val(a:tax, val, 0)
+      call luaeval("require('linny.menu.items').add_document_taxo_key_val(_A[1], _A[2], _A[3])", [a:tax, val, 0])
     endfor
 
   endfor
 
-  call linny_menu_items#add_empty_line()
-  call linny_menu_items#add_divider()
+  call luaeval("require('linny.menu.items').add_empty_line()")
+  call luaeval("require('linny.menu.items').add_divider()")
 
-  call linny_menu_items#add_section("### " . toupper('Configuration'))
+  call luaeval("require('linny.menu.items').add_section(_A)", "### " . toupper('Configuration'))
 
   if filereadable(linny#l1_config_filepath(a:tax))
-    call linny_menu_items#add_document("Open ". a:tax." Config", linny#l1_config_filepath(a:tax),'c', 'file')
+    call luaeval("require('linny.menu.items').add_document(_A[1], _A[2], _A[3], _A[4])", ["Open ". a:tax." Config", linny#l1_config_filepath(a:tax), 'c', 'file'])
   else
-    call linny_menu_items#add_special_event("Create ". a:tax." Config", "createl1config", 'C')
+    call luaeval("require('linny.menu.items').add_special_event(_A[1], _A[2], _A[3])", ["Create ". a:tax." Config", "createl1config", 'C'])
   endif
 
 endfunction
 
 " Render debug info partial
 function! linny_menu_render#partial_debug_info()
-  call linny_menu_items#add_section("### " . linny_menu_util#string_capitalize('debug'))
-  call linny_menu_items#add_text("t:linny_menu_lastmaxsize = ".t:linny_menu_lastmaxsize)
-  call linny_menu_items#add_text("t:linny_menu_name = ".t:linny_menu_name)
-  call linny_menu_items#add_text("t:linny_menu_taxonomy = ".t:linny_menu_taxonomy)
-  call linny_menu_items#add_text("t:linny_menu_term = ".t:linny_menu_term)
-  call linny_menu_items#add_text("t:linny_menu_view = ".t:linny_menu_view)
-  call linny_menu_items#add_text("g:linny_index_version = ".g:linny_index_version)
-  call linny_menu_items#add_text("g:linny_index_path = ".g:linny_index_path)
-  call linny_menu_items#add_text("Loading time = ".t:linny_load_time)
+  call luaeval("require('linny.menu.items').add_section(_A)", "### " . luaeval("require('linny.menu.util').string_capitalize(_A)", 'debug'))
+  call luaeval("require('linny.menu.items').add_text(_A)", "t:linny_menu_lastmaxsize = ".t:linny_menu_lastmaxsize)
+  call luaeval("require('linny.menu.items').add_text(_A)", "t:linny_menu_name = ".t:linny_menu_name)
+  call luaeval("require('linny.menu.items').add_text(_A)", "t:linny_menu_taxonomy = ".t:linny_menu_taxonomy)
+  call luaeval("require('linny.menu.items').add_text(_A)", "t:linny_menu_term = ".t:linny_menu_term)
+  call luaeval("require('linny.menu.items').add_text(_A)", "t:linny_menu_view = ".t:linny_menu_view)
+  call luaeval("require('linny.menu.items').add_text(_A)", "g:linny_index_version = ".g:linny_index_version)
+  call luaeval("require('linny.menu.items').add_text(_A)", "g:linny_index_path = ".g:linny_index_path)
+  call luaeval("require('linny.menu.items').add_text(_A)", "Loading time = ".t:linny_load_time)
 endfunction
 
 " Render level 2 (term level)
@@ -164,23 +164,23 @@ function! linny_menu_render#level2(tax, term)
     let tax_plural = get(tax_config, 'plural')
   end
 
-  call linny_menu_state#reset()
+  call luaeval("require('linny.menu.state').reset()")
 
-  call linny_menu_items#add_special_event("/  <home>", "home", '0')
-  call linny_menu_items#add_ex_event(".. <up> ". tax_plural, ":call linny_menu#openterm('".a:tax."','')", 'u')
-  call linny_menu_items#add_section("# " . toupper(a:tax) . ': ' . toupper(a:term))
+  call luaeval("require('linny.menu.items').add_special_event(_A[1], _A[2], _A[3])", ["/  <home>", "home", '0'])
+  call luaeval("require('linny.menu.items').add_ex_event(_A[1], _A[2], _A[3])", [".. <up> ". tax_plural, ":call linny_menu#openterm('".a:tax."','')", 'u'])
+  call luaeval("require('linny.menu.items').add_section(_A)", "# " . toupper(a:tax) . ': ' . toupper(a:term))
 
-  call linny_menu_items#add_divider()
+  call luaeval("require('linny.menu.items').add_divider()")
 
   if has_key(l2_config, 'infotext')
     let infotext =  get(l2_config,'infotext')
-    call linny_menu_items#add_text(infotext)
+    call luaeval("require('linny.menu.items').add_text(_A)", infotext)
   endif
 
   let views_string = ""
   let views_list = linny_menu_views#get_list(l2_config)
   let views = linny_menu_views#get_views(l2_config)
-  let l2_state = linny_menu_state#term_value_leaf_state(a:tax, a:term)
+  let l2_state = luaeval("require('linny.menu.state').term_value_leaf_state(_A[1], _A[2])", [a:tax, a:term])
   let active_view = linny_menu_views#get_active(l2_state)
 
   if len(views) <=3 && !has_key(views,'NONE')
@@ -188,21 +188,21 @@ function! linny_menu_render#level2(tax, term)
       let views_string = views_string . "[" .view . "]"
     endfor
 
-    let active_arrow_string = linny_menu_util#calc_active_view_arrow(views_list, active_view, 4)
+    let active_arrow_string = luaeval("require('linny.menu.util').calc_active_view_arrow(_A[1], _A[2], _A[3])", [views_list, active_view, 4])
 
-    call linny_menu_items#add_section("### VIEW")
-    call linny_menu_items#add_special_event("". views_string  , "cycle_l2_view", 'v')
+    call luaeval("require('linny.menu.items').add_section(_A)", "### VIEW")
+    call luaeval("require('linny.menu.items').add_special_event(_A[1], _A[2], _A[3])", [views_string, "cycle_l2_view", 'v'])
 
-    call linny_menu_items#add_text(active_arrow_string)
-    call linny_menu_items#add_divider()
+    call luaeval("require('linny.menu.items').add_text(_A)", active_arrow_string)
+    call luaeval("require('linny.menu.items').add_divider()")
 
   elseif len(views) > 1
 
     let views_string = views_string . "[" .views_list[active_view] . " ▼]"
 
-    call linny_menu_items#add_section("### VIEW")
-    call linny_menu_items#add_special_event("". views_string  , "dropdown_l2_view", 'v')
-    call linny_menu_items#add_divider()
+    call luaeval("require('linny.menu.items').add_section(_A)", "### VIEW")
+    call luaeval("require('linny.menu.items').add_special_event(_A[1], _A[2], _A[3])", [views_string, "dropdown_l2_view", 'v'])
+    call luaeval("require('linny.menu.items').add_divider()")
 
   endif
 
@@ -260,18 +260,18 @@ function! linny_menu_render#level2(tax, term)
   endfor
 
   for group in sort(keys(files_menu))
-    call linny_menu_items#add_section("### " . linny_menu_util#string_capitalize(group))
+    call luaeval("require('linny.menu.items').add_section(_A)", "### " . luaeval("require('linny.menu.util').string_capitalize(_A)", group))
     call linny_menu_widgets#partial_files_listing( files_menu[group], view_props , 1)
   endfor
 
-  call linny_menu_items#add_empty_line()
-  call linny_menu_items#add_divider()
+  call luaeval("require('linny.menu.items').add_empty_line()")
+  call luaeval("require('linny.menu.items').add_divider()")
 
   if has_key(l2_config, 'mounts')
     let mounts = get(l2_config,'mounts')
     if(type(mounts)==4)
       for m in keys(mounts)
-        call linny_menu_items#add_section("### MOUNT: " . m)
+        call luaeval("require('linny.menu.items').add_section(_A)", "### MOUNT: " . m)
         let mountfiles = glob(mounts[m].source . "/*.md",0, 1)
         let excludes = []
         if has_key(mounts[m], 'exclude')
@@ -280,55 +280,55 @@ function! linny_menu_render#level2(tax, term)
         for mfile in mountfiles
           let filename = split(mfile,"/")[-1]
           if index(excludes, filename) != 0
-            call linny_menu_items#add_document(filename, mfile, '', 'file')
+            call luaeval("require('linny.menu.items').add_document(_A[1], _A[2], _A[3], _A[4])", [filename, mfile, '', 'file'])
           endif
         endfor
       endfor
     endif
 
-    call linny_menu_items#add_empty_line()
-    call linny_menu_items#add_divider()
+    call luaeval("require('linny.menu.items').add_empty_line()")
+    call luaeval("require('linny.menu.items').add_divider()")
 
   endif
 
   if has_key(l2_config, 'locations')
     let locations = get(l2_config,'locations')
     if(type(locations)==4)
-      call linny_menu_items#add_section("### " . toupper('Locations'))
+      call luaeval("require('linny.menu.items').add_section(_A)", "### " . toupper('Locations'))
 
       for l in keys(locations)
-        call linny_menu_items#add_external_location(l, get(locations,l))
+        call luaeval("require('linny.menu.items').add_external_location(_A[1], _A[2])", [l, get(locations,l)])
       endfor
     endif
   endif
 
-  call linny_menu_items#add_section("### " . toupper('Configuration'))
+  call luaeval("require('linny.menu.items').add_section(_A)", "### " . toupper('Configuration'))
 
   if filereadable(linny#l2_config_filepath(a:tax, a:term))
-    call linny_menu_items#add_document("Open config: ".a:term."", linny#l2_config_filepath(a:tax, a:term),'c', 'file')
+    call luaeval("require('linny.menu.items').add_document(_A[1], _A[2], _A[3], _A[4])", ["Open config: ".a:term."", linny#l2_config_filepath(a:tax, a:term), 'c', 'file'])
   else
-    call linny_menu_items#add_special_event("Create config: ". a:term." Config", "createl2config", 'c')
+    call luaeval("require('linny.menu.items').add_special_event(_A[1], _A[2], _A[3])", ["Create config: ". a:term." Config", "createl2config", 'c'])
   endif
 
-  call linny_menu_items#add_section("### " . toupper('hot keys'))
-  call linny_menu_items#add_special_event("<new document>", "newdocingroup", 'A')
-  call linny_menu_items#add_special_event("<open context menu>", "opencontextmenu", 'm')
+  call luaeval("require('linny.menu.items').add_section(_A)", "### " . toupper('hot keys'))
+  call luaeval("require('linny.menu.items').add_special_event(_A[1], _A[2], _A[3])", ["<new document>", "newdocingroup", 'A'])
+  call luaeval("require('linny.menu.items').add_special_event(_A[1], _A[2], _A[3])", ["<open context menu>", "opencontextmenu", 'm'])
 endfunc
 
 " Render footer items partial
 function! linny_menu_render#partial_footer_items()
-  call linny_menu_items#add_special_event("<refresh>", "refresh", 'R')
-  call linny_menu_items#add_special_event("<home>", "home", 'H')
-  call linny_menu_items#add_special_event("<online book>", "onlinebook", '?')
-  call linny_menu_items#add_empty_line()
+  call luaeval("require('linny.menu.items').add_special_event(_A[1], _A[2], _A[3])", ["<refresh>", "refresh", 'R'])
+  call luaeval("require('linny.menu.items').add_special_event(_A[1], _A[2], _A[3])", ["<home>", "home", 'H'])
+  call luaeval("require('linny.menu.items').add_special_event(_A[1], _A[2], _A[3])", ["<online book>", "onlinebook", '?'])
+  call luaeval("require('linny.menu.items').add_empty_line()")
 
   let fred_version = system('fred version')
   if v:shell_error != 0
     let fred_version = "not installed"
   endif
 
-  call linny_menu_items#add_footer('linny: ' . luaeval("require('linny.version').plugin_version()"))
-  call linny_menu_items#add_footer('fred:  ' . fred_version)
+  call luaeval("require('linny.menu.items').add_footer(_A)", 'linny: ' . luaeval("require('linny.version').plugin_version()"))
+  call luaeval("require('linny.menu.items').add_footer(_A)", 'fred:  ' . fred_version)
 endfunction
 
 " Check if file should be displayed based on view properties

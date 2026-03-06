@@ -128,7 +128,7 @@ function! linny_menu_documents#archive_l2_config(taxonomy, taxo_term)
     let fileLines = ['---','archive: true'] + fileLines[1:-1]
   else
     call add(fileLines, '---')
-    call add(fileLines, 'title: '.linny_menu_util#string_capitalize(a:taxo_term))
+    call add(fileLines, 'title: '.luaeval("require('linny.menu.util').string_capitalize(_A)", a:taxo_term))
     call add(fileLines, 'infotext: About '. a:taxo_term)
     call add(fileLines, 'archive: true')
   endif
@@ -159,7 +159,7 @@ function! linny_menu_documents#create_l2_config(taxonomy, taxo_term)
     let fileLines = []
 
     call add(fileLines, '---')
-    call add(fileLines, 'title: '.linny_menu_util#string_capitalize(a:taxo_term))
+    call add(fileLines, 'title: '.luaeval("require('linny.menu.util').string_capitalize(_A)", a:taxo_term))
     call add(fileLines, 'infotext: About '. a:taxo_term)
     call add(fileLines, '')
     call add(fileLines, 'archive: false')
@@ -210,7 +210,7 @@ function! linny_menu_documents#create_l1_config(taxonomy)
 
   let fileLines = []
   call add(fileLines, '---')
-  call add(fileLines, 'title: '.linny_menu_util#string_capitalize(a:taxonomy))
+  call add(fileLines, 'title: '.luaeval("require('linny.menu.util').string_capitalize(_A)", a:taxonomy))
   call add(fileLines, 'infotext: About '. a:taxonomy)
   call add(fileLines, 'views:')
   call add(fileLines, '  type:')

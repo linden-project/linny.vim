@@ -129,7 +129,7 @@ function! linny_menu_widgets#partial_files_listing(files_list, view_props, bool_
       end
     end
 
-    call linny_menu_items#add_document(t_sortable[tk]['orgTitle'] . tasks_stats_str, t_sortable[tk]['orgFile'], '', 'document')
+    call luaeval("require('linny.menu.items').add_document(_A[1], _A[2], _A[3], _A[4])", [t_sortable[tk]['orgTitle'] . tasks_stats_str, t_sortable[tk]['orgFile'], '', 'document'])
   endfor
 
 endfunction
@@ -146,7 +146,7 @@ function! linny_menu_widgets#all_level0_views(widgetconf)
   let level0views = glob(g:linny_path_wiki_config .'/views/*.yml',0,1)
   for viewfile in sort(level0views)
     let filename = substitute(viewfile, '^.*/', '', '')
-    call linny_menu_items#add_document(filename, viewfile,'','file')
+    call luaeval("require('linny.menu.items').add_document(_A[1], _A[2], _A[3], _A[4])", [filename, viewfile, '', 'file'])
   endfor
 endfunction
 
@@ -160,7 +160,7 @@ function! linny_menu_widgets#starred_terms(widgetconf)
   endfor
 
   for sk in sort(keys(starred_list))
-    call linny_menu_items#add_document_taxo_key_val(starred_list[sk]['taxonomy'], starred_list[sk]['term'], 1)
+    call luaeval("require('linny.menu.items').add_document_taxo_key_val(_A[1], _A[2], _A[3])", [starred_list[sk]['taxonomy'], starred_list[sk]['term'], 1])
   endfor
 endfunction
 
@@ -169,7 +169,7 @@ function! linny_menu_widgets#starred_taxonomies(widgetconf)
   let index_keys_list = linny#parse_json_file(g:linny_index_path . '/_index_taxonomies_starred.json', [])
 
   for k in sort(index_keys_list)
-    call linny_menu_items#add_document_taxo_key(k)
+    call luaeval("require('linny.menu.items').add_document_taxo_key(_A)", k)
   endfor
 endfunction
 
@@ -177,7 +177,7 @@ endfunction
 function! linny_menu_widgets#all_taxonomies(widgetconf)
   let index_keys_list = linny#parse_json_file(g:linny_index_path . '/_index_taxonomies.json', [])
   for k in sort(index_keys_list)
-    call linny_menu_items#add_document_taxo_key(k)
+    call luaeval("require('linny.menu.items').add_document_taxo_key(_A)", k)
   endfor
 endfunction
 
@@ -196,7 +196,7 @@ endfunction
 function! linny_menu_widgets#menu(widgetconf)
   for item in a:widgetconf['items']
     if has_key(item, 'execute')
-      call linny_menu_items#add_ex_event(item['title'], item['execute'], '')
+      call luaeval("require('linny.menu.items').add_ex_event(_A[1], _A[2], _A[3])", [item['title'], item['execute'], ''])
     endif
   endfor
 endfunction

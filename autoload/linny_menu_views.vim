@@ -11,7 +11,7 @@ function! linny_menu_views#render(view_name)
         continue
       endif
 
-      call linny_menu_items#add_section("# ". widget['title'])
+      call luaeval("require('linny.menu.items').add_section(_A)", "# ". widget['title'])
       if widget['type'] == "starred_documents"
         call linny_menu_widgets#starred_documents(widget)
       elseif widget['type'] == "menu"
@@ -27,53 +27,53 @@ function! linny_menu_views#render(view_name)
       elseif widget['type'] == "all_level0_views"
         call linny_menu_widgets#all_level0_views(widget)
       else
-        call linny_menu_items#add_section("## ERROR unsupported widget type: ". widget['type'])
+        call luaeval("require('linny.menu.items').add_section(_A)", "## ERROR unsupported widget type: ". widget['type'])
       endif
 
     endfor
   endif
 
-  call linny_menu_items#add_section("# Configuration")
-  call linny_menu_items#add_document("Edit this view", g:linny_path_wiki_config ."/views/".a:view_name.".yml", 'c', 'file')
+  call luaeval("require('linny.menu.items').add_section(_A)", "# Configuration")
+  call luaeval("require('linny.menu.items').add_document(_A[1], _A[2], _A[3], _A[4])", ["Edit this view", g:linny_path_wiki_config ."/views/".a:view_name.".yml", 'c', 'file'])
 endfunction
 
 " Cycle L1 view (taxonomy level)
 function! linny_menu_views#cycle_l1(direction)
-  let state = linny_menu_state#term_leaf_state(t:linny_menu_taxonomy)
+  let state = luaeval("require('linny.menu.state').term_leaf_state(_A)", t:linny_menu_taxonomy)
   let active_view = linny_menu_views#get_active(state)
   let config = linny#tax_config(t:linny_menu_taxonomy)
   let views = linny_menu_views#get_list(config)
 
   let newstate = linny_menu_views#new_active(state, views, a:direction, active_view)
-  call linny_menu_state#write_term_leaf_state(t:linny_menu_taxonomy, newstate)
+  call luaeval("require('linny.menu.state').write_term_leaf_state(_A[1], _A[2])", [t:linny_menu_taxonomy, newstate])
 endfunction
 
 " Cycle L2 view (term level)
 function! linny_menu_views#cycle_l2(direction)
-  let state = linny_menu_state#term_value_leaf_state(t:linny_menu_taxonomy, t:linny_menu_term)
+  let state = luaeval("require('linny.menu.state').term_value_leaf_state(_A[1], _A[2])", [t:linny_menu_taxonomy, t:linny_menu_term])
 
   let active_view = linny_menu_views#get_active(state)
   let config = linny#term_config(t:linny_menu_taxonomy, t:linny_menu_term)
   let views = linny_menu_views#get_list(config)
 
   let newstate = linny_menu_views#new_active(state, views, a:direction, active_view)
-  call linny_menu_state#write_term_value_leaf_state(t:linny_menu_taxonomy, t:linny_menu_term, newstate)
+  call luaeval("require('linny.menu.state').write_term_value_leaf_state(_A[1], _A[2], _A[3])", [t:linny_menu_taxonomy, t:linny_menu_term, newstate])
 endfunction
 
 " Dropdown L1 view callback
 function! linny_menu_views#dropdown_l1_callback(id, result)
   if a:result != -1
-    let state = linny_menu_state#term_leaf_state(t:linny_menu_taxonomy)
+    let state = luaeval("require('linny.menu.state').term_leaf_state(_A)", t:linny_menu_taxonomy)
     let state.active_view = a:result-1
 
-    call linny_menu_state#write_term_leaf_state(t:linny_menu_taxonomy, state)
+    call luaeval("require('linny.menu.state').write_term_leaf_state(_A[1], _A[2])", [t:linny_menu_taxonomy, state])
     call linny_menu#openandshow()
   endif
 endfunction
 
 " Show L1 view dropdown
 function! linny_menu_views#dropdown_l1()
-  let state = linny_menu_state#term_leaf_state(t:linny_menu_taxonomy)
+  let state = luaeval("require('linny.menu.state').term_leaf_state(_A)", t:linny_menu_taxonomy)
   let active_view = linny_menu_views#get_active(state)
   let config = linny#tax_config(t:linny_menu_taxonomy)
   let views = linny_menu_views#get_list(config)
@@ -97,16 +97,16 @@ endfunction
 " Dropdown L2 view callback
 function! linny_menu_views#dropdown_l2_callback(id, result)
   if a:result != -1
-    let state = linny_menu_state#term_value_leaf_state(t:linny_menu_taxonomy, t:linny_menu_term)
+    let state = luaeval("require('linny.menu.state').term_value_leaf_state(_A[1], _A[2])", [t:linny_menu_taxonomy, t:linny_menu_term])
     let state.active_view = a:result-1
-    call linny_menu_state#write_term_value_leaf_state(t:linny_menu_taxonomy, t:linny_menu_term, state)
+    call luaeval("require('linny.menu.state').write_term_value_leaf_state(_A[1], _A[2], _A[3])", [t:linny_menu_taxonomy, t:linny_menu_term, state])
     call linny_menu#openandshow()
   endif
 endfunction
 
 " Show L2 view dropdown
 function! linny_menu_views#dropdown_l2()
-  let state = linny_menu_state#term_value_leaf_state(t:linny_menu_taxonomy, t:linny_menu_term)
+  let state = luaeval("require('linny.menu.state').term_value_leaf_state(_A[1], _A[2])", [t:linny_menu_taxonomy, t:linny_menu_term])
   let active_view = linny_menu_views#get_active(state)
   let config = linny#term_config(t:linny_menu_taxonomy, t:linny_menu_term)
   let views = linny_menu_views#get_list(config)

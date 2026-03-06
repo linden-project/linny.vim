@@ -17,7 +17,9 @@
       "Bash(chmod:*)",
       "Bash(bash:*)",
       "Bash(tree:*)",
-      "Bash(openspec new:change:*)"
+      "Bash(openspec new:change:*)",
+      "SlashCommand(/opsx:new)",
+      "SlashCommand(/opsx:ff)"
     ],
     "deny": [],
     "ask": []

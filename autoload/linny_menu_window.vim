@@ -122,14 +122,14 @@ endfunc
 
 " Start menu
 function! linny_menu_window#start()
-  call linny_menu_state#tab_init()
+  call luaeval("require('linny.menu.state').tab_init()")
   call linny_menu#openterm('','')
 endfunction
 
 " Open menu
 function! linny_menu_window#open()
   if !linny_menu_window#exist()
-    call linny_menu_state#tab_init()
+    call luaeval("require('linny.menu.state').tab_init()")
     call linny_menu#openandshow()
   endif
 endfunction

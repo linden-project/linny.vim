@@ -89,7 +89,7 @@ endfunc
 
 function! linny_menu#start()
 
-  call linny_menu_state#tab_init()
+  call luaeval("require('linny.menu.state').tab_init()")
   call linny_menu#openterm('','')
 " exec ':only'
 " call linny_menu#open()
@@ -124,7 +124,7 @@ endfunction
 
 function! linny_menu#open()
   if !linny_menu_window#exist()
-    call linny_menu_state#tab_init()
+    call luaeval("require('linny.menu.state').tab_init()")
     call linny_menu#openandshow()
   endif
 endfunction
@@ -355,7 +355,7 @@ function! Set_cursor() abort
     let key = t:linny_menu.items[find].key
     echohl linny_menuHelp
     if help != ''
-      call linny_menu_util#cmdmsg('['.key.']: '.help, 'linny_menuHelp')
+      call luaeval("require('linny.menu.util').cmdmsg(_A[1], _A[2])", ['['.key.']: '.help, 'linny_menuHelp'])
     else
       echo ''
     endif
@@ -368,7 +368,7 @@ endfunc
 function! linny_menu#open_document_in_new_tab()
 
   let ln = line('.')
-  let item = linny_menu_items#get_by_index(ln - 2)
+  let item = luaeval("require('linny.menu.items').get_by_index(_A)", ln - 2)
 
   if has_key(item,'option_type')
     if get(item,'option_type') == 'document'
@@ -381,7 +381,7 @@ endfunc
 
 function! linny_menu#open_or_create_taxo_key_val()
   let ln = line('.')
-  let item = linny_menu_items#get_by_index(ln - 2)
+  let item = luaeval("require('linny.menu.items').get_by_index(_A)", ln - 2)
 
   if has_key(item,'option_type')
     if get(item,'option_type') == 'taxo_key_val'
@@ -423,7 +423,7 @@ endfunction
 function! <SID>linny_menu_hotkey(key) abort
   let index = line('.') - 2
 
-  let item = linny_menu_items#get_by_index(index)
+  let item = luaeval("require('linny.menu.items').get_by_index(_A)", index)
 
   if item.mode != 0 || item.event == ''
     return
@@ -439,7 +439,7 @@ endfunction
 
 function! <SID>linny_menu_execute(index) abort
 
-  let item = linny_menu_items#get_by_index(a:index)
+  let item = luaeval("require('linny.menu.items').get_by_index(_A)", a:index)
 
   if item.mode != 0 || item.event == ''
     return
@@ -566,7 +566,7 @@ function! Select_items() abort
   for item in t:linny_menu_items
     if item.mode == 0
       if item.key == ''
-        let item.key = linny_menu_util#prepad(index, 1,0)
+        let item.key = luaeval("require('linny.menu.util').prepad(_A[1], _A[2], _A[3])", [index, 1, '0'])
         let index += 1
       endif
     endif
@@ -582,13 +582,13 @@ endfunc
 function! Menu_expand(item) abort
 
   let items = []
-  let text = linny_menu_util#expand_text(a:item.text)
+  let text = luaeval("require('linny.menu.util').expand_text(_A)", a:item.text)
   let help = ''
   let index = 0
   let padding = repeat(' ', g:linny_menu_padding_left)
 
   if a:item.mode == 0
-    let help = linny_menu_util#expand_text(get(a:item, 'help', ''))
+    let help = luaeval("require('linny.menu.util').expand_text(_A)", get(a:item, 'help', ''))
   endif
 
   for curline in split(text, "\n", 1)
