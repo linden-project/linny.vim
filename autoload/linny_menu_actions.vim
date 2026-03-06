@@ -12,7 +12,7 @@ function! linny_menu_actions#dropdown_item()
 
   let name = luaeval("require('linny.menu.actions').get_item_name(_A)", t:linny_menu_item_for_dropdown)
 
-  call linny_menu_popup#create(t:linny_menu_dropdownviews, #{
+  call luaeval("require('linny.menu.popup').create(_A[1], _A[2])", [t:linny_menu_dropdownviews, #{
         \ zindex: 200,
         \ drag: 0,
         \ line: t:linny_menu_line + 1,
@@ -25,7 +25,7 @@ function! linny_menu_actions#dropdown_item()
         \ filter: 'popup_filter_menu',
         \ mapping: 0,
         \ callback: 'linny_menu_actions#dropdown_item_callback',
-        \ })
+        \ }])
 
 endfunction
 
@@ -54,7 +54,7 @@ function! linny_menu_actions#dropdown_taxo_item_callback(id, result)
       let termslistDict = linny#parse_json_file(linny#l1_index_filepath(t:linny_menu_set_taxo), [] )
       let t:linny_menu_term_items_for_dropdown = sort(keys(termslistDict))
 
-      call linny_menu_popup#create(t:linny_menu_term_items_for_dropdown, #{
+      call luaeval("require('linny.menu.popup').create(_A[1], _A[2])", [t:linny_menu_term_items_for_dropdown, #{
             \ zindex: 400,
             \ drag: 0,
             \ line: t:linny_menu_line + 1,
@@ -67,7 +67,7 @@ function! linny_menu_actions#dropdown_taxo_item_callback(id, result)
             \ filter: 'popup_filter_menu',
             \ mapping: 0,
             \ callback: 'linny_menu_actions#dropdown_term_item_callback',
-            \ })
+            \ }])
     return
   endif
   return
@@ -108,7 +108,7 @@ function! linny_menu_actions#exec_content_menu(action, item)
       let t:linny_menu_taxo_items_for_dropdown = sort(index_keys_list)
       let name = luaeval("require('linny.menu.actions').get_item_name(_A)", t:linny_menu_item_for_dropdown)
 
-      call linny_menu_popup#create(t:linny_menu_taxo_items_for_dropdown, #{
+      call luaeval("require('linny.menu.popup').create(_A[1], _A[2])", [t:linny_menu_taxo_items_for_dropdown, #{
             \ zindex: 300,
             \ drag: 0,
             \ line: t:linny_menu_line + 1,
@@ -121,7 +121,7 @@ function! linny_menu_actions#exec_content_menu(action, item)
             \ filter: 'popup_filter_menu',
             \ mapping: 0,
             \ callback: 'linny_menu_actions#dropdown_taxo_item_callback',
-            \ })
+            \ }])
       return
 
     elseif a:action == "remove taxonomy"
@@ -130,7 +130,7 @@ function! linny_menu_actions#exec_content_menu(action, item)
       let t:linny_menu_taxo_items_for_dropdown = sort(index_keys_list)
       let name = luaeval("require('linny.menu.actions').get_item_name(_A)", t:linny_menu_item_for_dropdown)
 
-      call linny_menu_popup#create(t:linny_menu_taxo_items_for_dropdown, #{
+      call luaeval("require('linny.menu.popup').create(_A[1], _A[2])", [t:linny_menu_taxo_items_for_dropdown, #{
             \ zindex: 300,
             \ drag: 0,
             \ line: t:linny_menu_line + 1,
@@ -143,7 +143,7 @@ function! linny_menu_actions#exec_content_menu(action, item)
             \ filter: 'popup_filter_menu',
             \ mapping: 0,
             \ callback: 'linny_menu_actions#dropdown_remove_taxo_item_callback',
-            \ })
+            \ }])
       return
 
     endif

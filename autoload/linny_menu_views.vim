@@ -65,7 +65,7 @@ function! linny_menu_views#dropdown_l1()
   let config = linny#tax_config(t:linny_menu_taxonomy)
   let views = luaeval("require('linny.menu.views').get_list(_A)", config)
 
-  call linny_menu_popup#create(views, #{
+  call luaeval("require('linny.menu.popup').create(_A[1], _A[2])", [views, #{
         \ zindex: 200,
         \ drag: 0,
         \ line: 10,
@@ -78,7 +78,7 @@ function! linny_menu_views#dropdown_l1()
         \ filter: 'popup_filter_menu',
         \ mapping: 0,
         \ callback: 'linny_menu_views#dropdown_l1_callback',
-        \ })
+        \ }])
 endfunction
 
 " Dropdown L2 view callback
@@ -98,7 +98,7 @@ function! linny_menu_views#dropdown_l2()
   let config = linny#term_config(t:linny_menu_taxonomy, t:linny_menu_term)
   let views = luaeval("require('linny.menu.views').get_list(_A)", config)
 
-  call linny_menu_popup#create(views, #{
+  call luaeval("require('linny.menu.popup').create(_A[1], _A[2])", [views, #{
         \ zindex: 200,
         \ drag: 0,
         \ line: 10,
@@ -111,5 +111,5 @@ function! linny_menu_views#dropdown_l2()
         \ filter: 'popup_filter_menu',
         \ mapping: 0,
         \ callback: 'linny_menu_views#dropdown_l2_callback',
-        \ })
+        \ }])
 endfunction

@@ -9,5 +9,6 @@ M.actions = require('linny.menu.actions')
 M.documents = require('linny.menu.documents')
 M.window = require('linny.menu.window')
 M.render = require('linny.menu.render')
+M.popup = require('linny.menu.popup')
 
 return M
