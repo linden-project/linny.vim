@@ -13,19 +13,19 @@ function! linny_menu_views#render(view_name)
 
       call luaeval("require('linny.menu.items').add_section(_A)", "# ". widget['title'])
       if widget['type'] == "starred_documents"
-        call linny_menu_widgets#starred_documents(widget)
+        call luaeval("require('linny.menu.widgets').starred_documents(_A)", widget)
       elseif widget['type'] == "menu"
-        call linny_menu_widgets#menu(widget)
+        call luaeval("require('linny.menu.widgets').menu(_A)", widget)
       elseif widget['type'] == "starred_terms"
-        call linny_menu_widgets#starred_terms(widget)
+        call luaeval("require('linny.menu.widgets').starred_terms(_A)", widget)
       elseif widget['type'] == "starred_taxonomies"
-        call linny_menu_widgets#starred_taxonomies(widget)
+        call luaeval("require('linny.menu.widgets').starred_taxonomies(_A)", widget)
       elseif widget['type'] == "all_taxonomies"
-        call linny_menu_widgets#all_taxonomies(widget)
+        call luaeval("require('linny.menu.widgets').all_taxonomies(_A)", widget)
       elseif widget['type'] == "recently_modified_documents"
-        call linny_menu_widgets#recently_modified_documents(widget)
+        call luaeval("require('linny.menu.widgets').recently_modified_documents(_A)", widget)
       elseif widget['type'] == "all_level0_views"
-        call linny_menu_widgets#all_level0_views(widget)
+        call luaeval("require('linny.menu.widgets').all_level0_views(_A)", widget)
       else
         call luaeval("require('linny.menu.items').add_section(_A)", "## ERROR unsupported widget type: ". widget['type'])
       endif
@@ -37,27 +37,14 @@ function! linny_menu_views#render(view_name)
   call luaeval("require('linny.menu.items').add_document(_A[1], _A[2], _A[3], _A[4])", ["Edit this view", g:linny_path_wiki_config ."/views/".a:view_name.".yml", 'c', 'file'])
 endfunction
 
-" Cycle L1 view (taxonomy level)
+" Cycle L1 view (taxonomy level) - delegates to Lua
 function! linny_menu_views#cycle_l1(direction)
-  let state = luaeval("require('linny.menu.state').term_leaf_state(_A)", t:linny_menu_taxonomy)
-  let active_view = linny_menu_views#get_active(state)
-  let config = linny#tax_config(t:linny_menu_taxonomy)
-  let views = linny_menu_views#get_list(config)
-
-  let newstate = linny_menu_views#new_active(state, views, a:direction, active_view)
-  call luaeval("require('linny.menu.state').write_term_leaf_state(_A[1], _A[2])", [t:linny_menu_taxonomy, newstate])
+  call luaeval("require('linny.menu.views').cycle_l1(_A)", a:direction)
 endfunction
 
-" Cycle L2 view (term level)
+" Cycle L2 view (term level) - delegates to Lua
 function! linny_menu_views#cycle_l2(direction)
-  let state = luaeval("require('linny.menu.state').term_value_leaf_state(_A[1], _A[2])", [t:linny_menu_taxonomy, t:linny_menu_term])
-
-  let active_view = linny_menu_views#get_active(state)
-  let config = linny#term_config(t:linny_menu_taxonomy, t:linny_menu_term)
-  let views = linny_menu_views#get_list(config)
-
-  let newstate = linny_menu_views#new_active(state, views, a:direction, active_view)
-  call luaeval("require('linny.menu.state').write_term_value_leaf_state(_A[1], _A[2], _A[3])", [t:linny_menu_taxonomy, t:linny_menu_term, newstate])
+  call luaeval("require('linny.menu.views').cycle_l2(_A)", a:direction)
 endfunction
 
 " Dropdown L1 view callback
@@ -74,9 +61,9 @@ endfunction
 " Show L1 view dropdown
 function! linny_menu_views#dropdown_l1()
   let state = luaeval("require('linny.menu.state').term_leaf_state(_A)", t:linny_menu_taxonomy)
-  let active_view = linny_menu_views#get_active(state)
+  let active_view = luaeval("require('linny.menu.views').get_active(_A)", state)
   let config = linny#tax_config(t:linny_menu_taxonomy)
-  let views = linny_menu_views#get_list(config)
+  let views = luaeval("require('linny.menu.views').get_list(_A)", config)
 
   call linny_menu_popup#create(views, #{
         \ zindex: 200,
@@ -107,9 +94,9 @@ endfunction
 " Show L2 view dropdown
 function! linny_menu_views#dropdown_l2()
   let state = luaeval("require('linny.menu.state').term_value_leaf_state(_A[1], _A[2])", [t:linny_menu_taxonomy, t:linny_menu_term])
-  let active_view = linny_menu_views#get_active(state)
+  let active_view = luaeval("require('linny.menu.views').get_active(_A)", state)
   let config = linny#term_config(t:linny_menu_taxonomy, t:linny_menu_term)
-  let views = linny_menu_views#get_list(config)
+  let views = luaeval("require('linny.menu.views').get_list(_A)", config)
 
   call linny_menu_popup#create(views, #{
         \ zindex: 200,
@@ -125,73 +112,4 @@ function! linny_menu_views#dropdown_l2()
         \ mapping: 0,
         \ callback: 'linny_menu_views#dropdown_l2_callback',
         \ })
-endfunction
-
-" Calculate new active view after cycling
-function! linny_menu_views#new_active(state, views, direction, active_view)
-  let state = a:state
-  if (a:active_view+a:direction) >= len(a:views)
-    let state.active_view = 0
-  elseif (a:active_view + a:direction) < 0
-    let state.active_view = len(a:views)-1
-  else
-    let state.active_view = a:active_view + a:direction
-  end
-
-  return state
-endfunction
-
-" Get list of view names from config
-function! linny_menu_views#get_list(config)
-  let views_list = []
-
-  if has_key(a:config, 'views')
-    let views = get(a:config,'views')
-
-    if(type(views)==4)
-      let views_list = views_list + keys(views)
-    endif
-  else
-    let views_list = ['NONE']
-  endif
-
-  return views_list
-endfunction
-
-" Get views dictionary from config
-function! linny_menu_views#get_views(config)
-  let views_all = {}
-
-  if has_key(a:config, 'views')
-    let views = get(a:config,'views')
-
-    if(type(views)==4)
-      for view in keys(views)
-        let views_all[view] = get(views,view)
-      endfor
-
-    endif
-  else
-    let views_all.NONE = {'sort': 'az'}
-  endif
-
-  return views_all
-endfunction
-
-" Get active view index from state
-function! linny_menu_views#get_active(state)
-  if has_key(a:state, 'active_view')
-   return get(a:state, 'active_view')
-  else
-    return 0
-  end
-endfunction
-
-" Get current view properties
-function! linny_menu_views#current_props(active_view, views_list, views)
-  if len(a:views_list) > a:active_view
-    return a:views[a:views_list[a:active_view]]
-  else
-    return a:views[a:views_list[0]]
-  endif
 endfunction

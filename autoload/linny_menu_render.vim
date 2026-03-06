@@ -26,11 +26,11 @@ function! linny_menu_render#level1(tax)
   call luaeval("require('linny.menu.items').add_divider()")
 
   let views_string = ""
-  let views_list = linny_menu_views#get_list(tax_config)
-  let views = linny_menu_views#get_views(tax_config)
+  let views_list = luaeval("require('linny.menu.views').get_list(_A)", tax_config)
+  let views = luaeval("require('linny.menu.views').get_views(_A)", tax_config)
 
   let l1_state = luaeval("require('linny.menu.state').term_leaf_state(_A)", a:tax)
-  let active_view = linny_menu_views#get_active(l1_state)
+  let active_view = luaeval("require('linny.menu.views').get_active(_A)", l1_state)
 
   if len(views) < 3 && !has_key(views,'NONE')
     for view in views_list
@@ -55,7 +55,7 @@ function! linny_menu_render#level1(tax)
   endif
 
 
-  let view_props = linny_menu_views#current_props(active_view, views_list, views)
+  let view_props = luaeval("require('linny.menu.views').current_props(_A[1], _A[2], _A[3])", [active_view, views_list, views])
 
   if has_key(view_props, 'sort')
     let sort = get(view_props,'sort')
@@ -178,10 +178,10 @@ function! linny_menu_render#level2(tax, term)
   endif
 
   let views_string = ""
-  let views_list = linny_menu_views#get_list(l2_config)
-  let views = linny_menu_views#get_views(l2_config)
+  let views_list = luaeval("require('linny.menu.views').get_list(_A)", l2_config)
+  let views = luaeval("require('linny.menu.views').get_views(_A)", l2_config)
   let l2_state = luaeval("require('linny.menu.state').term_value_leaf_state(_A[1], _A[2])", [a:tax, a:term])
-  let active_view = linny_menu_views#get_active(l2_state)
+  let active_view = luaeval("require('linny.menu.views').get_active(_A)", l2_state)
 
   if len(views) <=3 && !has_key(views,'NONE')
     for view in views_list
@@ -207,7 +207,7 @@ function! linny_menu_render#level2(tax, term)
   endif
 
   let files_in_menu = linny#parse_json_file(linny#l2_index_filepath( a:tax, a:term), [])
-  let view_props = linny_menu_views#current_props(active_view, views_list, views)
+  let view_props = luaeval("require('linny.menu.views').current_props(_A[1], _A[2], _A[3])", [active_view, views_list, views])
   let files_index = linny#parse_json_file(g:linny_index_path . '/_index_docs_with_props.json',[])
 
   let t:linny_tasks_count = linny#parse_json_file(g:linny_index_path . '/_index_docs_tasks_count.json',{})
@@ -261,7 +261,7 @@ function! linny_menu_render#level2(tax, term)
 
   for group in sort(keys(files_menu))
     call luaeval("require('linny.menu.items').add_section(_A)", "### " . luaeval("require('linny.menu.util').string_capitalize(_A)", group))
-    call linny_menu_widgets#partial_files_listing( files_menu[group], view_props , 1)
+    call luaeval("require('linny.menu.widgets').partial_files_listing(_A[1], _A[2], _A[3])", [files_menu[group], view_props, 1])
   endfor
 
   call luaeval("require('linny.menu.items').add_empty_line()")

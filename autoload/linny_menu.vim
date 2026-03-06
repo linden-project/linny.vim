@@ -182,7 +182,7 @@ function! linny_menu#RemapGlobalKeys()
 endfunction
 
 function! linny_menu#RemapGlobalStarredDocs()
-  let starred = linny_menu_widgets#starred_docs_list()
+  let starred = luaeval("require('linny.menu.widgets').starred_docs_list()")
   let titles = linny#titlesForDocs(starred)
   let t_sortable = {}
 
@@ -200,7 +200,7 @@ function! linny_menu#RemapGlobalStarredDocs()
 endfunction
 
 function! linny_menu#RemapGlobalStarredTerms()
-  let starred = linny_menu_widgets#starred_terms_list()
+  let starred = luaeval("require('linny.menu.widgets').starred_terms_list()")
   let starred_list = {}
 
   for i in starred
@@ -385,7 +385,7 @@ function! linny_menu#open_or_create_taxo_key_val()
 
   if has_key(item,'option_type')
     if get(item,'option_type') == 'taxo_key_val'
-      call linny_menu_documents#create_l2_config(item.option_data.taxo_key, item.option_data.taxo_term)
+      call luaeval("require('linny.menu.documents').create_l2_config(_A[1], _A[2])", [item.option_data.taxo_key, item.option_data.taxo_term])
     endif
   end
 endfunction
@@ -485,10 +485,10 @@ function! <SID>linny_menu_execute(index) abort
       call linny_menu#start()
 
     elseif(item.event == 'createl1config')
-      call linny_menu_documents#create_l1_config(t:linny_menu_taxonomy)
+      call luaeval("require('linny.menu.documents').create_l1_config(_A)", t:linny_menu_taxonomy)
 
     elseif(item.event == 'createl2config')
-      call linny_menu_documents#create_l2_config(t:linny_menu_taxonomy, t:linny_menu_term)
+      call luaeval("require('linny.menu.documents').create_l2_config(_A[1], _A[2])", [t:linny_menu_taxonomy, t:linny_menu_term])
 
     elseif(item.event == 'opencontextmenu')
       echo "Place cursor on item first"
@@ -500,7 +500,7 @@ function! <SID>linny_menu_execute(index) abort
       call inputrestore()
 
       if(!empty(name))
-        call linny_menu_documents#new_in_leaf(name)
+        call luaeval("require('linny.menu.documents').new_in_leaf(_A)", name)
       else
         return 0
       endif
