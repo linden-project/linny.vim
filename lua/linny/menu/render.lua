@@ -80,7 +80,7 @@ end
 function M.level0(view_name)
   vim.t.linny_menu_current_menu_type = "menu_level0"
   state.reset()
-  vim.fn['linny_menu_views#render'](view_name)
+  views.render(view_name)
 end
 
 --- Render level 1 (taxonomy level)
@@ -168,7 +168,14 @@ function M.level1(tax)
     end
   end
 
-  for _, group in ipairs(vim.fn.sort(vim.fn.keys(term_menu))) do
+  -- Get sorted list of groups using Lua-native operations
+  local groups = {}
+  for group, _ in pairs(term_menu) do
+    table.insert(groups, group)
+  end
+  table.sort(groups)
+
+  for _, group in ipairs(groups) do
     items.add_section("### " .. util.string_capitalize(string.gsub(group, '-', ' ')))
 
     for _, val in ipairs(term_menu[group]) do

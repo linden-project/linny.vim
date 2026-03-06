@@ -4,6 +4,9 @@
 local M = {}
 
 local state = require('linny.menu.state')
+local items = require('linny.menu.items')
+local widgets = require('linny.menu.widgets')
+local popup = require('linny.menu.popup')
 
 --- Get list of view names from config
 --- @param config table The configuration table
@@ -122,6 +125,97 @@ function M.cycle_l2(direction)
 
   local new_state = M.new_active(current_state, views, direction, active_view)
   state.write_term_value_leaf_state(taxonomy, term, new_state)
+end
+
+--- Render a view with its widgets
+--- @param view_name string The name of the view to render
+function M.render(view_name)
+  local view_config = vim.fn['linny#view_config'](view_name)
+
+  if view_config and view_config.widgets then
+    local widget_list = view_config.widgets
+    for _, widget in ipairs(widget_list) do
+      -- Skip hidden widgets
+      if not (widget.hidden and widget.hidden == true) then
+        -- Add section header
+        items.add_section("# " .. (widget.title or ""))
+
+        -- Dispatch to appropriate widget renderer
+        local widget_type = widget.type
+        if widget_type == "starred_documents" then
+          widgets.starred_documents(widget)
+        elseif widget_type == "menu" then
+          widgets.menu(widget)
+        elseif widget_type == "starred_terms" then
+          widgets.starred_terms(widget)
+        elseif widget_type == "starred_taxonomies" then
+          widgets.starred_taxonomies(widget)
+        elseif widget_type == "all_taxonomies" then
+          widgets.all_taxonomies(widget)
+        elseif widget_type == "recently_modified_documents" then
+          widgets.recently_modified_documents(widget)
+        elseif widget_type == "all_level0_views" then
+          widgets.all_level0_views(widget)
+        else
+          items.add_section("## ERROR unsupported widget type: " .. (widget_type or "nil"))
+        end
+      end
+    end
+  end
+
+  -- Add configuration section
+  items.add_section("# Configuration")
+  local config_path = vim.g.linny_path_wiki_config .. "/views/" .. view_name .. ".yml"
+  items.add_document("Edit this view", config_path, 'c', 'file')
+end
+
+--- Show L1 view dropdown
+function M.dropdown_l1()
+  local taxonomy = vim.t.linny_menu_taxonomy
+  local current_state = state.term_leaf_state(taxonomy)
+  local active_view = M.get_active(current_state)
+  local config = vim.fn['linny#tax_config'](taxonomy)
+  local views = M.get_list(config)
+
+  popup.create(views, {
+    zindex = 200,
+    drag = 0,
+    line = 10,
+    title = views[active_view + 1] or views[1],  -- Lua is 1-indexed
+    col = 9,
+    wrap = 0,
+    border = {},
+    cursorline = 1,
+    padding = {0, 1, 0, 1},
+    filter = 'popup_filter_menu',
+    mapping = 0,
+    callback = 'linny_menu_views#dropdown_l1_callback',
+  })
+end
+
+--- Show L2 view dropdown
+function M.dropdown_l2()
+  local taxonomy = vim.t.linny_menu_taxonomy
+  local term = vim.t.linny_menu_term
+  local current_state = state.term_value_leaf_state(taxonomy, term)
+  local active_view = M.get_active(current_state)
+  local config = vim.fn['linny#term_config'](taxonomy, term)
+  local views = M.get_list(config)
+
+  popup.create(views, {
+    zindex = 200,
+    drag = 0,
+    line = 10,
+    title = views[active_view + 1] or views[1],  -- Lua is 1-indexed
+    col = 9,
+    wrap = 0,
+    border = {},
+    cursorline = 1,
+    padding = {0, 1, 0, 1},
+    filter = 'popup_filter_menu',
+    mapping = 0,
+    callback = 'linny_menu_views#dropdown_l2_callback',
+  })
 end
 
 return M
