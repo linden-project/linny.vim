@@ -1,35 +1,13 @@
-" linny_menu_actions.vim - Dropdown menu actions and content menu execution
+" linny_menu_actions.vim - Dropdown menu action callbacks for linny menu
 " NOTE: Core logic migrated to lua/linny/menu/actions.lua
 " Popup callbacks must remain in VimScript (Vim popup API requirement)
 
-" Show action dropdown for current item
+" Show action dropdown for current item - delegates to Lua
 function! linny_menu_actions#dropdown_item()
-  let t:linny_menu_dropdownviews = luaeval("require('linny.menu.actions').build_dropdown_views(_A)", t:linny_menu_item_for_dropdown)
-
-  if len(t:linny_menu_dropdownviews) == 0
-    return
-  endif
-
-  let name = luaeval("require('linny.menu.actions').get_item_name(_A)", t:linny_menu_item_for_dropdown)
-
-  call luaeval("require('linny.menu.popup').create(_A[1], _A[2])", [t:linny_menu_dropdownviews, #{
-        \ zindex: 200,
-        \ drag: 0,
-        \ line: t:linny_menu_line + 1,
-        \ title: 'Action for '.name,
-        \ col: 10,
-        \ wrap: 0,
-        \ border: [],
-        \ cursorline: 1,
-        \ padding: [0,1,0,1],
-        \ filter: 'popup_filter_menu',
-        \ mapping: 0,
-        \ callback: 'linny_menu_actions#dropdown_item_callback',
-        \ }])
-
+  call luaeval("require('linny.menu.actions').dropdown_item()")
 endfunction
 
-" Handle dropdown selection
+" Handle dropdown selection (must remain in VimScript for Vim popup API)
 function! linny_menu_actions#dropdown_item_callback(id, result)
   if a:result != -1
     let action = t:linny_menu_dropdownviews[a:result-1]
@@ -43,37 +21,21 @@ function! linny_menu_actions#dropdown_item_callback(id, result)
   endif
 endfunction
 
-" Handle taxonomy selection
+" Handle taxonomy selection (must remain in VimScript for Vim popup API)
 function! linny_menu_actions#dropdown_taxo_item_callback(id, result)
-
   if a:result != -1
+    let name = trim(split(t:linny_menu_item_for_dropdown.text,']')[1])
+    let t:linny_menu_set_taxo = t:linny_menu_taxo_items_for_dropdown[a:result-1]
 
-      let name = trim(split(t:linny_menu_item_for_dropdown.text,']')[1])
-      let t:linny_menu_set_taxo = t:linny_menu_taxo_items_for_dropdown[a:result-1]
+    let termslistDict = linny#parse_json_file(linny#l1_index_filepath(t:linny_menu_set_taxo), [])
+    let terms = sort(keys(termslistDict))
 
-      let termslistDict = linny#parse_json_file(linny#l1_index_filepath(t:linny_menu_set_taxo), [] )
-      let t:linny_menu_term_items_for_dropdown = sort(keys(termslistDict))
-
-      call luaeval("require('linny.menu.popup').create(_A[1], _A[2])", [t:linny_menu_term_items_for_dropdown, #{
-            \ zindex: 400,
-            \ drag: 0,
-            \ line: t:linny_menu_line + 1,
-            \ title: name . ': ' . t:linny_menu_set_taxo . ' > Set Term',
-            \ col: 10,
-            \ wrap: 0,
-            \ border: [],
-            \ cursorline: 1,
-            \ padding: [0,1,0,1],
-            \ filter: 'popup_filter_menu',
-            \ mapping: 0,
-            \ callback: 'linny_menu_actions#dropdown_term_item_callback',
-            \ }])
-    return
+    " Delegate popup creation to Lua
+    call luaeval("require('linny.menu.actions').show_term_selection(_A[1], _A[2], _A[3], _A[4])", [name, t:linny_menu_set_taxo, terms, t:linny_menu_line])
   endif
-  return
 endfunction
 
-" Handle taxonomy removal
+" Handle taxonomy removal (must remain in VimScript for Vim popup API)
 function! linny_menu_actions#dropdown_remove_taxo_item_callback(id, result)
   if a:result != -1
     let item = t:linny_menu_item_for_dropdown
@@ -85,7 +47,7 @@ function! linny_menu_actions#dropdown_remove_taxo_item_callback(id, result)
   endif
 endfunction
 
-" Handle term selection
+" Handle term selection (must remain in VimScript for Vim popup API)
 function! linny_menu_actions#dropdown_term_item_callback(id, result)
   if a:result != -1
     let item = t:linny_menu_item_for_dropdown
@@ -101,52 +63,15 @@ endfunction
 " Most actions are handled by Lua - this handles only popup-creating actions
 function! linny_menu_actions#exec_content_menu(action, item)
   if a:item.option_type == 'document'
-
     if a:action == "set taxonomy"
-      let index_keys_list = linny#parse_json_file(g:linny_index_path . '/_index_taxonomies.json', [])
-
-      let t:linny_menu_taxo_items_for_dropdown = sort(index_keys_list)
       let name = luaeval("require('linny.menu.actions').get_item_name(_A)", t:linny_menu_item_for_dropdown)
-
-      call luaeval("require('linny.menu.popup').create(_A[1], _A[2])", [t:linny_menu_taxo_items_for_dropdown, #{
-            \ zindex: 300,
-            \ drag: 0,
-            \ line: t:linny_menu_line + 1,
-            \ title: name . ': Set Taxonomy',
-            \ col: 10,
-            \ wrap: 0,
-            \ border: [],
-            \ cursorline: 1,
-            \ padding: [0,1,0,1],
-            \ filter: 'popup_filter_menu',
-            \ mapping: 0,
-            \ callback: 'linny_menu_actions#dropdown_taxo_item_callback',
-            \ }])
+      call luaeval("require('linny.menu.actions').show_set_taxonomy(_A[1], _A[2])", [name, t:linny_menu_line])
       return
 
     elseif a:action == "remove taxonomy"
-      let index_keys_list = linny#parse_json_file(g:linny_index_path . '/_index_taxonomies.json', [])
-
-      let t:linny_menu_taxo_items_for_dropdown = sort(index_keys_list)
       let name = luaeval("require('linny.menu.actions').get_item_name(_A)", t:linny_menu_item_for_dropdown)
-
-      call luaeval("require('linny.menu.popup').create(_A[1], _A[2])", [t:linny_menu_taxo_items_for_dropdown, #{
-            \ zindex: 300,
-            \ drag: 0,
-            \ line: t:linny_menu_line + 1,
-            \ title: name . ': Remove Taxonomy',
-            \ col: 10,
-            \ wrap: 0,
-            \ border: [],
-            \ cursorline: 1,
-            \ padding: [0,1,0,1],
-            \ filter: 'popup_filter_menu',
-            \ mapping: 0,
-            \ callback: 'linny_menu_actions#dropdown_remove_taxo_item_callback',
-            \ }])
+      call luaeval("require('linny.menu.actions').show_remove_taxonomy(_A[1], _A[2])", [name, t:linny_menu_line])
       return
-
     endif
-
   endif
 endfunction

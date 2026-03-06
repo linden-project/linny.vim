@@ -3,6 +3,8 @@
 
 local M = {}
 
+local popup = require('linny.menu.popup')
+
 --- Execute external command asynchronously (cross-platform)
 --- @param command table Command array to execute
 function M.job_start(command)
@@ -116,6 +118,139 @@ function M.exec_content_menu(action, item)
   end
 
   return false
+end
+
+--- Show dropdown for current item
+--- Creates popup with available actions
+function M.dropdown_item()
+  local item = vim.t.linny_menu_item_for_dropdown
+  local dropdown_views = M.build_dropdown_views(item)
+
+  if #dropdown_views == 0 then
+    return
+  end
+
+  -- Store for callback
+  vim.t.linny_menu_dropdownviews = dropdown_views
+
+  local name = M.get_item_name(item)
+  local line = vim.t.linny_menu_line or 1
+
+  popup.create(dropdown_views, {
+    zindex = 200,
+    drag = 0,
+    line = line + 1,
+    title = 'Action for ' .. name,
+    col = 10,
+    wrap = 0,
+    border = {},
+    cursorline = 1,
+    padding = {0, 1, 0, 1},
+    filter = 'popup_filter_menu',
+    mapping = 0,
+    callback = 'linny_menu_actions#dropdown_item_callback',
+  })
+end
+
+--- Show set taxonomy popup
+--- @param name string Display name for the item
+--- @param line number Line number for popup position
+function M.show_set_taxonomy(name, line)
+  local index_keys_list = vim.fn['linny#parse_json_file'](
+    vim.g.linny_index_path .. '/_index_taxonomies.json', {}
+  )
+
+  -- Convert to list if it's a dict, then sort
+  local taxo_list = {}
+  if vim.islist(index_keys_list) then
+    taxo_list = index_keys_list
+  else
+    for k, _ in pairs(index_keys_list) do
+      table.insert(taxo_list, k)
+    end
+  end
+  table.sort(taxo_list)
+
+  -- Store for callback
+  vim.t.linny_menu_taxo_items_for_dropdown = taxo_list
+
+  popup.create(taxo_list, {
+    zindex = 300,
+    drag = 0,
+    line = line + 1,
+    title = name .. ': Set Taxonomy',
+    col = 10,
+    wrap = 0,
+    border = {},
+    cursorline = 1,
+    padding = {0, 1, 0, 1},
+    filter = 'popup_filter_menu',
+    mapping = 0,
+    callback = 'linny_menu_actions#dropdown_taxo_item_callback',
+  })
+end
+
+--- Show remove taxonomy popup
+--- @param name string Display name for the item
+--- @param line number Line number for popup position
+function M.show_remove_taxonomy(name, line)
+  local index_keys_list = vim.fn['linny#parse_json_file'](
+    vim.g.linny_index_path .. '/_index_taxonomies.json', {}
+  )
+
+  -- Convert to list if it's a dict, then sort
+  local taxo_list = {}
+  if vim.islist(index_keys_list) then
+    taxo_list = index_keys_list
+  else
+    for k, _ in pairs(index_keys_list) do
+      table.insert(taxo_list, k)
+    end
+  end
+  table.sort(taxo_list)
+
+  -- Store for callback
+  vim.t.linny_menu_taxo_items_for_dropdown = taxo_list
+
+  popup.create(taxo_list, {
+    zindex = 300,
+    drag = 0,
+    line = line + 1,
+    title = name .. ': Remove Taxonomy',
+    col = 10,
+    wrap = 0,
+    border = {},
+    cursorline = 1,
+    padding = {0, 1, 0, 1},
+    filter = 'popup_filter_menu',
+    mapping = 0,
+    callback = 'linny_menu_actions#dropdown_remove_taxo_item_callback',
+  })
+end
+
+--- Show term selection popup for a taxonomy
+--- @param name string Display name for the item
+--- @param taxo string The taxonomy name
+--- @param terms table List of terms
+--- @param line number Line number for popup position
+function M.show_term_selection(name, taxo, terms, line)
+  -- Store for callback
+  vim.t.linny_menu_term_items_for_dropdown = terms
+
+  popup.create(terms, {
+    zindex = 400,
+    drag = 0,
+    line = line + 1,
+    title = name .. ': ' .. taxo .. ' > Set Term',
+    col = 10,
+    wrap = 0,
+    border = {},
+    cursorline = 1,
+    padding = {0, 1, 0, 1},
+    filter = 'popup_filter_menu',
+    mapping = 0,
+    callback = 'linny_menu_actions#dropdown_term_item_callback',
+  })
 end
 
 return M

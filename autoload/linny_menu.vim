@@ -52,25 +52,9 @@ function! linny_menu#openandshow() abort
     call luaeval("require('linny.menu.render').partial_debug_info()")
   endif
 
-  let items = Select_items()
-
-  let content = []
-  let maxsize = 8
-  let lastmode = 2
-
-  " calculate max width
-  for item in items
-    let hr = Menu_expand(item)
-    for outline in hr
-      let text = outline['text']
-      if strdisplaywidth(text) > maxsize
-        let maxsize = strdisplaywidth(text)
-      endif
-    endfor
-    let content += hr
-  endfor
-
-  let maxsize += g:linny_menu_padding_right
+  let result = luaeval("require('linny.menu.items').build_content()")
+  let content = result.content
+  let maxsize = result.maxsize
   let t:linny_menu_lastmaxsize = maxsize
 
   if 1
@@ -136,24 +120,9 @@ function! linny_menu#toggle() abort
   endif
 
   " select and arrange menu
-  let items = Select_items()
-  let content = []
-  let maxsize = 8
-  let lastmode = 2
-
-  " calculate max width
-  for item in items
-    let hr = Menu_expand(item)
-    for outline in hr
-      let text = outline['text']
-      if strdisplaywidth(text) > maxsize
-        let maxsize = strdisplaywidth(text)
-      endif
-    endfor
-    let content += hr
-  endfor
-
-  let maxsize += g:linny_menu_padding_right
+  let result = luaeval("require('linny.menu.items').build_content()")
+  let content = result.content
+  let maxsize = result.maxsize
 
   if 1
     call luaeval("require('linny.menu.window').open_window(_A)", maxsize)
@@ -475,9 +444,9 @@ function! <SID>linny_menu_execute(index) abort
 
     elseif(item.event == 'onlinebook')
       if has("unix")
-        call s:job_start( ["xdg-open" ,'https://linden-project.github.io'])
+        call luaeval("require('linny.menu.actions').job_start(_A)", ["xdg-open", 'https://linden-project.github.io'])
       else
-        call s:job_start( ["open" ,'https://linden-project.github.io'])
+        call luaeval("require('linny.menu.actions').job_start(_A)", ["open", 'https://linden-project.github.io'])
       endif
 
 
@@ -519,11 +488,9 @@ function! <SID>linny_menu_execute(index) abort
         elseif item.event =~ "https://"
           let url = 'https://' . split(item.event, "https://")[1]
           if has("unix")
-
-            call s:job_start( ["xdg-open", url])
-
+            call luaeval("require('linny.menu.actions').job_start(_A)", ["xdg-open", url])
           else
-              call s:job_start( ["open", url])
+            call luaeval("require('linny.menu.actions').job_start(_A)", ["open", url])
           endif
 
         endif
@@ -554,87 +521,3 @@ function! <SID>linny_menu_execute(index) abort
   endif
 
 endfunc
-
-
-" SELECTABLE ITEMS, GENERATE KEYMAP
-function! Select_items() abort
-
-  let items = []
-  let index = 1
-
-  let lastmode = 2
-  for item in t:linny_menu_items
-    if item.mode == 0
-      if item.key == ''
-        let item.key = luaeval("require('linny.menu.util').prepad(_A[1], _A[2], _A[3])", [index, 1, '0'])
-        let index += 1
-      endif
-    endif
-
-    let items += [item]
-  endfor
-
-  return items
-
-endfunc
-
-" EXPAND MENU ITEMS
-function! Menu_expand(item) abort
-
-  let items = []
-  let text = luaeval("require('linny.menu.util').expand_text(_A)", a:item.text)
-  let help = ''
-  let index = 0
-  let padding = repeat(' ', g:linny_menu_padding_left)
-
-  if a:item.mode == 0
-    let help = luaeval("require('linny.menu.util').expand_text(_A)", get(a:item, 'help', ''))
-  endif
-
-  for curline in split(text, "\n", 1)
-
-    let item = {}
-    "let item = a:item
-
-    let item.mode = a:item.mode
-    let item.text = curline
-    let item.event = ''
-    let item.option_type = a:item.option_type
-    let item.option_data = a:item.option_data
-    let item.key = ''
-    let extra_indent = ''
-
-    if item.mode == 0
-      if index == 0
-        if strchars(a:item.key)== 1
-          let extra_indent = ' '
-        end
-
-        let item.text = extra_indent . '[' . a:item.key.']  '. curline
-        let index += 1
-        let item.key = a:item.key
-        let item.event = a:item.event
-        let item.help = help
-      else
-        let item.text = '     '.curline
-      endif
-    endif
-
-    if len(item.text)
-      let item.text = padding . item.text
-    endif
-
-    let items += [item]
-
-  endfor
-
-  return items
-endfunc
-
-function s:job_start(command)
-  if has('nvim')
-    call jobstart( a:command)
-  else
-    call job_start( a:command)
-  endif
-endfunction

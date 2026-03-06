@@ -231,4 +231,98 @@ function M.get_by_index(index)
   return menu.items[lua_index]
 end
 
+--- Assign sequential keys to selectable items that don't have one
+--- @return table The items list with keys assigned
+function M.select_items()
+  local items = vim.t.linny_menu_items or {}
+  local index = 1
+
+  for _, item in ipairs(items) do
+    if item.mode == 0 then
+      if item.key == '' then
+        item.key = util.prepad(index, 1, '0')
+        index = index + 1
+      end
+    end
+  end
+
+  return items
+end
+
+--- Expand a single menu item for display
+--- Formats with key brackets and padding, handles multi-line text
+--- @param item table The menu item to expand
+--- @return table List of expanded items (one per line)
+function M.expand_item(item)
+  local items = {}
+  local text = util.expand_text(item.text)
+  local help = ''
+  local index = 0
+  local padding = string.rep(' ', vim.g.linny_menu_padding_left or 3)
+
+  if item.mode == 0 then
+    help = util.expand_text(item.help or '')
+  end
+
+  for curline in vim.gsplit(text, "\n", { plain = true }) do
+    local expanded = {
+      mode = item.mode,
+      text = curline,
+      event = '',
+      option_type = item.option_type,
+      option_data = item.option_data,
+      key = '',
+    }
+
+    if item.mode == 0 then
+      if index == 0 then
+        local extra_indent = ''
+        if #item.key == 1 then
+          extra_indent = ' '
+        end
+        expanded.text = extra_indent .. '[' .. item.key .. ']  ' .. curline
+        expanded.key = item.key
+        expanded.event = item.event
+        expanded.help = help
+        index = index + 1
+      else
+        expanded.text = '     ' .. curline
+      end
+    end
+
+    if #expanded.text > 0 then
+      expanded.text = padding .. expanded.text
+    end
+
+    table.insert(items, expanded)
+  end
+
+  return items
+end
+
+--- Build content for rendering: select items, expand, calculate max width
+--- @return table { content = list of expanded items, maxsize = max display width }
+function M.build_content()
+  local items = M.select_items()
+  local content = {}
+  local maxsize = 8
+
+  for _, item in ipairs(items) do
+    local expanded = M.expand_item(item)
+    for _, outline in ipairs(expanded) do
+      local width = vim.fn.strdisplaywidth(outline.text)
+      if width > maxsize then
+        maxsize = width
+      end
+    end
+    for _, outline in ipairs(expanded) do
+      table.insert(content, outline)
+    end
+  end
+
+  maxsize = maxsize + (vim.g.linny_menu_padding_right or 3)
+
+  return { content = content, maxsize = maxsize }
+end
+
 return M

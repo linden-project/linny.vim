@@ -294,31 +294,31 @@ endfunction
 
 
 function! linny#l1_index_filepath(tax)
-  return g:linny_index_path . '/'.tolower(a:tax).'/index.json'
+  return luaeval("require('linny.paths').l1_index_filepath(_A)", a:tax)
 endfunction
 
 function! linny#l2_index_filepath(tax, term)
-  return g:linny_index_path . '/'.tolower(a:tax).'/'.substitute(tolower(a:term),' ','-','g').'/index.json'
+  return luaeval("require('linny.paths').l2_index_filepath(_A[1], _A[2])", [a:tax, a:term])
 endfunction
 
 function! linny#view_config_filepath(view_name)
-  return g:linny_path_wiki_config ."/views/".tolower(a:view_name).'.yml'
+  return luaeval("require('linny.paths').view_config_filepath(_A)", a:view_name)
 endfunction
 
 function! linny#l1_config_filepath(tax)
-  return g:linny_path_wiki_config ."/L1-CONF-TAX-".tolower(a:tax).'.yml'
+  return luaeval("require('linny.paths').l1_config_filepath(_A)", a:tax)
 endfunction
 
 function! linny#l2_config_filepath(tax, term)
-  return g:linny_path_wiki_config ."/L2-CONF-TAX-".tolower(a:tax).'-TRM-'.substitute(tolower(a:term),' ','-','g').'.yml'
+  return luaeval("require('linny.paths').l2_config_filepath(_A[1], _A[2])", [a:tax, a:term])
 endfunction
 
 function! linny#l1_state_filepath(tax)
-  return g:linny_state_path ."/L1-STATE-TAX-".tolower(a:tax).'.json'
+  return luaeval("require('linny.paths').l1_state_filepath(_A)", a:tax)
 endfunction
 
 function! linny#l2_state_filepath(tax, term)
-  return g:linny_state_path ."/L2-STATE-TRM-".tolower(a:tax).'-TRM-'.tolower(a:term).'.json'
+  return luaeval("require('linny.paths').l2_state_filepath(_A[1], _A[2])", [a:tax, a:term])
 endfunction
 
 "function! linny#index_tax_config(tax)
