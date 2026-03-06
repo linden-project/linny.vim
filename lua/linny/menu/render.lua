@@ -348,6 +348,7 @@ function M.level2(tax, term)
   items.add_section("### " .. string.upper('hot keys'))
   items.add_special_event("<new document>", "newdocingroup", 'A')
   items.add_special_event("<open context menu>", "opencontextmenu", 'm')
+  items.add_special_event("<copy all paths>", "copyallpaths", 'Y')
 end
 
 --- Render debug info partial

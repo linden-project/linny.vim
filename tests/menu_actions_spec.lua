@@ -115,4 +115,140 @@ describe("linny.menu.actions", function()
       assert.is_false(handled)
     end)
   end)
+
+  describe("copy_path_to_clipboard", function()
+    before_each(function()
+      vim.g.linny_open_notebook_path = "/home/user/notebook"
+      vim.g.linny_path_wiki_content = "/home/user/notebook/content"
+    end)
+
+    after_each(function()
+      vim.g.linny_open_notebook_path = nil
+      vim.g.linny_path_wiki_content = nil
+      vim.fn.setreg('+', '')
+    end)
+
+    it("copies absolute path to clipboard", function()
+      local item = {
+        option_type = "document",
+        option_data = { abs_path = "/home/user/notebook/content/docs/test.md" }
+      }
+      -- Skip if clipboard not available
+      if vim.fn.has('clipboard') == 0 then
+        return
+      end
+      local result = actions.copy_path_to_clipboard(item, "absolute")
+      assert.is_true(result)
+      assert.are.equal("/home/user/notebook/content/docs/test.md", vim.fn.getreg('+'))
+    end)
+
+    it("copies relative path to clipboard (relative to notebook root)", function()
+      local item = {
+        option_type = "document",
+        option_data = { abs_path = "/home/user/notebook/content/docs/test.md" }
+      }
+      -- Skip if clipboard not available
+      if vim.fn.has('clipboard') == 0 then
+        return
+      end
+      local result = actions.copy_path_to_clipboard(item, "relative")
+      assert.is_true(result)
+      assert.are.equal("content/docs/test.md", vim.fn.getreg('+'))
+    end)
+
+    it("returns false for item without path", function()
+      local item = { option_type = "document", option_data = {} }
+      local result = actions.copy_path_to_clipboard(item, "absolute")
+      assert.is_false(result)
+    end)
+  end)
+
+  describe("build_dropdown_views with copy path", function()
+    it("includes copy path for document items", function()
+      local item = { option_type = "document" }
+      local views = actions.build_dropdown_views(item)
+      assert.is_true(vim.tbl_contains(views, "copy path"))
+    end)
+  end)
+
+  describe("get_term_document_paths", function()
+    local original_wiki_content
+    local original_notebook_path
+
+    before_each(function()
+      original_wiki_content = vim.g.linny_path_wiki_content
+      original_notebook_path = vim.g.linny_open_notebook_path
+      vim.g.linny_open_notebook_path = "/home/user/notebook"
+      vim.g.linny_path_wiki_content = "/home/user/notebook/content"
+    end)
+
+    after_each(function()
+      vim.g.linny_path_wiki_content = original_wiki_content
+      vim.g.linny_open_notebook_path = original_notebook_path
+    end)
+
+    it("returns empty table when no documents in term", function()
+      -- Mock empty term
+      vim.fn['linny#l2_index_filepath'] = function() return '/tmp/empty.json' end
+      vim.fn['linny#parse_json_file'] = function() return {} end
+
+      local paths = actions.get_term_document_paths("category", "empty")
+      assert.are.equal(0, #paths)
+    end)
+  end)
+
+  describe("copy_term_paths_to_clipboard", function()
+    before_each(function()
+      vim.g.linny_open_notebook_path = "/home/user/notebook"
+      vim.g.linny_path_wiki_content = "/home/user/notebook/content"
+      vim.t.linny_menu_taxonomy = nil
+      vim.t.linny_menu_term = nil
+    end)
+
+    after_each(function()
+      vim.g.linny_open_notebook_path = nil
+      vim.g.linny_path_wiki_content = nil
+      vim.t.linny_menu_taxonomy = nil
+      vim.t.linny_menu_term = nil
+      vim.fn.setreg('+', '')
+    end)
+
+    it("returns false when no taxonomy selected", function()
+      vim.t.linny_menu_taxonomy = nil
+      vim.t.linny_menu_term = "work"
+      local result = actions.copy_term_paths_to_clipboard("absolute")
+      assert.is_false(result)
+    end)
+
+    it("returns false when no term selected", function()
+      vim.t.linny_menu_taxonomy = "category"
+      vim.t.linny_menu_term = nil
+      local result = actions.copy_term_paths_to_clipboard("absolute")
+      assert.is_false(result)
+    end)
+
+    it("returns false when taxonomy is empty string", function()
+      vim.t.linny_menu_taxonomy = ""
+      vim.t.linny_menu_term = "work"
+      local result = actions.copy_term_paths_to_clipboard("absolute")
+      assert.is_false(result)
+    end)
+  end)
+
+  describe("module exports term paths functions", function()
+    it("exports get_term_document_paths", function()
+      assert.is_not_nil(actions.get_term_document_paths)
+      assert.is_function(actions.get_term_document_paths)
+    end)
+
+    it("exports copy_term_paths_to_clipboard", function()
+      assert.is_not_nil(actions.copy_term_paths_to_clipboard)
+      assert.is_function(actions.copy_term_paths_to_clipboard)
+    end)
+
+    it("exports show_term_paths_format_popup", function()
+      assert.is_not_nil(actions.show_term_paths_format_popup)
+      assert.is_function(actions.show_term_paths_format_popup)
+    end)
+  end)
 end)

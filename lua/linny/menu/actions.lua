@@ -22,7 +22,7 @@ function M.build_dropdown_views(item)
   if item.option_type == 'taxo_key_val' then
     return { "archive" }
   elseif item.option_type == 'document' then
-    local views = { "copy", "------", "archive", "set taxonomy", "remove taxonomy", "open docdir" }
+    local views = { "copy", "copy path", "------", "archive", "set taxonomy", "remove taxonomy", "open docdir" }
 
     -- Add repeat action if available
     local repeat_last = vim.t.linny_menu_repeat_last_taxo_term
@@ -225,6 +225,155 @@ function M.show_remove_taxonomy(name, line)
     filter = 'popup_filter_menu',
     mapping = 0,
     callback = 'linny_menu_actions#dropdown_remove_taxo_item_callback',
+  })
+end
+
+--- Show path format selection popup
+--- @param name string Display name for the item
+--- @param line number Line number for popup position
+function M.show_path_format_popup(name, line)
+  local formats = { "relative", "absolute" }
+
+  -- Store for callback
+  vim.t.linny_menu_path_formats = formats
+
+  popup.create(formats, {
+    zindex = 300,
+    drag = 0,
+    line = line + 1,
+    title = name .. ': Copy Path',
+    col = 10,
+    wrap = 0,
+    border = {},
+    cursorline = 1,
+    padding = {0, 1, 0, 1},
+    filter = 'popup_filter_menu',
+    mapping = 0,
+    callback = 'linny_menu_actions#dropdown_path_format_callback',
+  })
+end
+
+--- Copy a document path to clipboard
+--- @param item table The menu item with option_data.abs_path
+--- @param format string "absolute" or "relative"
+--- @return boolean Whether the copy succeeded
+function M.copy_path_to_clipboard(item, format)
+  if not item or not item.option_data or not item.option_data.abs_path then
+    vim.api.nvim_echo({{"No path available for this item", "ErrorMsg"}}, true, {})
+    return false
+  end
+
+  local path = item.option_data.abs_path
+
+  if format == "relative" then
+    -- Use notebook root (Hugo site root) for relative paths
+    local notebook_root = vim.g.linny_open_notebook_path or ""
+    if notebook_root ~= "" and path:sub(1, #notebook_root) == notebook_root then
+      path = path:sub(#notebook_root + 2) -- +2 to skip the trailing slash
+    end
+  end
+
+  -- Check clipboard availability
+  if vim.fn.has('clipboard') == 0 then
+    vim.api.nvim_echo({{"Clipboard not available. Path: " .. path, "WarningMsg"}}, true, {})
+    return false
+  end
+
+  vim.fn.setreg('+', path)
+  vim.api.nvim_echo({{"Copied: " .. path, "Normal"}}, true, {})
+  return true
+end
+
+--- Get all document paths for a taxonomy term
+--- @param tax string The taxonomy name
+--- @param term string The term name
+--- @return table List of absolute paths
+function M.get_term_document_paths(tax, term)
+  local paths = {}
+  local wiki_content = vim.g.linny_path_wiki_content or ""
+  local index_path = vim.fn['linny#l2_index_filepath'](tax, term)
+  local files_in_term = vim.fn['linny#parse_json_file'](index_path, {})
+
+  for _, filename in ipairs(files_in_term) do
+    local abs_path = wiki_content .. '/' .. filename
+    table.insert(paths, abs_path)
+  end
+
+  return paths
+end
+
+--- Copy all term document paths to clipboard
+--- Uses current taxonomy and term from tab variables
+--- @param format string "absolute" or "relative"
+--- @return boolean Whether the copy succeeded
+function M.copy_term_paths_to_clipboard(format)
+  local tax = vim.t.linny_menu_taxonomy
+  local term = vim.t.linny_menu_term
+
+  if not tax or tax == "" or not term or term == "" then
+    vim.api.nvim_echo({{"No taxonomy term selected", "ErrorMsg"}}, true, {})
+    return false
+  end
+
+  local paths = M.get_term_document_paths(tax, term)
+
+  if #paths == 0 then
+    vim.api.nvim_echo({{"No documents in this term", "WarningMsg"}}, true, {})
+    return false
+  end
+
+  -- Convert to relative if requested (relative to notebook/Hugo site root)
+  if format == "relative" then
+    local notebook_root = vim.g.linny_open_notebook_path or ""
+    for i, path in ipairs(paths) do
+      if notebook_root ~= "" and path:sub(1, #notebook_root) == notebook_root then
+        paths[i] = path:sub(#notebook_root + 2)
+      end
+    end
+  end
+
+  -- Check clipboard availability
+  if vim.fn.has('clipboard') == 0 then
+    vim.api.nvim_echo({{"Clipboard not available", "WarningMsg"}}, true, {})
+    return false
+  end
+
+  local content = table.concat(paths, "\n")
+  vim.fn.setreg('+', content)
+  vim.api.nvim_echo({{"Copied " .. #paths .. " paths to clipboard", "Normal"}}, true, {})
+  return true
+end
+
+--- Show format selection popup for copying all term paths
+--- Uses current taxonomy and term from tab variables
+function M.show_term_paths_format_popup()
+  local tax = vim.t.linny_menu_taxonomy
+  local term = vim.t.linny_menu_term
+
+  if not tax or tax == "" or not term or term == "" then
+    vim.api.nvim_echo({{"No taxonomy term selected", "ErrorMsg"}}, true, {})
+    return
+  end
+
+  local formats = { "relative", "absolute" }
+  local line = vim.fn.line('.') or 1
+
+  -- Store for callback
+  vim.t.linny_menu_term_path_formats = formats
+
+  popup.create(formats, {
+    zindex = 300,
+    drag = 0,
+    line = line + 1,
+    title = term .. ': Copy All Paths',
+    col = 10,
+    wrap = 0,
+    border = {},
+    cursorline = 1,
+    padding = {0, 1, 0, 1},
+    filter = 'popup_filter_menu',
+    mapping = 0,
+    callback = 'linny_menu_actions#dropdown_term_paths_format_callback',
   })
 end
 

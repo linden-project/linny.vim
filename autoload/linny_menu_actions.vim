@@ -59,6 +59,24 @@ function! linny_menu_actions#dropdown_term_item_callback(id, result)
   endif
 endfunction
 
+" Handle path format selection (must remain in VimScript for Vim popup API)
+function! linny_menu_actions#dropdown_path_format_callback(id, result)
+  if a:result != -1
+    let item = t:linny_menu_item_for_dropdown
+    let format = t:linny_menu_path_formats[a:result-1]
+
+    call luaeval("require('linny.menu.actions').copy_path_to_clipboard(_A[1], _A[2])", [item, format])
+  endif
+endfunction
+
+" Handle term paths format selection (must remain in VimScript for Vim popup API)
+function! linny_menu_actions#dropdown_term_paths_format_callback(id, result)
+  if a:result != -1
+    let format = t:linny_menu_term_path_formats[a:result-1]
+    call luaeval("require('linny.menu.actions').copy_term_paths_to_clipboard(_A)", format)
+  endif
+endfunction
+
 " Execute content menu action (popup-dependent actions only)
 " Most actions are handled by Lua - this handles only popup-creating actions
 function! linny_menu_actions#exec_content_menu(action, item)
@@ -71,6 +89,11 @@ function! linny_menu_actions#exec_content_menu(action, item)
     elseif a:action == "remove taxonomy"
       let name = luaeval("require('linny.menu.actions').get_item_name(_A)", t:linny_menu_item_for_dropdown)
       call luaeval("require('linny.menu.actions').show_remove_taxonomy(_A[1], _A[2])", [name, t:linny_menu_line])
+      return
+
+    elseif a:action == "copy path"
+      let name = luaeval("require('linny.menu.actions').get_item_name(_A)", t:linny_menu_item_for_dropdown)
+      call luaeval("require('linny.menu.actions').show_path_format_popup(_A[1], _A[2])", [name, t:linny_menu_line])
       return
     endif
   endif

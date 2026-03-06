@@ -256,6 +256,7 @@ function! Setup_keymaps(items)
   elseif t:linny_menu_current_menu_type == "menu_level2"
     noremap <silent> <buffer> t :call linny_menu#open_document_in_new_tab()<cr>
     noremap <silent> <buffer> V :call <SID>linny_menu_execute_by_string('cycle_l2_view_reverse')<cr>
+    noremap <silent> <buffer> Y :call luaeval("require('linny.menu.actions').show_term_paths_format_popup()")<cr>
   endif
 
 
@@ -473,6 +474,9 @@ function! <SID>linny_menu_execute(index) abort
       else
         return 0
       endif
+
+    elseif(item.event == 'copyallpaths')
+      call luaeval("require('linny.menu.actions').show_term_paths_format_popup()")
 
     elseif item.event[0] != '='
 
