@@ -77,6 +77,18 @@ function! linny_menu_actions#dropdown_term_paths_format_callback(id, result)
   endif
 endfunction
 
+" Handle export structure selection (must remain in VimScript for Vim popup API)
+function! linny_menu_actions#dropdown_export_structure_callback(id, result)
+  if a:result != -1
+    let structure = t:linny_menu_export_structures[a:result-1]
+    " Convert "preserve folders" to "folders" for the function
+    if structure == "preserve folders"
+      let structure = "folders"
+    endif
+    call luaeval("require('linny.menu.actions').show_export_path_input(_A)", structure)
+  endif
+endfunction
+
 " Execute content menu action (popup-dependent actions only)
 " Most actions are handled by Lua - this handles only popup-creating actions
 function! linny_menu_actions#exec_content_menu(action, item)

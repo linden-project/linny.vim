@@ -7,11 +7,20 @@ local popup = require('linny.menu.popup')
 
 --- Execute external command asynchronously (cross-platform)
 --- @param command table Command array to execute
-function M.job_start(command)
+--- @param opts table|nil Optional settings (cwd, etc.)
+function M.job_start(command, opts)
   if vim.fn.has('nvim') == 1 then
-    vim.fn.jobstart(command)
+    if opts and next(opts) then
+      vim.fn.jobstart(command, opts)
+    else
+      vim.fn.jobstart(command)
+    end
   else
-    vim.fn.job_start(command)
+    if opts and next(opts) then
+      vim.fn.job_start(command, opts)
+    else
+      vim.fn.job_start(command)
+    end
   end
 end
 
@@ -20,7 +29,7 @@ end
 --- @return table List of action strings for dropdown
 function M.build_dropdown_views(item)
   if item.option_type == 'taxo_key_val' then
-    return { "archive" }
+    return { "archive", "export to zip" }
   elseif item.option_type == 'document' then
     local views = { "copy", "copy path", "------", "archive", "set taxonomy", "remove taxonomy", "open docdir" }
 
@@ -64,6 +73,19 @@ function M.exec_content_menu(action, item)
         item.option_data.taxo_key,
         item.option_data.taxo_term
       )
+      return true
+
+    elseif action == "export to zip" then
+      -- Set tax/term from item data for context menu usage
+      vim.t.linny_menu_taxonomy = item.option_data.taxo_key
+      vim.t.linny_menu_term = item.option_data.taxo_term
+      -- Check if group_by is active to determine flow
+      local view_props = vim.t.linny_menu_view_props or {}
+      if view_props.group_by then
+        M.show_export_structure_popup()
+      else
+        M.show_export_path_input("flat")
+      end
       return true
     end
 
@@ -400,6 +422,169 @@ function M.show_term_selection(name, taxo, terms, line)
     mapping = 0,
     callback = 'linny_menu_actions#dropdown_term_item_callback',
   })
+end
+
+--- Check if zip command is available on the system
+--- @return boolean Whether zip is available
+function M.check_zip_available()
+  return vim.fn.executable('zip') == 1
+end
+
+--- Export all term documents to a zip archive
+--- @param output_path string Path for the output zip file
+--- @param structure string "flat" or "folders" for directory structure
+--- @return boolean Whether export was initiated successfully
+function M.export_term_to_zip(output_path, structure)
+  if not M.check_zip_available() then
+    vim.api.nvim_echo({{"Error: 'zip' command not found on system", "ErrorMsg"}}, true, {})
+    return false
+  end
+
+  local tax = vim.t.linny_menu_taxonomy
+  local term = vim.t.linny_menu_term
+
+  if not tax or tax == "" or not term or term == "" then
+    vim.api.nvim_echo({{"No taxonomy term selected", "ErrorMsg"}}, true, {})
+    return false
+  end
+
+  local paths = M.get_term_document_paths(tax, term)
+
+  if #paths == 0 then
+    vim.api.nvim_echo({{"No documents in this term", "WarningMsg"}}, true, {})
+    return false
+  end
+
+  -- Expand ~ in path
+  local expanded_path = vim.fn.expand(output_path)
+
+  -- Build zip command
+  local cmd = { "zip", "-j", expanded_path }
+
+  if structure == "folders" then
+    -- For folders structure, we need to handle this differently
+    -- Create a temp directory, organize files, then zip
+    local wiki_content = vim.g.linny_path_wiki_content or ""
+    local files_index = vim.fn['linny#parse_json_file'](vim.g.linny_index_path .. '/_index_docs_with_props.json', {})
+    local view_props = vim.t.linny_menu_view_props or {}
+    local group_by = view_props.group_by
+
+    if group_by then
+      -- Create temp dir for organized structure
+      local temp_dir = vim.fn.tempname()
+      vim.fn.mkdir(temp_dir, "p")
+
+      for _, abs_path in ipairs(paths) do
+        local rel_path = abs_path:sub(#wiki_content + 2)
+        local props = files_index[rel_path] or {}
+        local group_value = props[group_by] or "ungrouped"
+        if type(group_value) == "table" then
+          group_value = group_value[1] or "ungrouped"
+        end
+
+        local group_dir = temp_dir .. "/" .. group_value
+        vim.fn.mkdir(group_dir, "p")
+
+        local filename = vim.fn.fnamemodify(abs_path, ":t")
+        vim.fn.system({"cp", abs_path, group_dir .. "/" .. filename})
+      end
+
+      -- Zip the organized directory
+      cmd = { "zip", "-r", expanded_path, "." }
+      M.job_start(cmd, { cwd = temp_dir })
+
+      vim.api.nvim_echo({{"Exporting " .. #paths .. " files to " .. output_path .. " (with folders)", "Normal"}}, true, {})
+      return true
+    end
+  end
+
+  -- Flat structure: just add all files
+  for _, path in ipairs(paths) do
+    table.insert(cmd, path)
+  end
+
+  M.job_start(cmd)
+
+  vim.api.nvim_echo({{"Exporting " .. #paths .. " files to " .. output_path, "Normal"}}, true, {})
+  return true
+end
+
+--- Show export structure selection popup (flat vs folders)
+--- Only shown when group_by view is active
+function M.show_export_structure_popup()
+  local tax = vim.t.linny_menu_taxonomy
+  local term = vim.t.linny_menu_term
+
+  if not tax or tax == "" or not term or term == "" then
+    vim.api.nvim_echo({{"No taxonomy term selected", "ErrorMsg"}}, true, {})
+    return
+  end
+
+  if not M.check_zip_available() then
+    vim.api.nvim_echo({{"Error: 'zip' command not found on system", "ErrorMsg"}}, true, {})
+    return
+  end
+
+  local structures = { "flat", "preserve folders" }
+  local line = vim.fn.line('.') or 1
+
+  vim.t.linny_menu_export_structures = structures
+
+  popup.create(structures, {
+    zindex = 300,
+    drag = 0,
+    line = line + 1,
+    title = term .. ': Export Structure',
+    col = 10,
+    wrap = 0,
+    border = {},
+    cursorline = 1,
+    padding = {0, 1, 0, 1},
+    filter = 'popup_filter_menu',
+    mapping = 0,
+    callback = 'linny_menu_actions#dropdown_export_structure_callback',
+  })
+end
+
+--- Show export path input dialog
+--- @param structure string "flat" or "folders"
+function M.show_export_path_input(structure)
+  local term = vim.t.linny_menu_term or "export"
+  local default_path = "~/Downloads/" .. term .. ".zip"
+
+  vim.fn.inputsave()
+  local path = vim.fn.input('Export zip path: ', default_path)
+  vim.fn.inputrestore()
+
+  if path and path ~= '' then
+    vim.cmd('redraw')
+    M.export_term_to_zip(path, structure)
+  end
+end
+
+--- Start export to zip flow (for Z hotkey in level 2 menu)
+--- Checks if group_by is active and routes accordingly
+function M.start_export_to_zip()
+  local tax = vim.t.linny_menu_taxonomy
+  local term = vim.t.linny_menu_term
+
+  if not tax or tax == "" or not term or term == "" then
+    vim.api.nvim_echo({{"No taxonomy term selected", "ErrorMsg"}}, true, {})
+    return
+  end
+
+  if not M.check_zip_available() then
+    vim.api.nvim_echo({{"Error: 'zip' command not found on system", "ErrorMsg"}}, true, {})
+    return
+  end
+
+  -- Check if group_by is active
+  local view_props = vim.t.linny_menu_view_props or {}
+  if view_props.group_by then
+    M.show_export_structure_popup()
+  else
+    M.show_export_path_input("flat")
+  end
 end
 
 return M

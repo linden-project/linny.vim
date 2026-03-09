@@ -38,11 +38,12 @@ describe("linny.menu.actions", function()
   end)
 
   describe("build_dropdown_views", function()
-    it("returns archive for taxo_key_val items", function()
+    it("returns archive and export for taxo_key_val items", function()
       local item = { option_type = "taxo_key_val" }
       local views = actions.build_dropdown_views(item)
-      assert.are.equal(1, #views)
-      assert.are.equal("archive", views[1])
+      assert.are.equal(2, #views)
+      assert.is_true(vim.tbl_contains(views, "archive"))
+      assert.is_true(vim.tbl_contains(views, "export to zip"))
     end)
 
     it("returns document actions for document items", function()
@@ -249,6 +250,81 @@ describe("linny.menu.actions", function()
     it("exports show_term_paths_format_popup", function()
       assert.is_not_nil(actions.show_term_paths_format_popup)
       assert.is_function(actions.show_term_paths_format_popup)
+    end)
+  end)
+
+  describe("check_zip_available", function()
+    it("returns boolean", function()
+      local result = actions.check_zip_available()
+      assert.is_boolean(result)
+    end)
+
+    it("returns true when zip is available", function()
+      -- Most systems have zip installed
+      if vim.fn.executable('zip') == 1 then
+        assert.is_true(actions.check_zip_available())
+      end
+    end)
+  end)
+
+  describe("export_term_to_zip", function()
+    before_each(function()
+      vim.t.linny_menu_taxonomy = nil
+      vim.t.linny_menu_term = nil
+    end)
+
+    after_each(function()
+      vim.t.linny_menu_taxonomy = nil
+      vim.t.linny_menu_term = nil
+    end)
+
+    it("returns false when no taxonomy selected", function()
+      vim.t.linny_menu_taxonomy = nil
+      vim.t.linny_menu_term = "work"
+      local result = actions.export_term_to_zip("/tmp/test.zip", "flat")
+      assert.is_false(result)
+    end)
+
+    it("returns false when no term selected", function()
+      vim.t.linny_menu_taxonomy = "category"
+      vim.t.linny_menu_term = nil
+      local result = actions.export_term_to_zip("/tmp/test.zip", "flat")
+      assert.is_false(result)
+    end)
+  end)
+
+  describe("build_dropdown_views with export to zip", function()
+    it("includes export to zip for taxo_key_val items", function()
+      local item = { option_type = "taxo_key_val" }
+      local views = actions.build_dropdown_views(item)
+      assert.is_true(vim.tbl_contains(views, "export to zip"))
+    end)
+  end)
+
+  describe("module exports zip functions", function()
+    it("exports check_zip_available", function()
+      assert.is_not_nil(actions.check_zip_available)
+      assert.is_function(actions.check_zip_available)
+    end)
+
+    it("exports export_term_to_zip", function()
+      assert.is_not_nil(actions.export_term_to_zip)
+      assert.is_function(actions.export_term_to_zip)
+    end)
+
+    it("exports show_export_structure_popup", function()
+      assert.is_not_nil(actions.show_export_structure_popup)
+      assert.is_function(actions.show_export_structure_popup)
+    end)
+
+    it("exports show_export_path_input", function()
+      assert.is_not_nil(actions.show_export_path_input)
+      assert.is_function(actions.show_export_path_input)
+    end)
+
+    it("exports start_export_to_zip", function()
+      assert.is_not_nil(actions.start_export_to_zip)
+      assert.is_function(actions.start_export_to_zip)
     end)
   end)
 end)

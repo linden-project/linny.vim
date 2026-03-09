@@ -250,6 +250,7 @@ function M.level2(tax, term)
 
   local files_in_menu = vim.fn['linny#parse_json_file'](vim.fn['linny#l2_index_filepath'](tax, term), {})
   local view_props = views.current_props(active_view, views_list, views_dict)
+  vim.t.linny_menu_view_props = view_props  -- Store for use by actions (export to zip)
   local files_index = vim.fn['linny#parse_json_file'](vim.g.linny_index_path .. '/_index_docs_with_props.json', {})
 
   vim.t.linny_tasks_count = vim.fn['linny#parse_json_file'](vim.g.linny_index_path .. '/_index_docs_tasks_count.json', {})
@@ -349,6 +350,7 @@ function M.level2(tax, term)
   items.add_special_event("<new document>", "newdocingroup", 'A')
   items.add_special_event("<open context menu>", "opencontextmenu", 'm')
   items.add_special_event("<copy all paths>", "copyallpaths", 'Y')
+  items.add_special_event("<export to zip>", "exporttozip", 'Z')
 end
 
 --- Render debug info partial

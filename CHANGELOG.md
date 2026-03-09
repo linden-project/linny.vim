@@ -2,7 +2,9 @@
 
 ## Next version
 
-- refactor: WIP rewrite all vimscript to lua
+- feature: export files as zip from within a therm
+- feature: export path/or all paths to clipboard
+- refactor: WIP rewrite many vimscripts to lua
 
 ## 0.9.0 - 5 mrt 2026
 

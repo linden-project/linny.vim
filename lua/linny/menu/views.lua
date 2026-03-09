@@ -10,7 +10,7 @@ local popup = require('linny.menu.popup')
 
 --- Get list of view names from config
 --- @param config table The configuration table
---- @return table List of view names
+--- @return table List of view names (sorted for consistent ordering)
 function M.get_list(config)
   local views_list = {}
 
@@ -25,6 +25,9 @@ function M.get_list(config)
 
   if #views_list == 0 then
     views_list = { 'NONE' }
+  else
+    -- Sort for consistent ordering across restarts
+    table.sort(views_list)
   end
 
   return views_list

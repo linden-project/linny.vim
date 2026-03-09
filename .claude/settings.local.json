@@ -20,7 +20,8 @@
       "Bash(openspec new:change:*)",
       "SlashCommand(/opsx:new)",
       "SlashCommand(/opsx:ff)",
-      "Bash(gh issue view:*)"
+      "Bash(gh issue view:*)",
+      "Bash(1)"
     ],
     "deny": [],
     "ask": []

@@ -257,6 +257,7 @@ function! Setup_keymaps(items)
     noremap <silent> <buffer> t :call linny_menu#open_document_in_new_tab()<cr>
     noremap <silent> <buffer> V :call <SID>linny_menu_execute_by_string('cycle_l2_view_reverse')<cr>
     noremap <silent> <buffer> Y :call luaeval("require('linny.menu.actions').show_term_paths_format_popup()")<cr>
+    noremap <silent> <buffer> Z :call luaeval("require('linny.menu.actions').start_export_to_zip()")<cr>
   endif
 
 
@@ -477,6 +478,9 @@ function! <SID>linny_menu_execute(index) abort
 
     elseif(item.event == 'copyallpaths')
       call luaeval("require('linny.menu.actions').show_term_paths_format_popup()")
+
+    elseif(item.event == 'exporttozip')
+      call luaeval("require('linny.menu.actions').start_export_to_zip()")
 
     elseif item.event[0] != '='
 
