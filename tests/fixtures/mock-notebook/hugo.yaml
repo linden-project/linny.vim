@@ -1,0 +1,19 @@
+baseURL: "http://localhost/"
+title: "Mock Notebook"
+contentDir: content
+dataDir: lindenConfig
+publishDir: lindenIndex
+
+taxonomies:
+  tag: tags
+
+outputs:
+  home:
+    - json
+  page:
+    - json
+
+outputFormats:
+  json:
+    baseName: _index
+    mediaType: application/json
