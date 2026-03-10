@@ -119,21 +119,9 @@ function! linny_menu#toggle() abort
     return 0
   endif
 
-  " select and arrange menu
-  let result = luaeval("require('linny.menu.items').build_content()")
-  let content = result.content
-  let maxsize = result.maxsize
-
-  if 1
-    call luaeval("require('linny.menu.window').open_window(_A)", maxsize)
-    call luaeval("require('linny.menu.window').render(_A)", content)
-    call Setup_keymaps(content)
-  else
-    for item in content
-      echo item
-    endfor
-    return 0
-  endif
+  " Initialize tab state and open menu (same as linny_menu#open)
+  call luaeval("require('linny.menu.state').tab_init()")
+  call linny_menu#openandshow()
 
   return 1
 endfunc

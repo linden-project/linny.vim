@@ -16,23 +16,55 @@ describe("linny.notebook", function()
 
   describe("init", function()
     it("sets global path variables correctly", function()
-      vim.g.linny_open_notebook_path = "/tmp/test_notebook"
+      -- Create temp directory for test
+      local test_path = "/tmp/linny_test_notebook_" .. os.time()
+      vim.fn.mkdir(test_path, "p")
+      vim.g.linny_open_notebook_path = test_path
 
-      notebook.init()
+      local result = notebook.init()
 
-      assert.are.equal("/tmp/test_notebook/content", vim.g.linny_path_wiki_content)
-      assert.are.equal("/tmp/test_notebook/lindenConfig", vim.g.linny_path_wiki_config)
-      assert.are.equal("/tmp/test_notebook/lindenIndex", vim.g.linny_index_path)
+      assert.is_true(result)
+      assert.are.equal(test_path .. "/content", vim.g.linny_path_wiki_content)
+      assert.are.equal(test_path .. "/lindenConfig", vim.g.linny_path_wiki_config)
+      assert.are.equal(test_path .. "/lindenIndex", vim.g.linny_index_path)
+
+      -- Cleanup
+      vim.fn.delete(test_path, "rf")
     end)
 
     it("expands tilde in path", function()
-      vim.g.linny_open_notebook_path = "~/test_notebook"
+      -- Create temp directory in home for test
+      local home = vim.fn.expand("~")
+      local test_dir = "linny_test_notebook_tilde_" .. os.time()
+      local full_path = home .. "/" .. test_dir
+      vim.fn.mkdir(full_path, "p")
+      vim.g.linny_open_notebook_path = "~/" .. test_dir
 
-      notebook.init()
+      local result = notebook.init()
 
+      assert.is_true(result)
       -- Should contain expanded home path, not tilde
       assert.is_not_nil(vim.g.linny_path_wiki_content:find("/content$"))
       assert.is_nil(vim.g.linny_path_wiki_content:find("~"))
+
+      -- Cleanup
+      vim.fn.delete(full_path, "rf")
+    end)
+
+    it("returns false when notebook path not set", function()
+      vim.g.linny_open_notebook_path = nil
+
+      local result = notebook.init()
+
+      assert.is_false(result)
+    end)
+
+    it("returns false when notebook directory does not exist", function()
+      vim.g.linny_open_notebook_path = "/nonexistent/path/that/does/not/exist"
+
+      local result = notebook.init()
+
+      assert.is_false(result)
     end)
   end)
 
@@ -44,17 +76,38 @@ describe("linny.notebook", function()
     end)
 
     it("sets g:linny_open_notebook_path for valid path", function()
-      -- Use /tmp which should always exist
-      local test_path = "/tmp"
+      -- Create a proper notebook structure
+      local test_path = "/tmp/linny_test_open_" .. os.time()
+      vim.fn.mkdir(test_path .. "/content", "p")
+      vim.fn.mkdir(test_path .. "/lindenConfig", "p")
+      vim.fn.mkdir(test_path .. "/lindenIndex", "p")
 
-      -- Mock the Vimscript functions that get called on success
-      vim.fn['linny#Init'] = function() end
+      -- Mock linny_menu#start since we don't need the actual menu
       vim.fn['linny_menu#start'] = function() end
 
       local result = notebook.open(test_path)
 
       assert.is_true(result)
-      assert.are.equal("/tmp", vim.g.linny_open_notebook_path)
+      assert.are.equal(test_path, vim.g.linny_open_notebook_path)
+      assert.are.equal(1, vim.g.linny_initialized)
+
+      -- Cleanup
+      vim.fn.delete(test_path, "rf")
+    end)
+
+    it("returns false when directory exists but missing required subdirectories", function()
+      -- Create a directory without the required structure
+      local test_path = "/tmp/linny_test_invalid_" .. os.time()
+      vim.fn.mkdir(test_path, "p")
+
+      local result = notebook.open(test_path)
+
+      assert.is_false(result)
+      -- Menu should not have opened, g:linny_initialized should be 0
+      assert.are_not.equal(1, vim.g.linny_initialized)
+
+      -- Cleanup
+      vim.fn.delete(test_path, "rf")
     end)
 
     it("returns false for empty string path", function()

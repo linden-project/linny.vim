@@ -41,7 +41,7 @@
           vim.g.mapleader = " "
 
           -- Set linny paths for testing
-          vim.g.linny_open_notebook_path = vim.fn.expand("~/LinnyNotebook")
+          vim.g.linny_open_notebook_path = vim.fn.expand("/home/pim/cLinden/linny-notebook-template")
 
           -- Quick reload function for development
           _G.reload_linny = function()

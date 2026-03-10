@@ -12,54 +12,68 @@ end
 
 --- Get the path to a taxonomy's L1 index file
 --- @param tax string The taxonomy name
---- @return string The full path to the index file
+--- @return string|nil The full path to the index file, or nil if base path not set
 function M.l1_index_filepath(tax)
-  return vim.g.linny_index_path .. '/' .. string.lower(tax) .. '/index.json'
+  local base = vim.g.linny_index_path
+  if not base then return nil end
+  return base .. '/' .. string.lower(tax) .. '/index.json'
 end
 
 --- Get the path to a taxonomy term's L2 index file
 --- @param tax string The taxonomy name
 --- @param term string The term name
---- @return string The full path to the index file
+--- @return string|nil The full path to the index file, or nil if base path not set
 function M.l2_index_filepath(tax, term)
-  return vim.g.linny_index_path .. '/' .. string.lower(tax) .. '/' .. normalize_term(term) .. '/index.json'
+  local base = vim.g.linny_index_path
+  if not base then return nil end
+  return base .. '/' .. string.lower(tax) .. '/' .. normalize_term(term) .. '/index.json'
 end
 
 --- Get the path to a view's config file
 --- @param view_name string The view name
---- @return string The full path to the config file
+--- @return string|nil The full path to the config file, or nil if base path not set
 function M.view_config_filepath(view_name)
-  return vim.g.linny_path_wiki_config .. '/views/' .. string.lower(view_name) .. '.yml'
+  local base = vim.g.linny_path_wiki_config
+  if not base then return nil end
+  return base .. '/views/' .. string.lower(view_name) .. '.yml'
 end
 
 --- Get the path to a taxonomy's L1 config file
 --- @param tax string The taxonomy name
---- @return string The full path to the config file
+--- @return string|nil The full path to the config file, or nil if base path not set
 function M.l1_config_filepath(tax)
-  return vim.g.linny_path_wiki_config .. '/L1-CONF-TAX-' .. string.lower(tax) .. '.yml'
+  local base = vim.g.linny_path_wiki_config
+  if not base then return nil end
+  return base .. '/L1-CONF-TAX-' .. string.lower(tax) .. '.yml'
 end
 
 --- Get the path to a taxonomy term's L2 config file
 --- @param tax string The taxonomy name
 --- @param term string The term name
---- @return string The full path to the config file
+--- @return string|nil The full path to the config file, or nil if base path not set
 function M.l2_config_filepath(tax, term)
-  return vim.g.linny_path_wiki_config .. '/L2-CONF-TAX-' .. string.lower(tax) .. '-TRM-' .. normalize_term(term) .. '.yml'
+  local base = vim.g.linny_path_wiki_config
+  if not base then return nil end
+  return base .. '/L2-CONF-TAX-' .. string.lower(tax) .. '-TRM-' .. normalize_term(term) .. '.yml'
 end
 
 --- Get the path to a taxonomy's L1 state file
 --- @param tax string The taxonomy name
---- @return string The full path to the state file
+--- @return string|nil The full path to the state file, or nil if base path not set
 function M.l1_state_filepath(tax)
-  return vim.g.linny_state_path .. '/L1-STATE-TAX-' .. string.lower(tax) .. '.json'
+  local base = vim.g.linny_state_path
+  if not base then return nil end
+  return base .. '/L1-STATE-TAX-' .. string.lower(tax) .. '.json'
 end
 
 --- Get the path to a taxonomy term's L2 state file
 --- @param tax string The taxonomy name
 --- @param term string The term name
---- @return string The full path to the state file
+--- @return string|nil The full path to the state file, or nil if base path not set
 function M.l2_state_filepath(tax, term)
-  return vim.g.linny_state_path .. '/L2-STATE-TRM-' .. string.lower(tax) .. '-TRM-' .. string.lower(term) .. '.json'
+  local base = vim.g.linny_state_path
+  if not base then return nil end
+  return base .. '/L2-STATE-TRM-' .. string.lower(tax) .. '-TRM-' .. string.lower(term) .. '.json'
 end
 
 return M

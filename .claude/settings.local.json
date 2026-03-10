@@ -21,7 +21,8 @@
       "SlashCommand(/opsx:new)",
       "SlashCommand(/opsx:ff)",
       "Bash(gh issue view:*)",
-      "Bash(1)"
+      "Bash(1)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []

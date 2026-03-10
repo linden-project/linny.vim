@@ -3,7 +3,7 @@
 "----------------------------------------------------------------------
 " LINNY.VIM INIT
 "----------------------------------------------------------------------
-"call linny#Init()
+call linny#Init()
 
 " SETUP AUTOCOMMANDS
 if get(g:, 'linnycfg_setup_autocommands', 1)
@@ -17,14 +17,12 @@ endif
 "----------------------------------------------------------------------
 " DEFINED COMMANDS
 "----------------------------------------------------------------------
-command! -nargs=+ LinnyNewDoc :call linny_menu_documents#new_in_leaf(<f-args>)
+command! -nargs=+ LinnyNewDoc :if linny#require_init() | call linny_menu_documents#new_in_leaf(<f-args>) | endif
 
-command! LinnyStart :call linny_menu#start()
+command! LinnyStart :if linny#require_init() | call linny_menu#start() | endif
 
-command! LinnyMenuToggle :call linny_menu#toggle()
-command! LinnyMenuOpen :call linny_menu#open()
-command! LinnyMenuClose :call linny_menu#close()
-
+command! LinnyMenuToggle :if linny#require_init() | call linny_menu#toggle() | endif
+command! LinnyMenuOpen :if linny#require_init() | call linny_menu#open() | endif
 command! LinnyMenuClose :call linny_menu#close()
 
 command! LinnyWordToRegister :call linny#FilenameToWordToUnamedRegister()

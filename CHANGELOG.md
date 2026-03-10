@@ -2,6 +2,8 @@
 
 ## Next version
 
+- feature: smooth onboarding, sane defaults, exceptions for empty or missing configuration
+- feature: checkhealth hooks
 - feature: export files as zip from within a therm
 - feature: export path/or all paths to clipboard
 - refactor: WIP rewrite many vimscripts to lua

@@ -15,9 +15,8 @@ call luaeval("require('linny.util').init_variable(_A[1], _A[2])", ["g:linnycfg_r
 call luaeval("require('linny.util').init_variable(_A[1], _A[2])", ["g:linnycfg_index_version", 'linden01'])
 call luaeval("require('linny.util').init_variable(_A[1], _A[2])", ["g:linnycfg_debug", 0])
 call luaeval("require('linny.util').init_variable(_A[1], _A[2])", ["g:linnycfg_setup_autocommands", 1])
-call luaeval("require('linny.util').init_variable(_A[1], _A[2])", ["g:linny_open_notebook_path", '~/LinnyNotebook'])
-"call luaeval("require('linny.util').init_variable(_A[1], _A[2])", ["g:linnycfg_path_wiki_content", '~/Linny/wikiContent'])
-"call luaeval("require('linny.util').init_variable(_A[1], _A[2])", ["g:linnycfg_path_wiki_config", '~/Linny/wikiConfig'])
+call luaeval("require('linny.util').init_variable(_A[1], _A[2])", ["g:linny_open_notebook_path", ''])
+call luaeval("require('linny.util').init_variable(_A[1], _A[2])", ["g:linny_initialized", 0])
 
 "----------------------------------------------------------------------
 " NAVIGATOR OPTIONS
@@ -45,10 +44,14 @@ call luaeval("require('linny.util').init_variable(_A[1], _A[2])", ["g:linnytabnr
 " CONFIG IS READ
 " CACHE IS SETUP
 function! linny#Init()
+  " Reset initialization state - will be set to 1 only on successful completion
+  let g:linny_initialized = 0
 
   let g:linny_open_notebook_path = expand(g:linny_open_notebook_path)
 
-  call luaeval("require('linny.notebook').init()")
+  if !luaeval("require('linny.notebook').init()")
+    return
+  endif
 
   let g:linny_state_path = expand(g:linnycfg_path_state)
 
@@ -58,11 +61,15 @@ function! linny#Init()
   let g:linny_wikitags_register = get(g:, 'linny_wikitags_register', {})
   let g:linny_leader = get(g:, 'linny_leader', ';')
 
-  call linny#setup_paths()
+  if !linny#setup_paths()
+    return
+  endif
 
   call linny#cache_index()
 
   call linny_menu#RemapGlobalKeys()
+
+  let g:linny_initialized = 1
 
 endfunction
 
@@ -82,15 +89,26 @@ function! linny#RegisterLinnyWikitag(tagKey, primaryAction, ...)
 endfunction
 
 " CHECK LINNY WORKING PATHS AND CREATE IF NEEDED
+" Returns 1 on success, 0 on failure
 function! linny#setup_paths()
-  call linny#fatal_check_dir(g:linny_path_wiki_content)
-  call linny#fatal_check_dir(g:linny_path_wiki_config)
+  if !linny#fatal_check_dir(g:linny_path_wiki_content)
+    return 0
+  endif
+  if !linny#fatal_check_dir(g:linny_path_wiki_config)
+    return 0
+  endif
 
   call linny#create_dir_if_not_exixt(g:linny_state_path)
-  call linny#fatal_check_dir(g:linny_state_path)
+  if !linny#fatal_check_dir(g:linny_state_path)
+    return 0
+  endif
 
   call linny#create_dir_if_not_exixt(g:linny_index_path)
-  call linny#fatal_check_dir(g:linny_index_path)
+  if !linny#fatal_check_dir(g:linny_index_path)
+    return 0
+  endif
+
+  return 1
 endfunction
 
 function! linny#create_dir_if_not_exixt(path)
@@ -99,10 +117,29 @@ function! linny#create_dir_if_not_exixt(path)
   endif
 endfunction
 
+" Check if directory exists. Silent operation - use :checkhealth linny for diagnostics.
+" Returns 1 if exists, 0 if not
 function! linny#fatal_check_dir(path)
-  if !isdirectory(a:path)
-    echom "linny CANNOT FUNCION! ERROR: " . a:path . "DOES NOT EXISTS."
+  return isdirectory(a:path)
+endfunction
+
+" Check if linny is initialized, show helpful message if not
+" Returns 1 if initialized, 0 if not
+function! linny#require_init()
+  if get(g:, 'linny_initialized', 0)
+    return 1
   endif
+  echohl WarningMsg
+  echo "Linny not initialized. Set g:linny_open_notebook_path"
+  echo "Get started: https://github.com/linden-project/linny-notebook-template"
+  echohl None
+  return 0
+endfunction
+
+" Health check - validates plugin configuration
+" Returns dict with 'ok' (0/1) and 'errors' (list of strings)
+function! linny#health_check()
+  return luaeval("require('linny.health').validate()")
 endfunction
 
 function! linny#FilenameToWikiLink(filename)
@@ -275,7 +312,6 @@ function! linny#write_json_file(filePath, object)
   call writefile([json_encode(a:object)], a:filePath)
 endfunction
 
-
 function! linny#docs_titles()
   let docs_titles = linny#parse_json_file(g:linny_index_path . '/_index_docs_with_title.json', [])
   return docs_titles
@@ -321,19 +357,6 @@ function! linny#l2_state_filepath(tax, term)
   return luaeval("require('linny.paths').l2_state_filepath(_A[1], _A[2])", [a:tax, a:term])
 endfunction
 
-"function! linny#index_tax_config(tax)
-  "if has_key(g:linny_index_config, 'index_keys')
-    "let index_keys = get(g:linny_index_config,'index_keys')
-    "if has_key(index_keys, a:tax)
-      "let tax_config = get(index_keys, a:tax)
-      "return tax_config
-    "endif
-  "endif
-
-  "return {}
-
-"endfunction
-
 function! linny#view_config(view_name)
   let config = linny#parse_yaml_to_dict( linny#view_config_filepath(a:view_name))
   return config
@@ -348,5 +371,3 @@ function! linny#term_config(tax, term)
   let config = linny#parse_yaml_to_dict( linny#l2_config_filepath(a:tax, a:term))
   return config
 endfunction
-
-
