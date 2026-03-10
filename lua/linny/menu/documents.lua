@@ -68,7 +68,10 @@ function M.copy(source_path, new_title)
       return
     end
 
-    M.open_in_right_pane(relativePath)
+    -- Defer window split to avoid E242 when called during popup close
+    vim.schedule(function()
+      M.open_in_right_pane(relativePath)
+    end)
   else
     vim.api.nvim_echo({{"Could not copy document with file path: " .. source_path, "WarningMsg"}}, true, {})
   end

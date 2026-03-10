@@ -2,6 +2,7 @@
 
 ## Next version
 
+- fix: improve context menu actions
 
 ## 0.9.1 - 10 mrt 2026
 

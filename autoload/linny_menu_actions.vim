@@ -41,7 +41,7 @@ function! linny_menu_actions#dropdown_remove_taxo_item_callback(id, result)
     let item = t:linny_menu_item_for_dropdown
     let unset_taxo = t:linny_menu_taxo_items_for_dropdown[a:result-1]
 
-    call luaeval("require('linny.menu.actions').job_start(_A)", ["fred", "unset_key", item.option_data.abs_path, unset_taxo])
+    call luaeval("require('linny.menu.actions').job_start_and_reload(_A[1], _A[2])", [["fred", "unset_key", item.option_data.abs_path, unset_taxo], item.option_data.abs_path])
 
     echo "Removed ". unset_taxo . " from " . item.option_data.abs_path
   endif
@@ -54,7 +54,7 @@ function! linny_menu_actions#dropdown_term_item_callback(id, result)
     let taxo_item = t:linny_menu_set_taxo
     let term_item = t:linny_menu_term_items_for_dropdown[a:result-1]
 
-    call luaeval("require('linny.menu.actions').job_start(_A)", ["fred", "set_string_val", item.option_data.abs_path, taxo_item, term_item])
+    call luaeval("require('linny.menu.actions').job_start_and_reload(_A[1], _A[2])", [["fred", "set_string_val", item.option_data.abs_path, taxo_item, term_item], item.option_data.abs_path])
     let t:linny_menu_repeat_last_taxo_term = [taxo_item, term_item]
   endif
 endfunction

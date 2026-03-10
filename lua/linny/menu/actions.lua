@@ -24,6 +24,61 @@ function M.job_start(command, opts)
   end
 end
 
+--- Reload buffer if file is currently open
+--- @param path string Absolute path to the file
+function M.reload_buffer_if_open(path)
+  local bufnr = vim.fn.bufnr(path)
+  if bufnr ~= -1 and vim.fn.buflisted(bufnr) == 1 then
+    -- Schedule to avoid issues during popup close
+    vim.schedule(function()
+      local current_win = vim.api.nvim_get_current_win()
+      local wins = vim.fn.win_findbuf(bufnr)
+      if #wins > 0 then
+        -- Buffer is visible, reload it
+        vim.api.nvim_win_call(wins[1], function()
+          vim.cmd('edit')
+        end)
+      else
+        -- Buffer exists but not visible, just reload silently
+        vim.fn.bufload(bufnr)
+      end
+    end)
+  end
+end
+
+--- Execute command and reload buffer on completion
+--- @param command table Command array to execute
+--- @param path string Path to reload after command completes
+function M.job_start_and_reload(command, path)
+  if vim.fn.has('nvim') == 1 then
+    vim.fn.jobstart(command, {
+      on_exit = function()
+        M.reload_buffer_if_open(path)
+      end
+    })
+  else
+    vim.fn.job_start(command, {
+      exit_cb = function()
+        M.reload_buffer_if_open(path)
+      end
+    })
+  end
+end
+
+--- Check if a document is archived
+--- @param abs_path string Absolute path to document
+--- @return boolean Whether document has archive: true
+local function is_document_archived(abs_path)
+  local wiki_content = vim.g.linny_path_wiki_content or ""
+  if wiki_content == "" or not abs_path:sub(1, #wiki_content) == wiki_content then
+    return false
+  end
+  local rel_path = abs_path:sub(#wiki_content + 2) -- +2 to skip trailing slash
+  local files_index = vim.fn['linny#parse_json_file'](vim.g.linny_index_path .. '/_index_docs_with_props.json', {})
+  local props = files_index[rel_path]
+  return props and props.archive == true
+end
+
 --- Build dropdown action list based on item type
 --- @param item table The menu item
 --- @return table List of action strings for dropdown
@@ -31,7 +86,13 @@ function M.build_dropdown_views(item)
   if item.option_type == 'taxo_key_val' then
     return { "archive", "export to zip" }
   elseif item.option_type == 'document' then
-    local views = { "copy", "copy path", "------", "archive", "set taxonomy", "remove taxonomy", "open docdir" }
+    -- Check if document is already archived
+    local archive_action = "archive"
+    if is_document_archived(item.option_data.abs_path) then
+      archive_action = "unarchive"
+    end
+
+    local views = { "copy", "copy path", "------", archive_action, "set taxonomy", "remove taxonomy", "open docdir" }
 
     -- Add repeat action if available
     local repeat_last = vim.t.linny_menu_repeat_last_taxo_term
@@ -69,7 +130,7 @@ end
 function M.exec_content_menu(action, item)
   if item.option_type == 'taxo_key_val' then
     if action == "archive" then
-      vim.fn['linny_menu_documents#archive_l2_config'](
+      require('linny.menu.documents').archive_l2_config(
         item.option_data.taxo_key,
         item.option_data.taxo_term
       )
@@ -90,12 +151,16 @@ function M.exec_content_menu(action, item)
     end
 
   elseif item.option_type == 'document' then
-    if action == "set archive" then
-      M.job_start({ "fred", "set_bool_val", item.option_data.abs_path, "archive", "true" })
+    if action == "archive" then
+      M.job_start_and_reload({ "fred", "set_bool_val", item.option_data.abs_path, "archive", "true" }, item.option_data.abs_path)
+      return true
+
+    elseif action == "unarchive" then
+      M.job_start_and_reload({ "fred", "set_bool_val", item.option_data.abs_path, "archive", "false" }, item.option_data.abs_path)
       return true
 
     elseif action == "toggle starred" then
-      M.job_start({ "fred", "toggle_bool_val", item.option_data.abs_path, "starred" })
+      M.job_start_and_reload({ "fred", "toggle_bool_val", item.option_data.abs_path, "starred" }, item.option_data.abs_path)
       return true
 
     elseif action == "copy" then
@@ -114,7 +179,7 @@ function M.exec_content_menu(action, item)
       vim.fn.inputrestore()
 
       if name and name ~= '' then
-        vim.fn['linny_menu_documents#copy'](item.option_data.abs_path, name)
+        require('linny.menu.documents').copy(item.option_data.abs_path, name)
       end
       return true
 
@@ -133,7 +198,7 @@ function M.exec_content_menu(action, item)
       local taxo_and_term = action:sub(5) -- Remove "set " prefix
       local parts = vim.split(taxo_and_term, ': ')
       if #parts == 2 then
-        M.job_start({ "fred", "set_string_val", item.option_data.abs_path, parts[1], parts[2] })
+        M.job_start_and_reload({ "fred", "set_string_val", item.option_data.abs_path, parts[1], parts[2] }, item.option_data.abs_path)
       end
       return true
     end
