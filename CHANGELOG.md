@@ -2,6 +2,9 @@
 
 ## Next version
 
+
+## 0.9.1 - 10 mrt 2026
+
 - feature: Linny now manages hugo, no need to run the indexer yourself.
 - feature: Advanced validation of Hugo configuration in Notebooks.
 - feature: smooth onboarding, sane defaults, exceptions for empty or missing configuration
