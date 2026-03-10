@@ -2,6 +2,8 @@
 
 ## Next version
 
+- feature: Linny now manages hugo, no need to run the indexer yourself.
+- feature: Advanced validation of Hugo configuration in Notebooks.
 - feature: smooth onboarding, sane defaults, exceptions for empty or missing configuration
 - feature: checkhealth hooks
 - feature: export files as zip from within a therm

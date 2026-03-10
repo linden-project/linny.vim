@@ -17,6 +17,7 @@ call luaeval("require('linny.util').init_variable(_A[1], _A[2])", ["g:linnycfg_d
 call luaeval("require('linny.util').init_variable(_A[1], _A[2])", ["g:linnycfg_setup_autocommands", 1])
 call luaeval("require('linny.util').init_variable(_A[1], _A[2])", ["g:linny_open_notebook_path", ''])
 call luaeval("require('linny.util').init_variable(_A[1], _A[2])", ["g:linny_initialized", 0])
+call luaeval("require('linny.util').init_variable(_A[1], _A[2])", ["g:linny_hugo_watch_enabled", 0])
 
 "----------------------------------------------------------------------
 " NAVIGATOR OPTIONS
@@ -291,8 +292,7 @@ endfunction
 
 function! linny#parse_yaml_to_dict(filePath)
   if filereadable(a:filePath)
-
-    let tmp = json_decode(system('ruby -rjson -ryaml -e "puts JSON.pretty_generate(YAML.load_file('."'". a:filePath. "'".'))"'))
+    "let tmp = json_decode(system('ruby -rjson -ryaml -e "puts JSON.pretty_generate(YAML.load_file('."'". a:filePath. "'".'))"'))
     return json_decode(system('ruby -rjson -ryaml -e "puts JSON.pretty_generate(YAML.load_file('."'". a:filePath. "'".'))"'))
   endif
   return {}
@@ -370,4 +370,76 @@ endfunction
 function! linny#term_config(tax, term)
   let config = linny#parse_yaml_to_dict( linny#l2_config_filepath(a:tax, a:term))
   return config
+endfunction
+
+" Rebuild Hugo index for the current notebook
+" Returns 1 on success, 0 on failure
+function! linny#hugo_rebuild_index()
+  let notebook_path = get(g:, 'linny_open_notebook_path', '')
+  if notebook_path == ''
+    echohl WarningMsg
+    echo "No notebook path configured"
+    echohl None
+    return 0
+  endif
+
+  let result = luaeval("require('linny.hugo').build_index(_A)", notebook_path)
+
+  if result.ok
+    echo "Hugo index rebuilt successfully"
+    return 1
+  else
+    echohl WarningMsg
+    echo "Hugo index rebuild failed: " . result.error
+    echohl None
+    return 0
+  endif
+endfunction
+
+" Start Hugo watch mode for the current notebook
+" Returns 1 on success, 0 on failure
+function! linny#hugo_start_watch()
+  let notebook_path = get(g:, 'linny_open_notebook_path', '')
+  if notebook_path == ''
+    echohl WarningMsg
+    echo "No notebook path configured"
+    echohl None
+    return 0
+  endif
+
+  let result = luaeval("require('linny.hugo').start_watch(_A)", notebook_path)
+
+  if result.ok
+    echo "Hugo watch mode started"
+    " Refresh menu if open to show updated status
+    if luaeval("require('linny.menu.window').exist()")
+      call linny_menu#openandshow()
+    endif
+    return 1
+  else
+    echohl WarningMsg
+    echo "Hugo watch failed: " . result.error
+    echohl None
+    return 0
+  endif
+endfunction
+
+" Stop Hugo watch mode
+" Returns 1 on success, 0 on failure
+function! linny#hugo_stop_watch()
+  let result = luaeval("require('linny.hugo').stop_watch()")
+
+  if result.ok
+    echo "Hugo watch mode stopped"
+    " Refresh menu if open to show updated status
+    if luaeval("require('linny.menu.window').exist()")
+      call linny_menu#openandshow()
+    endif
+    return 1
+  else
+    echohl WarningMsg
+    echo "Hugo stop failed: " . result.error
+    echohl None
+    return 0
+  endif
 endfunction

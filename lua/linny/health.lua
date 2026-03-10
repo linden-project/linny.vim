@@ -4,7 +4,7 @@
 local M = {}
 
 --- Core validation logic (single source of truth)
---- @return table {ok: boolean, errors: string[]}
+--- @return table {ok: boolean, errors: string[], hugo: table|nil}
 function M.validate()
   local result = { ok = true, errors = {} }
 
@@ -28,6 +28,17 @@ function M.validate()
       table.insert(result.errors, 'Missing directory: ' .. subdir)
       result.ok = false
     end
+  end
+
+  -- Check Hugo availability (non-blocking - just informational)
+  local hugo = require('linny.hugo')
+  local hugo_result = hugo.detect()
+  result.hugo = hugo_result
+
+  -- Check Hugo configuration if Hugo is available
+  if hugo_result.found then
+    local config_result = hugo.validate_notebook_config(base)
+    result.hugo_config = config_result
   end
 
   return result
@@ -67,6 +78,41 @@ function M.check()
     vim.health.ok('Plugin initialized')
   else
     vim.health.warn('Plugin not initialized - call linny#Init()')
+  end
+
+  -- Check Hugo availability
+  local hugo = require('linny.hugo')
+  local hugo_result = hugo.detect()
+  if hugo_result.found then
+    vim.health.ok('Hugo available: ' .. (hugo_result.version or 'unknown version'))
+
+    -- Validate Hugo configuration
+    local config_result = hugo.validate_notebook_config(base)
+    if config_result.ok then
+      vim.health.ok('Hugo configuration valid')
+    else
+      -- Report errors (blocking issues)
+      for _, err in ipairs(config_result.errors) do
+        vim.health.error('Hugo config: ' .. err, {
+          'Check your Hugo configuration',
+          'Reference: https://github.com/linden-project/linny-notebook-template',
+        })
+      end
+    end
+
+    -- Report warnings (non-blocking issues)
+    for _, warn in ipairs(config_result.warnings or {}) do
+      vim.health.warn('Hugo config: ' .. warn, {
+        'Some index features may not work correctly',
+        'Reference: https://github.com/linden-project/linny-notebook-template',
+      })
+    end
+  else
+    vim.health.warn('Hugo not found (index rebuild features disabled)', {
+      'Install Hugo to enable automatic index rebuilding',
+      'https://gohugo.io/installation/',
+    })
+    vim.health.info('Hugo configuration validation skipped (Hugo not available)')
   end
 end
 

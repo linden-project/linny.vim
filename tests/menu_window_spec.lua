@@ -29,6 +29,7 @@ describe("linny.menu.window", function()
     assert.is_not_nil(mod.toggle, "Should have toggle")
     assert.is_not_nil(mod.refresh, "Should have refresh")
     assert.is_not_nil(mod.open_home, "Should have open_home")
+    assert.is_not_nil(mod.navigate_home, "Should have navigate_home")
     assert.is_not_nil(mod.open_file, "Should have open_file")
   end)
 
@@ -94,10 +95,14 @@ describe("linny.menu.window", function()
   end)
 
   describe("open_home", function()
-    it("shows error when menu not initialized", function()
-      vim.t.linny_menu_name = nil
-      -- Function should handle missing menu gracefully
+    it("is a function for starting menu", function()
       assert.is_function(window.open_home)
+    end)
+  end)
+
+  describe("navigate_home", function()
+    it("is a function for navigating when in menu", function()
+      assert.is_function(window.navigate_home)
     end)
   end)
 end)

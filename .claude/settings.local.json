@@ -22,7 +22,11 @@
       "SlashCommand(/opsx:ff)",
       "Bash(gh issue view:*)",
       "Bash(1)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(hugo:*)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:api.github.com)"
     ],
     "deny": [],
     "ask": []

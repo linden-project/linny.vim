@@ -25,6 +25,11 @@ command! LinnyMenuToggle :if linny#require_init() | call linny_menu#toggle() | e
 command! LinnyMenuOpen :if linny#require_init() | call linny_menu#open() | endif
 command! LinnyMenuClose :call linny_menu#close()
 
+command! LinnyRebuildIndex :if linny#require_init() | call linny#hugo_rebuild_index() | endif
+
+command! LinnyHugoWatch :if linny#require_init() | call linny#hugo_start_watch() | endif
+command! LinnyHugoStop :call linny#hugo_stop_watch()
+
 command! LinnyWordToRegister :call linny#FilenameToWordToUnamedRegister()
 
 command! -nargs=? LinnyOpenNotebook :call luaeval("require('linny.notebook').open(_A)", <q-args>)

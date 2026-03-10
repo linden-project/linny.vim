@@ -72,9 +72,10 @@ function! linny_menu#openandshow() abort
 endfunc
 
 function! linny_menu#start()
+  call luaeval("require('linny.menu.window').open_home()")
+endfunction
 
-  call luaeval("require('linny.menu.state').tab_init()")
-  call linny_menu#openterm('','')
+" Legacy commented code kept for reference:
 " exec ':only'
 " call linny_menu#open()
 " call s:menu_level0('root')
@@ -96,9 +97,6 @@ function! linny_menu#start()
 
 " endif
 
-
-endfunction
-
 function! linny_menu#close()
   if luaeval("require('linny.menu.window').exist()")
     call luaeval("require('linny.menu.window').close_window()")
@@ -108,25 +106,19 @@ endfunction
 
 function! linny_menu#open()
   if !luaeval("require('linny.menu.window').exist()")
-    call luaeval("require('linny.menu.state').tab_init()")
-    call linny_menu#openandshow()
+    call luaeval("require('linny.menu.window').open_restore()")
   endif
 endfunction
 
 function! linny_menu#toggle() abort
   if luaeval("require('linny.menu.window').exist()")
-    call luaeval("require('linny.menu.window').close_window()")
+    call linny_menu#close()
     return 0
   endif
 
-  " Initialize tab state and open menu (same as linny_menu#open)
-  call luaeval("require('linny.menu.state').tab_init()")
-  call linny_menu#openandshow()
-
+  call linny_menu#open()
   return 1
 endfunc
-
-
 
 function! linny_menu#RemapGlobalKeys()
 
@@ -172,20 +164,11 @@ function! linny_menu#RemapGlobalStarredTerms()
 endfunction
 
 function! linny_menu#refreshMenu()
-  call linny#Init()
-  call linny#make_index()
-  call linny_menu#openandshow()
+  call luaeval("require('linny.menu.window').refresh()")
 endfunction
 
 function! linny_menu#openHome()
-
-  if !exists('t:linny_menu_name')
-    echomsg 'ERROR No Linny Menu opened. Are you in Linny?'
-    return
-  endif
-
-  call linny_menu#openterm('','')
-
+  call luaeval("require('linny.menu.window').navigate_home()")
 endfunction
 
 function! linny_menu#openFile(filepath)
@@ -430,7 +413,7 @@ function! <SID>linny_menu_execute(index) abort
       call linny_menu#openandshow()
 
     elseif(item.event == 'refresh')
-      call linny_menu#refreshMenu()
+      call luaeval("require('linny.menu.window').refresh()")
 
     elseif(item.event == 'onlinebook')
       if has("unix")
@@ -441,7 +424,7 @@ function! <SID>linny_menu_execute(index) abort
 
 
     elseif(item.event == 'home')
-      call linny_menu#start()
+      call luaeval("require('linny.menu.window').open_home()")
 
     elseif(item.event == 'createl1config')
       call luaeval("require('linny.menu.documents').create_l1_config(_A)", t:linny_menu_taxonomy)
