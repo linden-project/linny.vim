@@ -206,4 +206,39 @@ function M.menu(widgetconf)
   end
 end
 
+--- Widget: Configured notebooks
+--- Displays all notebooks from g:linny_notebooks list
+--- @param widgetconf table Widget configuration (show_path: boolean)
+function M.configured_notebooks(widgetconf)
+  local notebooks = vim.g.linny_notebooks or {}
+  local current_notebook = vim.g.linny_open_notebook_path or ''
+
+  for _, notebook_path in ipairs(notebooks) do
+    -- Get basename as display title
+    local title = vim.fn.fnamemodify(notebook_path, ':t')
+    if title == '' then
+      title = notebook_path
+    end
+
+    -- Mark active notebook with asterisk
+    local is_active = (notebook_path == current_notebook)
+    if is_active then
+      title = '* ' .. title
+    end
+
+    -- Show full path if configured
+    if widgetconf.show_path then
+      title = title .. ' (' .. notebook_path .. ')'
+    end
+
+    -- Create switch command: set path and reinitialize
+    local switch_cmd = string.format(
+      ":let g:linny_open_notebook_path = '%s' | call linny#Init() | call linny#make_index() | call linny_menu#openandshow()",
+      vim.fn.escape(notebook_path, "'")
+    )
+
+    items.add_ex_event(title, switch_cmd, "")
+  end
+end
+
 return M

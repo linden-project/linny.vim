@@ -16,8 +16,10 @@ call luaeval("require('linny.util').init_variable(_A[1], _A[2])", ["g:linnycfg_i
 call luaeval("require('linny.util').init_variable(_A[1], _A[2])", ["g:linnycfg_debug", 0])
 call luaeval("require('linny.util').init_variable(_A[1], _A[2])", ["g:linnycfg_setup_autocommands", 1])
 call luaeval("require('linny.util').init_variable(_A[1], _A[2])", ["g:linny_open_notebook_path", ''])
+call luaeval("require('linny.util').init_variable(_A[1], _A[2])", ["g:linny_notebooks", []])
 call luaeval("require('linny.util').init_variable(_A[1], _A[2])", ["g:linny_initialized", 0])
 call luaeval("require('linny.util').init_variable(_A[1], _A[2])", ["g:linny_hugo_watch_enabled", 0])
+call luaeval("require('linny.util').init_variable(_A[1], _A[2])", ["g:linny_hugo_hook_enabled", 1])
 
 "----------------------------------------------------------------------
 " NAVIGATOR OPTIONS

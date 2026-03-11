@@ -85,7 +85,7 @@ The module SHALL expose a Vimscript-callable function for triggering index rebui
 
 ### Requirement: R key triggers index rebuild in views
 
-The menu view refresh action SHALL trigger an index rebuild before refreshing content, unless watch mode is active.
+The menu view refresh action SHALL trigger an index rebuild before refreshing content, unless watch mode is active OR hugo hooks are disabled.
 
 #### Scenario: R key in menu view
 
@@ -93,6 +93,7 @@ The menu view refresh action SHALL trigger an index rebuild before refreshing co
 - **AND** the notebook is valid
 - **AND** Hugo is available
 - **AND** watch mode is NOT active
+- **AND** `g:linny_hugo_hook_enabled` is `1` (or unset)
 - **THEN** the index SHALL be rebuilt before the view refreshes
 - **AND** a status message SHALL indicate the rebuild is happening
 
@@ -110,4 +111,12 @@ The menu view refresh action SHALL trigger an index rebuild before refreshing co
 - **THEN** the view SHALL refresh without manually rebuilding the index
 - **AND** no rebuild message SHALL be displayed
 - **AND** the index is assumed current (watch handles rebuilds)
+
+#### Scenario: R key when hugo hook is disabled
+
+- **WHEN** user presses R in a Linny menu view
+- **AND** `g:linny_hugo_hook_enabled` is `0`
+- **THEN** the view SHALL refresh without any Hugo operations
+- **AND** no Hugo detection SHALL occur
+- **AND** no rebuild message SHALL be displayed
 

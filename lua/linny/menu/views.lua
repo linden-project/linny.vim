@@ -159,6 +159,8 @@ function M.render(view_name)
           widgets.recently_modified_documents(widget)
         elseif widget_type == "all_level0_views" then
           widgets.all_level0_views(widget)
+        elseif widget_type == "configured_notebooks" then
+          widgets.configured_notebooks(widget)
         else
           items.add_section("## ERROR unsupported widget type: " .. (widget_type or "nil"))
         end

@@ -203,21 +203,25 @@ function M.toggle()
   return 1
 end
 
---- Refresh menu with Hugo index rebuild (skipped if watch mode is active)
+--- Refresh menu with Hugo index rebuild (skipped if watch mode is active or hooks disabled)
 function M.refresh()
-  local hugo = require('linny.hugo')
+  -- Only run Hugo operations if hook is enabled (default: 1)
+  local hugo_hook_enabled = vim.g.linny_hugo_hook_enabled or 1
+  if hugo_hook_enabled == 1 then
+    local hugo = require('linny.hugo')
 
-  -- Only rebuild manually if not in watch mode (watch handles rebuilds automatically)
-  if not hugo.is_watching() then
-    local detection = hugo.detect()
-    if detection.found then
-      local notebook_path = vim.g.linny_open_notebook_path
-      if notebook_path and notebook_path ~= '' then
-        vim.api.nvim_echo({{'Rebuilding index...', 'Normal'}}, false, {})
-        vim.cmd('redraw')
-        local result = hugo.build_index(notebook_path)
-        if not result.ok then
-          vim.api.nvim_echo({{'Index rebuild warning: ' .. (result.error or 'unknown error'), 'WarningMsg'}}, true, {})
+    -- Only rebuild manually if not in watch mode (watch handles rebuilds automatically)
+    if not hugo.is_watching() then
+      local detection = hugo.detect()
+      if detection.found then
+        local notebook_path = vim.g.linny_open_notebook_path
+        if notebook_path and notebook_path ~= '' then
+          vim.api.nvim_echo({{'Rebuilding index...', 'Normal'}}, false, {})
+          vim.cmd('redraw')
+          local result = hugo.build_index(notebook_path)
+          if not result.ok then
+            vim.api.nvim_echo({{'Index rebuild warning: ' .. (result.error or 'unknown error'), 'WarningMsg'}}, true, {})
+          end
         end
       end
     end
