@@ -65,6 +65,26 @@ function M.word_to_filename(word)
   return word:lower() .. '.md'
 end
 
+function M.filename_by_title(word)
+  local titles = vim.g.linny_cache_index_docs_titles
+  if type(titles) ~= 'table' then
+    return ''
+  end
+
+  local needle = vim.trim(word or ''):lower()
+  if needle == '' then
+    return ''
+  end
+
+  for filename, title in pairs(titles) do
+    if type(title) == 'string' and title:lower() == needle then
+      return filename
+    end
+  end
+
+  return ''
+end
+
 function M.file_path(filename)
   local cur_file_name = vim.fn.bufname('%')
   local dir = vim.fn.fnamemodify(cur_file_name, ':h')
@@ -281,9 +301,15 @@ function M.goto_link()
         local filepath = M.file_path(filename)
 
         if not M.file_exists(filepath) then
-          local file_lines = vim.fn['linny#generate_first_content'](word, {})
-          if vim.fn.writefile(file_lines, filepath) ~= 0 then
-            vim.api.nvim_echo({{'write error', 'ErrorMsg'}}, true, {})
+          local indexed = M.filename_by_title(word)
+
+          if indexed ~= '' and M.file_exists(M.file_path(indexed)) then
+            filename = indexed
+          else
+            local file_lines = vim.fn['linny#generate_first_content'](word, {})
+            if vim.fn.writefile(file_lines, filepath) ~= 0 then
+              vim.api.nvim_echo({{'write error', 'ErrorMsg'}}, true, {})
+            end
           end
         end
       end
@@ -313,7 +339,14 @@ function M.find_non_existing_links()
 
       if M.wikitag_has_tag(word) == '' then
         local filename = M.word_to_filename(word)
-        if not M.file_exists(M.file_path(filename)) then
+        local exists = M.file_exists(M.file_path(filename))
+
+        if not exists then
+          local indexed = M.filename_by_title(word)
+          exists = indexed ~= '' and M.file_exists(M.file_path(indexed))
+        end
+
+        if not exists then
           -- Escape special regex chars for matchadd
           local escaped = vim.fn.escape(match, '[]')
           vim.fn.matchadd('Todo', escaped)
