@@ -80,6 +80,7 @@ end
 function M.level0(view_name)
   vim.t.linny_menu_current_menu_type = "menu_level0"
   state.reset()
+  vim.t.linny_tasks_count = vim.fn['linny#parse_json_file'](vim.g.linny_index_path .. '/_index_docs_tasks_count.json', {})
   views.render(view_name)
 end
 

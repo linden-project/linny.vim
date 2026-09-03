@@ -107,20 +107,20 @@ function M.partial_files_listing(files_list, view_props, bool_extra_file_info)
   for _, tk in ipairs(title_keys) do
     local tasks_stats_str = ""
 
-    if bool_extra_file_info then
-      local filename = t_sortable[tk].orgBaseFile
-      local tasks_count = vim.t.linny_tasks_count
+    -- Task count [closed/total] applies to any document listing (recent,
+    -- starred, taxonomy terms), not only the extra-file-info callers.
+    local filename = t_sortable[tk].orgBaseFile
+    local tasks_count = vim.t.linny_tasks_count
 
-      if tasks_count and tasks_count[filename] then
-        local open = tasks_count[filename].open
-        local closed = tasks_count[filename].closed
-        local total = tasks_count[filename].total
+    if tasks_count and tasks_count[filename] then
+      local open = tasks_count[filename].open
+      local closed = tasks_count[filename].closed
+      local total = tasks_count[filename].total
 
-        if open and open > 0 then
-          tasks_stats_str = "[" .. closed .. "/" .. total .. "]"
-          local space = string.rep(" ", longest_title_length - #t_sortable[tk].orgTitle - #tasks_stats_str + margin_count_string)
-          tasks_stats_str = " " .. space .. tasks_stats_str
-        end
+      if open and open > 0 then
+        tasks_stats_str = "[" .. closed .. "/" .. total .. "]"
+        local space = string.rep(" ", longest_title_length - #t_sortable[tk].orgTitle - #tasks_stats_str + margin_count_string)
+        tasks_stats_str = " " .. space .. tasks_stats_str
       end
     end
 
