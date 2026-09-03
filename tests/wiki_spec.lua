@@ -10,6 +10,7 @@ describe("linny.wiki", function()
     -- Set default global variables
     vim.g.spaceReplaceChar = '_'
     vim.g.linny_wikitags_register = nil
+    vim.g.linny_cache_index_docs_titles = nil
   end)
 
   describe("word_to_filename", function()
@@ -94,6 +95,86 @@ describe("linny.wiki", function()
     end)
   end)
 
+  describe("filename_by_title", function()
+    it("finds filename by exact title", function()
+      vim.g.linny_cache_index_docs_titles = {
+        ["my_document.md"] = "My Document",
+        ["other_note.md"] = "Other Note"
+      }
+
+      assert.are.equal("my_document.md", wiki.filename_by_title("My Document"))
+    end)
+
+    it("matches titles case-insensitively", function()
+      vim.g.linny_cache_index_docs_titles = {
+        ["improvement_it_-_medux_away_from_ami_build.md"] = "Medux away from Ami build"
+      }
+
+      assert.are.equal(
+        "improvement_it_-_medux_away_from_ami_build.md",
+        wiki.filename_by_title("medux away from ami build")
+      )
+    end)
+
+    it("trims the word before matching", function()
+      vim.g.linny_cache_index_docs_titles = {
+        ["my_document.md"] = "My Document"
+      }
+
+      assert.are.equal("my_document.md", wiki.filename_by_title("  My Document  "))
+    end)
+
+    it("returns empty when no title matches", function()
+      vim.g.linny_cache_index_docs_titles = {
+        ["my_document.md"] = "My Document"
+      }
+
+      assert.are.equal("", wiki.filename_by_title("Unknown Title"))
+    end)
+
+    it("returns empty when index cache is not set", function()
+      vim.g.linny_cache_index_docs_titles = nil
+      assert.are.equal("", wiki.filename_by_title("My Document"))
+    end)
+
+    it("returns empty for empty input", function()
+      vim.g.linny_cache_index_docs_titles = {
+        ["my_document.md"] = "My Document"
+      }
+
+      assert.are.equal("", wiki.filename_by_title(""))
+      assert.are.equal("", wiki.filename_by_title(nil))
+    end)
+  end)
+
+  describe("goto_link", function()
+    it("opens file matched by frontmatter title instead of creating a new one", function()
+      local dir = vim.fn.tempname()
+      vim.fn.mkdir(dir, 'p')
+
+      local target = dir .. '/improvement_it_-_medux_away_from_ami_build.md'
+      vim.fn.writefile({'---', 'title: "Medux away from Ami build"', '---', 'content'}, target)
+
+      local source = dir .. '/weekly_planning.md'
+      vim.fn.writefile({'- [ ] [[medux away from ami build]]'}, source)
+
+      vim.g.linny_cache_index_docs_titles = {
+        ["improvement_it_-_medux_away_from_ami_build.md"] = "Medux away from Ami build"
+      }
+
+      vim.cmd('edit ' .. vim.fn.fnameescape(source))
+      vim.fn.cursor(1, 12) -- Position cursor inside the link
+
+      wiki.goto_link()
+
+      assert.are.equal(target, vim.fn.expand('%:p'))
+      assert.is_false(wiki.file_exists(dir .. '/medux_away_from_ami_build.md'))
+
+      vim.cmd('bdelete!')
+      vim.fn.delete(dir, 'rf')
+    end)
+  end)
+
   describe("wikitag_has_tag", function()
     it("detects registered tags", function()
       vim.g.linny_wikitags_register = {
@@ -129,6 +210,7 @@ describe("linny.wiki", function()
     assert.is_not_nil(mod.execute_wikitag_action, "Should have execute_wikitag_action")
     assert.is_not_nil(mod.file_exists, "Should have file_exists")
     assert.is_not_nil(mod.word_to_filename, "Should have word_to_filename")
+    assert.is_not_nil(mod.filename_by_title, "Should have filename_by_title")
     assert.is_not_nil(mod.file_path, "Should have file_path")
     assert.is_not_nil(mod.str_between, "Should have str_between")
     assert.is_not_nil(mod.yaml_key_under_cursor, "Should have yaml_key_under_cursor")
