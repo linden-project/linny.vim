@@ -20,23 +20,40 @@ function M.close_window()
     return 0
   end
 
-  -- If last window, first create new one
-  if vim.fn.winbufnr(2) == -1 then
-    vim.cmd('below vnew')
-  end
+  local bid = vim.t.linny_menu_bid
 
-  if vim.bo.buftype == 'nofile' and vim.bo.filetype == 'linny_menu' then
-    if vim.fn.bufname('%') == vim.t.linny_menu_name then
-      vim.cmd('silent close!')
-      vim.t.linny_menu_bid = -1
+  -- Locate the menu window and count non-floating windows in this tabpage.
+  -- Floating windows (notifications, popups from a Hugo rebuild, etc.) must be
+  -- excluded: closing the menu while only a float remains raises E5601, and if
+  -- the menu is genuinely the last window, E444.
+  local menu_win = nil
+  local normal_wins = 0
+  for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+    local cfg = vim.api.nvim_win_get_config(win)
+    local is_float = cfg.relative ~= nil and cfg.relative ~= ''
+    if not is_float then
+      normal_wins = normal_wins + 1
+      if vim.api.nvim_win_get_buf(win) == bid then
+        menu_win = win
+      end
     end
   end
 
-  if vim.t.linny_menu_bid > 0 and vim.fn.bufexists(vim.t.linny_menu_bid) == 1 then
-    vim.cmd('silent bwipeout ' .. vim.t.linny_menu_bid)
-    vim.t.linny_menu_bid = -1
+  -- If the menu is the only non-floating window, open a scratch window first so
+  -- a normal window survives the close.
+  if menu_win and normal_wins <= 1 then
+    vim.cmd('silent belowright new')
   end
 
+  if menu_win and vim.api.nvim_win_is_valid(menu_win) then
+    pcall(vim.api.nvim_win_close, menu_win, true)
+  end
+
+  if bid > 0 and vim.fn.bufexists(bid) == 1 then
+    pcall(vim.cmd, 'silent bwipeout ' .. bid)
+  end
+
+  vim.t.linny_menu_bid = -1
   vim.cmd('redraw | echo "" | redraw')
 end
 
