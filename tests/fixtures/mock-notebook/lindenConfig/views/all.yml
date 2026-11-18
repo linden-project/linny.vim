@@ -1,0 +1,6 @@
+widgets:
+  - title: Recently modified
+    type: recently_modified_documents
+    number: 10
+  - title: Taxonomies
+    type: all_taxonomies

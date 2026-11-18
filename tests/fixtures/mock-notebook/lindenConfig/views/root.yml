@@ -1,0 +1,10 @@
+widgets:
+  - title: Recently modified
+    type: recently_modified_documents
+    number: 5
+  - title: Starred documents
+    type: starred_documents
+  - title: Taxonomies
+    type: all_taxonomies
+  - title: Views
+    type: all_level0_views
