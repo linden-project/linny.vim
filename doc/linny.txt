@@ -53,9 +53,13 @@ Using vim-plug:
 
 2.2 Install an indexer ~
 
-Linny.vim needs an indexer to work properly.  Currently Carl is the only
-working indexer for Linny.vim >= 0.6. Read the installation guideline of Carl
-at https://github.com/linden-project/carl
+Linny.vim needs an indexer to build the menu index. The default indexer is
+Linden Index, which ships the lindexer binary. Download a release for your
+platform from https://github.com/linden-project/linden-index/releases and put
+lindexer on your PATH.
+
+Hugo is used as a fallback when lindexer is not installed. Linny shows a
+one-time notice recommending lindexer.
 
 -------------------------------------------------------------------------------
 

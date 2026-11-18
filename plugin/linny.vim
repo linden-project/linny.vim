@@ -25,10 +25,13 @@ command! LinnyMenuToggle :if linny#require_init() | call linny_menu#toggle() | e
 command! LinnyMenuOpen :if linny#require_init() | call linny_menu#open() | endif
 command! LinnyMenuClose :call linny_menu#close()
 
-command! LinnyRebuildIndex :if linny#require_init() | call linny#hugo_rebuild_index() | endif
+command! LinnyRebuildIndex :if linny#require_init() | call linny#index_rebuild() | endif
 
-command! LinnyHugoWatch :if linny#require_init() | call linny#hugo_start_watch() | endif
-command! LinnyHugoStop :call linny#hugo_stop_watch()
+command! LinnyIndexWatch :if linny#require_init() | call linny#index_start_watch() | endif
+command! LinnyIndexStop :call linny#index_stop_watch()
+
+command! LinnyHugoWatch :LinnyIndexWatch
+command! LinnyHugoStop :LinnyIndexStop
 
 command! LinnyWordToRegister :call linny#FilenameToWordToUnamedRegister()
 

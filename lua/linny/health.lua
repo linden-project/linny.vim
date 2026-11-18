@@ -1,10 +1,5 @@
--- linny/health.lua - Health check module for linny
--- Provides validation and Neovim :checkhealth integration
-
 local M = {}
 
---- Core validation logic (single source of truth)
---- @return table {ok: boolean, errors: string[], hugo: table|nil}
 function M.validate()
   local result = { ok = true, errors = {} }
 
@@ -30,21 +25,21 @@ function M.validate()
     end
   end
 
-  -- Check Hugo availability (non-blocking - just informational)
-  local hugo = require('linny.hugo')
-  local hugo_result = hugo.detect()
-  result.hugo = hugo_result
+  local detection = require('linny.indexer').detect()
+  result.indexer = {
+    backend = detection.backend,
+    available = detection.available,
+    version = detection.version,
+  }
 
-  -- Check Hugo configuration if Hugo is available
-  if hugo_result.found then
-    local config_result = hugo.validate_notebook_config(base)
-    result.hugo_config = config_result
+  if detection.backend == 'hugo' then
+    local hugo = require('linny.hugo')
+    result.hugo_config = hugo.validate_notebook_config(base)
   end
 
   return result
 end
 
---- Neovim :checkhealth integration
 function M.check()
   vim.health.start('linny.vim')
 
@@ -80,18 +75,30 @@ function M.check()
     vim.health.warn('Plugin not initialized - call linny#Init()')
   end
 
-  -- Check Hugo availability
-  local hugo = require('linny.hugo')
-  local hugo_result = hugo.detect()
-  if hugo_result.found then
-    vim.health.ok('Hugo available: ' .. (hugo_result.version or 'unknown version'))
+  vim.health.start('Indexer')
 
-    -- Validate Hugo configuration
-    local config_result = hugo.validate_notebook_config(base)
+  local detection = require('linny.indexer').detect()
+  if detection.available then
+    vim.health.ok(string.format(
+      '%s available: %s', detection.backend, detection.version or 'unknown version'
+    ))
+    if detection.backend == 'hugo' then
+      vim.health.warn('lindexer is recommended for faster indexing', {
+        'https://github.com/linden-project/linden-index',
+      })
+    end
+  else
+    vim.health.warn('No index backend found (index rebuilds disabled)', {
+      'Install lindexer: https://github.com/linden-project/linden-index',
+    })
+  end
+
+  if detection.backend == 'hugo' then
+    vim.health.start('Hugo Configuration')
+    local config_result = require('linny.hugo').validate_notebook_config(base)
     if config_result.ok then
       vim.health.ok('Hugo configuration valid')
     else
-      -- Report errors (blocking issues)
       for _, err in ipairs(config_result.errors) do
         vim.health.error('Hugo config: ' .. err, {
           'Check your Hugo configuration',
@@ -100,19 +107,12 @@ function M.check()
       end
     end
 
-    -- Report warnings (non-blocking issues)
     for _, warn in ipairs(config_result.warnings or {}) do
       vim.health.warn('Hugo config: ' .. warn, {
         'Some index features may not work correctly',
         'Reference: https://github.com/linden-project/linny-notebook-template',
       })
     end
-  else
-    vim.health.warn('Hugo not found (index rebuild features disabled)', {
-      'Install Hugo to enable automatic index rebuilding',
-      'https://gohugo.io/installation/',
-    })
-    vim.health.info('Hugo configuration validation skipped (Hugo not available)')
   end
 end
 

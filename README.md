@@ -47,6 +47,21 @@ Some features for linny require [fred](https://github.com/linden-project/fred).
 Install the latest version on your system. Linny will show the version in the
 linny menu.
 
+## Install lindexer
+
+Linny needs an indexer to build the menu index. The default backend is
+[lindexer](https://github.com/linden-project/linden-index).
+
+Download the release for your platform, put the binary on your `PATH` next to
+`fred`, and check that it runs:
+
+```bash
+lindexer version
+```
+
+Hugo still works as a fallback when `lindexer` is not installed, and Linny will
+show a one-time notice recommending `lindexer`.
+
 # Documentation
 
 The official manual can be read directly in Vim/NeoVim:

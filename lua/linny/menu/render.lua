@@ -380,11 +380,11 @@ function M.partial_footer_items()
   end
 
   local version = require('linny.version')
-  local hugo = require('linny.hugo')
+  local indexer = require('linny.indexer')
 
   items.add_footer('linny: ' .. version.plugin_version())
   items.add_footer('fred:  ' .. fred_version)
-  items.add_footer('[Hugo: ' .. hugo.get_watch_status() .. ']')
+  items.add_footer('[Index: ' .. indexer.get_watch_status() .. ']')
 end
 
 return M

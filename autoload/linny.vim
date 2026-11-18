@@ -374,74 +374,80 @@ function! linny#term_config(tax, term)
   return config
 endfunction
 
-" Rebuild Hugo index for the current notebook
-" Returns 1 on success, 0 on failure
+function! linny#index_rebuild()
+  let notebook_path = get(g:, 'linny_open_notebook_path', '')
+  if notebook_path == ''
+    echohl WarningMsg
+    echo "No notebook path configured"
+    echohl None
+    return 0
+  endif
+
+  let result = luaeval("require('linny.indexer').build(_A)", notebook_path)
+
+  if result.ok
+    echo "Index rebuilt successfully"
+    return 1
+  else
+    echohl WarningMsg
+    echo "Index rebuild failed: " . result.error
+    echohl None
+    return 0
+  endif
+endfunction
+
+function! linny#index_start_watch()
+  let notebook_path = get(g:, 'linny_open_notebook_path', '')
+  if notebook_path == ''
+    echohl WarningMsg
+    echo "No notebook path configured"
+    echohl None
+    return 0
+  endif
+
+  let result = luaeval("require('linny.indexer').start_watch(_A)", notebook_path)
+
+  if result.ok
+    if get(result, 'already', 0)
+      echo "Index watch already running"
+    else
+      echo "Index watch mode started"
+    endif
+    if luaeval("require('linny.menu.window').exist()")
+      call linny_menu#openandshow()
+    endif
+    return 1
+  else
+    echohl WarningMsg
+    echo "Index watch failed: " . result.error
+    echohl None
+    return 0
+  endif
+endfunction
+
+function! linny#index_stop_watch()
+  let result = luaeval("require('linny.indexer').stop_watch()")
+
+  if result.stopped
+    echo "Index watch mode stopped"
+    if luaeval("require('linny.menu.window').exist()")
+      call linny_menu#openandshow()
+    endif
+    return 1
+  else
+    echo "Index watch is not running"
+    return 0
+  endif
+endfunction
+
 function! linny#hugo_rebuild_index()
-  let notebook_path = get(g:, 'linny_open_notebook_path', '')
-  if notebook_path == ''
-    echohl WarningMsg
-    echo "No notebook path configured"
-    echohl None
-    return 0
-  endif
-
-  let result = luaeval("require('linny.hugo').build_index(_A)", notebook_path)
-
-  if result.ok
-    echo "Hugo index rebuilt successfully"
-    return 1
-  else
-    echohl WarningMsg
-    echo "Hugo index rebuild failed: " . result.error
-    echohl None
-    return 0
-  endif
+  return linny#index_rebuild()
 endfunction
 
-" Start Hugo watch mode for the current notebook
-" Returns 1 on success, 0 on failure
 function! linny#hugo_start_watch()
-  let notebook_path = get(g:, 'linny_open_notebook_path', '')
-  if notebook_path == ''
-    echohl WarningMsg
-    echo "No notebook path configured"
-    echohl None
-    return 0
-  endif
-
-  let result = luaeval("require('linny.hugo').start_watch(_A)", notebook_path)
-
-  if result.ok
-    echo "Hugo watch mode started"
-    " Refresh menu if open to show updated status
-    if luaeval("require('linny.menu.window').exist()")
-      call linny_menu#openandshow()
-    endif
-    return 1
-  else
-    echohl WarningMsg
-    echo "Hugo watch failed: " . result.error
-    echohl None
-    return 0
-  endif
+  return linny#index_start_watch()
 endfunction
 
-" Stop Hugo watch mode
-" Returns 1 on success, 0 on failure
 function! linny#hugo_stop_watch()
-  let result = luaeval("require('linny.hugo').stop_watch()")
-
-  if result.ok
-    echo "Hugo watch mode stopped"
-    " Refresh menu if open to show updated status
-    if luaeval("require('linny.menu.window').exist()")
-      call linny_menu#openandshow()
-    endif
-    return 1
-  else
-    echohl WarningMsg
-    echo "Hugo stop failed: " . result.error
-    echohl None
-    return 0
-  endif
+  return linny#index_stop_watch()
 endfunction

@@ -220,25 +220,19 @@ function M.toggle()
   return 1
 end
 
---- Refresh menu with Hugo index rebuild (skipped if watch mode is active or hooks disabled)
 function M.refresh()
-  -- Only run Hugo operations if hook is enabled (default: 1)
-  local hugo_hook_enabled = vim.g.linny_hugo_hook_enabled or 1
-  if hugo_hook_enabled == 1 then
-    local hugo = require('linny.hugo')
+  local indexer = require('linny.indexer')
 
-    -- Only rebuild manually if not in watch mode (watch handles rebuilds automatically)
-    if not hugo.is_watching() then
-      local detection = hugo.detect()
-      if detection.found then
-        local notebook_path = vim.g.linny_open_notebook_path
-        if notebook_path and notebook_path ~= '' then
-          vim.api.nvim_echo({{'Rebuilding index...', 'Normal'}}, false, {})
-          vim.cmd('redraw')
-          local result = hugo.build_index(notebook_path)
-          if not result.ok then
-            vim.api.nvim_echo({{'Index rebuild warning: ' .. (result.error or 'unknown error'), 'WarningMsg'}}, true, {})
-          end
+  if indexer.hook_enabled() and not indexer.is_watching() then
+    local detection = indexer.detect()
+    if detection.available then
+      local notebook_path = vim.g.linny_open_notebook_path
+      if notebook_path and notebook_path ~= '' then
+        vim.api.nvim_echo({{'Rebuilding index...', 'Normal'}}, false, {})
+        vim.cmd('redraw')
+        local result = indexer.build(notebook_path)
+        if not result.ok then
+          vim.api.nvim_echo({{'Index rebuild warning: ' .. (result.error or 'unknown error'), 'WarningMsg'}}, true, {})
         end
       end
     end
@@ -250,25 +244,11 @@ function M.refresh()
   vim.fn['linny_menu#openandshow']()
 end
 
---- Try to auto-start Hugo watch mode on first menu open (if enabled)
---- Called by any menu open function
-local function try_hugo_watch_autostart()
-  local hugo = require('linny.hugo')
-  if not hugo.watch_auto_started() then
-    hugo.mark_watch_auto_started()
-    local watch_enabled = vim.g.linny_hugo_watch_enabled or 0
-    if watch_enabled == 1 then
-      local notebook_path = vim.g.linny_open_notebook_path
-      if notebook_path and notebook_path ~= '' then
-        local detection = hugo.detect()
-        if detection.found then
-          local result = hugo.start_watch(notebook_path)
-          if result.ok then
-            vim.api.nvim_echo({{'Hugo watch mode started', 'Normal'}}, false, {})
-          end
-        end
-      end
-    end
+local function try_index_watch_autostart()
+  local indexer = require('linny.indexer')
+  local result = indexer.auto_start_watch()
+  if result and result.ok then
+    vim.api.nvim_echo({{'Index watch mode started', 'Normal'}}, false, {})
   end
 end
 
@@ -276,7 +256,7 @@ end
 --- Used by LinnyStart
 function M.open_home()
   require('linny.menu.state').tab_init()
-  try_hugo_watch_autostart()
+  try_index_watch_autostart()
   vim.fn['linny_menu#openterm']('', '')
 end
 
@@ -288,7 +268,7 @@ function M.open_restore()
     require('linny.menu.state').tab_init()
   end
 
-  try_hugo_watch_autostart()
+  try_index_watch_autostart()
 
   -- Use current state variables (may be empty = root view)
   vim.fn['linny_menu#openandshow']()
