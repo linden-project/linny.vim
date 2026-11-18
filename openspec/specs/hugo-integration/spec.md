@@ -3,7 +3,9 @@
 ## Purpose
 
 Hugo executable integration for building and managing the Linny notebook index.
+
 ## Requirements
+
 ### Requirement: Hugo executable detection
 
 The `lua/linny/hugo.lua` module SHALL provide a `detect()` function that locates the Hugo executable.
@@ -82,41 +84,3 @@ The module SHALL expose a Vimscript-callable function for triggering index rebui
 - **AND** `g:linny_open_notebook_path` is set to a valid notebook
 - **THEN** the function SHALL call `require('linny.hugo').build_index()` with the notebook path
 - **AND** display a message indicating success or failure
-
-### Requirement: R key triggers index rebuild in views
-
-The menu view refresh action SHALL trigger an index rebuild before refreshing content, unless watch mode is active OR hugo hooks are disabled.
-
-#### Scenario: R key in menu view
-
-- **WHEN** user presses R in a Linny menu view
-- **AND** the notebook is valid
-- **AND** Hugo is available
-- **AND** watch mode is NOT active
-- **AND** `g:linny_hugo_hook_enabled` is `1` (or unset)
-- **THEN** the index SHALL be rebuilt before the view refreshes
-- **AND** a status message SHALL indicate the rebuild is happening
-
-#### Scenario: R key when Hugo unavailable
-
-- **WHEN** user presses R in a Linny menu view
-- **AND** Hugo is not available
-- **THEN** the view SHALL refresh without rebuilding the index
-- **AND** no error SHALL be displayed (graceful degradation)
-
-#### Scenario: R key when watch mode is active
-
-- **WHEN** user presses R in a Linny menu view
-- **AND** watch mode is active (`hugo.is_watching()` returns true)
-- **THEN** the view SHALL refresh without manually rebuilding the index
-- **AND** no rebuild message SHALL be displayed
-- **AND** the index is assumed current (watch handles rebuilds)
-
-#### Scenario: R key when hugo hook is disabled
-
-- **WHEN** user presses R in a Linny menu view
-- **AND** `g:linny_hugo_hook_enabled` is `0`
-- **THEN** the view SHALL refresh without any Hugo operations
-- **AND** no Hugo detection SHALL occur
-- **AND** no rebuild message SHALL be displayed
-
