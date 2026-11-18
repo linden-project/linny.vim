@@ -2,6 +2,8 @@
 
 ## Next version
 
+## 0.10.0 - 18 nov 2026
+
 - feature: index the notebook with `lindexer` by default; Hugo is a fallback for one release, with a one-time notice
 - feature: `:LinnyIndexWatch` and `:LinnyIndexStop`, with the `:LinnyHugoWatch` and `:LinnyHugoStop` names kept as aliases
 - feature: `g:linny_index_hook_enabled` and `g:linny_index_watch_enabled`; the `g:linny_hugo_*` variables still work
