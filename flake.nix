@@ -47,10 +47,15 @@
           vim.g.mapleader = " "
 
           -- Set linny paths for testing
-          vim.g.linny_open_notebook_path = vim.fn.expand('~/cLinden/linny-notebook-template')
+          local linny_root = (linny_dev_path and linny_dev_path ~= vim.NIL) and linny_dev_path or "${linnyPluginPath}"
+          local notebook = linny_root .. "/.dev/notebook"
+          if vim.fn.isdirectory(notebook) == 0 then
+            notebook = linny_root .. "/tests/fixtures/mock-notebook"
+          end
+          vim.g.linny_open_notebook_path = notebook
           vim.g.linny_hugo_watch_enabled = 1
           vim.g.linny_hugo_hook_enabled = 1
-          vim.g.linny_notebooks = { '~/cLinden/linny-notebook-template', '~/cLinden/linny-notebook-template2' }
+          vim.g.linny_notebooks = { notebook }
 
           -- Quick reload function for development
           _G.reload_linny = function()
@@ -168,6 +173,12 @@
           export XDG_CACHE_HOME="$(pwd)/.dev/cache"
 
           mkdir -p "$XDG_CONFIG_HOME" "$XDG_DATA_HOME" "$XDG_STATE_HOME" "$XDG_CACHE_HOME"
+
+          if [ ! -d "$(pwd)/.dev/notebook" ]; then
+            cp -r "$(pwd)/tests/fixtures/mock-notebook" "$(pwd)/.dev/notebook"
+            rm -rf "$(pwd)/.dev/notebook/lindenIndex"
+            mkdir -p "$(pwd)/.dev/notebook/lindenIndex"
+          fi
         '';
       };
 
