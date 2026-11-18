@@ -8,3 +8,7 @@ doc/tags
 .dev/
 .direnv/
 result
+
+# AI assistant tooling
+.claude/
+.opencode/
