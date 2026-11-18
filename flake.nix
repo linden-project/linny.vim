@@ -7,9 +7,13 @@
       url = "github:nix-community/nixvim";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    linden-index = {
+      url = "github:linden-project/linden-index";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, nixvim, ... }:
+  outputs = { self, nixpkgs, nixvim, linden-index, ... }:
     let
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
@@ -18,6 +22,8 @@
       linnyPluginPath = self;
 
       nixvimModule = {
+        extraPackages = [ linden-index.packages.${system}.lindexer ];
+
         extraPlugins = [
           # Plenary for testing
           pkgs.vimPlugins.plenary-nvim
@@ -134,6 +140,7 @@
           nvim
           pkgs.lua-language-server
           pkgs.stylua  # Lua formatter
+          linden-index.packages.${system}.lindexer
         ];
 
         shellHook = ''

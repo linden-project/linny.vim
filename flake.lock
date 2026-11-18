@@ -21,6 +21,26 @@
         "type": "github"
       }
     },
+    "linden-index": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1795008732,
+        "narHash": "sha256-Zh4mJYDHVJYnw84QuUDABgCsssc9M65W1xv6l00Pvq0=",
+        "owner": "linden-project",
+        "repo": "linden-index",
+        "rev": "bea9f9387a55236f432d9304e5ddac9f831e5a0c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "linden-project",
+        "repo": "linden-index",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1771848320,
@@ -61,6 +81,7 @@
     },
     "root": {
       "inputs": {
+        "linden-index": "linden-index",
         "nixpkgs": "nixpkgs",
         "nixvim": "nixvim"
       }
